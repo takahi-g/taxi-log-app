@@ -1,5 +1,5 @@
 /**
- * TAXI Log Pro - Core Logic v2.8
+ * TAXI Log Pro - Core Logic v3.0 (Editing Enabled)
  * -------------------------------------------
  */
 
@@ -16,6 +16,7 @@ const state = {
     moveLogs: safeJSON('move_logs', []),
     currentRide: safeJSON('current_ride', null),
     trackingIntervalId: null,
+    editingLogId: null, // 編集中のID
     map: null,
     mapLayers: { markers: [], path: null, rideLines: [] },
     counts: { total: 1, men: 0, women: 0 }
@@ -32,7 +33,7 @@ function safeJSON(key, fallback) {
 const UI = {
     get: (id) => document.getElementById(id),
     render: (id, html) => { const el = UI.get(id); if (el) el.innerHTML = html; },
-    show: (id, visible = true) => { const el = UI.get(id); if (el) el.style.display = visible ? 'block' : 'none'; },
+    show: (id, visible = true) => { const el = UI.get(id); if (el) el.style.display = visible ? 'flex' : 'none'; },
     active: (id, isActive = true) => { const el = UI.get(id); if (el) el.classList.toggle('active', isActive); }
 };
 
@@ -74,7 +75,6 @@ async function handleMainAction() {
         const now = new Date().toISOString();
 
         if (!state.currentRide) {
-            // --- 乗車 ---
             state.currentRide = {
                 pickup: { address: '取得中...', lat, lon, time: now },
                 pax: { ...state.counts }
@@ -90,14 +90,13 @@ async function handleMainAction() {
                 }
             });
         } else {
-            // --- 降車 ---
             const fareInput = UI.get('fare-input');
             const fare = fareInput ? (parseInt(fareInput.value) || 0) : 0;
             const newLog = {
                 id: Date.now(),
                 pickup: state.currentRide.pickup,
                 dropoff: { address: '取得中...', lat, lon, time: now },
-                pax: { ...state.counts }, // 最新のカウンターを記録
+                pax: { ...state.counts },
                 fare
             };
 
@@ -121,27 +120,56 @@ async function handleMainAction() {
                     target.dropoff.address = addr;
                     try {
                         localStorage.setItem('taxi_logs', JSON.stringify(state.logs.slice(0, CONFIG.MAX_LOGS)));
-                    } catch(e) { console.error("Save failed"); }
+                    } catch(e) { }
                     renderHistory();
                 }
             });
         }
     } catch (e) {
-        console.error("Action Error Detail:", e);
-        alert("エラー詳細: " + e.name + ": " + e.message + "\n(場所: " + (state.currentRide ? "降車処理" : "乗車処理") + ")");
+        alert("エラー詳細: " + e.name + ": " + e.message);
     } finally {
         btn.disabled = false;
         updateAppView();
     }
 }
 
-// --- 5. UI SYNCING ---
+// --- 5. EDIT MODE ACTIONS ---
+function openEditModal(id) {
+    const log = state.logs.find(l => l.id === id);
+    if (!log) return;
+    
+    state.editingLogId = id;
+    UI.get('edit-fare').value = log.fare;
+    UI.get('edit-men').value = log.pax.men;
+    UI.get('edit-women').value = log.pax.women;
+    UI.show('edit-modal', true);
+}
+
+function closeEditModal() {
+    UI.show('edit-modal', false);
+    state.editingLogId = null;
+}
+
+function saveEdit() {
+    const log = state.logs.find(l => l.id === state.editingLogId);
+    if (log) {
+        log.fare = parseInt(UI.get('edit-fare').value) || 0;
+        log.pax.men = parseInt(UI.get('edit-men').value) || 0;
+        log.pax.women = parseInt(UI.get('edit-women').value) || 0;
+        log.pax.total = log.pax.men + log.pax.women;
+        
+        localStorage.setItem('taxi_logs', JSON.stringify(state.logs));
+        renderHistory();
+    }
+    closeEditModal();
+}
+
+// --- 6. UI SYNCING ---
 function updateAppView() {
     const isRiding = !!state.currentRide;
     const btn = UI.get('main-log-btn');
     if (!btn) return;
 
-    // View Switching
     btn.className = `main-action-btn ${isRiding ? 'dropoff' : 'pickup'}`;
     UI.render('main-log-btn', isRiding ? 
         `<span id="btn-icon">🏁</span> <span id="btn-text">降車（記録完了・売上）</span>` : 
@@ -150,7 +178,6 @@ function updateAppView() {
     UI.show('fare-container', isRiding);
     
     if (isRiding) {
-        // 保存されていた人数を復元
         state.counts = { ...state.currentRide.pax };
         UI.render('men-count', state.counts.men);
         UI.render('women-count', state.counts.women);
@@ -194,6 +221,7 @@ function renderHistory() {
                         <span class="men">♂${log.pax.men}</span>
                         <span class="women">♀${log.pax.women}</span>
                     </div>
+                    <button class="history-edit-btn" onclick="openEditModal(${log.id})">✏️</button>
                 </div>
             `;
         });
@@ -201,7 +229,7 @@ function renderHistory() {
     UI.render('history-list', html);
 }
 
-// --- 6. MAP LOGIC ---
+// --- 7. MAP LOGIC ---
 function initOrUpdateMap() {
     if (!state.map) {
         state.map = L.map('log-map').setView(CONFIG.DUMMY_COORDS, 14);
@@ -229,7 +257,7 @@ function initOrUpdateMap() {
     }, 200);
 }
 
-// --- 7. ECO SYSTEM & EVENTS ---
+// --- 8. ECO SYSTEM & EVENTS ---
 function setupEventListeners() {
     UI.get('main-log-btn')?.addEventListener('click', handleMainAction);
     UI.get('tracking-toggle')?.addEventListener('change', (e) => {
@@ -268,15 +296,10 @@ function changeCount(type, delta) {
     }
 }
 
-// --- 8. BOOTSTRAP ---
 document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
     setupEventListeners();
     updateAppView();
-    if ("geolocation" in navigator) {
-        const s = UI.get('gps-status');
-        if (s) { s.textContent = "GPS 有効"; s.style.color = "#10b981"; }
-    }
 });
 
 function clearData() { if (confirm("全消去しますか？")) { localStorage.clear(); location.reload(); } }
