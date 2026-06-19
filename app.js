@@ -1,7 +1,6 @@
 /**
- * TAXI Log Pro - Core Logic v2.5 (Refactored)
+ * TAXI Log Pro - Core Logic v2.8
  * -------------------------------------------
- * concerns: State Management, UI Sync, Geolocation, API Services
  */
 
 // --- 1. CONFIG & STATE ---
@@ -9,7 +8,7 @@ const CONFIG = {
     MAX_LOGS: 100,
     GPS_TIMEOUT: 10000,
     TRACKING_INTERVAL: 30000,
-    DUMMY_COORDS: [33.5002, 130.5168] // 二日市駅
+    DUMMY_COORDS: [33.5002, 130.5168]
 };
 
 const state = {
@@ -63,7 +62,7 @@ const GeoService = {
 // --- 4. CORE ACTIONS ---
 async function handleMainAction() {
     const btn = UI.get('main-log-btn');
-    const addrEl = UI.get("address-text");
+    const addrEl = UI.get('address-text');
     if (!btn || btn.disabled) return;
 
     btn.disabled = true;
@@ -87,7 +86,7 @@ async function handleMainAction() {
                 if (state.currentRide) {
                     state.currentRide.pickup.address = addr;
                     localStorage.setItem('current_ride', JSON.stringify(state.currentRide));
-                    UI.render('address-text', `乗車: ${addr}`);
+                    UI.render('address-text', `目的地に向かいましょう`);
                 }
             });
         } else {
@@ -98,7 +97,7 @@ async function handleMainAction() {
                 id: Date.now(),
                 pickup: state.currentRide.pickup,
                 dropoff: { address: '取得中...', lat, lon, time: now },
-                pax: state.currentRide.pax,
+                pax: { ...state.counts }, // 最新のカウンターを記録
                 fare
             };
 
@@ -106,9 +105,8 @@ async function handleMainAction() {
             localStorage.setItem('taxi_logs', JSON.stringify(state.logs.slice(0, CONFIG.MAX_LOGS)));
             
             const logId = newLog.id;
-            // リセット
             state.currentRide = null;
-            state.counts = { total: 1, men: 0, women: 0 }; // カウントをリセット
+            state.counts = { total: 1, men: 0, women: 0 }; 
             localStorage.removeItem('current_ride');
             if (fareInput) fareInput.value = "";
             
@@ -152,6 +150,10 @@ function updateAppView() {
     UI.show('fare-container', isRiding);
     
     if (isRiding) {
+        // 保存されていた人数を復元
+        state.counts = { ...state.currentRide.pax };
+        UI.render('men-count', state.counts.men);
+        UI.render('women-count', state.counts.women);
         UI.render('address-text', `目的地に向かいましょう`);
     } else {
         UI.render('address-text', `次回乗車をお待ちください`);
@@ -165,7 +167,6 @@ function renderHistory() {
         return;
     }
 
-    // 日付ごとにグループ化
     const groups = {};
     state.logs.forEach(log => {
         const dateKey = new Date(log.dropoff.time).toLocaleDateString('ja-JP', {
@@ -197,7 +198,6 @@ function renderHistory() {
             `;
         });
     });
-
     UI.render('history-list', html);
 }
 
@@ -207,13 +207,11 @@ function initOrUpdateMap() {
         state.map = L.map('log-map').setView(CONFIG.DUMMY_COORDS, 14);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OS' }).addTo(state.map);
     }
-
     state.mapLayers.markers.forEach(m => state.map.removeLayer(m));
     state.mapLayers.rideLines.forEach(l => state.map.removeLayer(l));
     if (state.mapLayers.path) state.map.removeLayer(state.mapLayers.path);
     state.mapLayers.markers = [];
     state.mapLayers.rideLines = [];
-
     state.logs.forEach(log => {
         if (!log.pickup || !log.dropoff) return;
         const start = L.circleMarker([log.pickup.lat, log.pickup.lon], { color: 'gold', radius: 5, fillOpacity: 0.8 }).addTo(state.map);
@@ -222,27 +220,21 @@ function initOrUpdateMap() {
         state.mapLayers.markers.push(start, end);
         state.mapLayers.rideLines.push(line);
     });
-
     if (state.moveLogs.length > 1) {
         state.mapLayers.path = L.polyline(state.moveLogs.map(m => [m.lat, m.lon]), { color: '#3b82f6', weight: 3, opacity: 0.4 }).addTo(state.map);
     }
-
     setTimeout(() => {
         state.map.invalidateSize();
-        if (state.mapLayers.markers.length > 0) {
-            state.map.fitBounds(new L.featureGroup(state.mapLayers.markers).getBounds().pad(0.2));
-        }
+        if (state.mapLayers.markers.length > 0) state.map.fitBounds(new L.featureGroup(state.mapLayers.markers).getBounds().pad(0.2));
     }, 200);
 }
 
 // --- 7. ECO SYSTEM & EVENTS ---
 function setupEventListeners() {
     UI.get('main-log-btn')?.addEventListener('click', handleMainAction);
-    
     UI.get('tracking-toggle')?.addEventListener('change', (e) => {
         if (e.target.checked) startTracking(); else stopTracking();
     });
-
     ['log', 'map', 'settings'].forEach(tab => {
         UI.get(`tab-${tab}`)?.addEventListener('click', () => {
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
@@ -270,6 +262,10 @@ function changeCount(type, delta) {
     state.counts[type] = Math.max(0, state.counts[type] + delta);
     UI.render(`${type}-count`, state.counts[type]);
     state.counts.total = state.counts.men + state.counts.women;
+    if (state.currentRide) {
+        state.currentRide.pax = { ...state.counts };
+        localStorage.setItem('current_ride', JSON.stringify(state.currentRide));
+    }
 }
 
 // --- 8. BOOTSTRAP ---
@@ -283,7 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Settings
 function clearData() { if (confirm("全消去しますか？")) { localStorage.clear(); location.reload(); } }
 function exportData() {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.logs));
