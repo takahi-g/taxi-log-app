@@ -36,32 +36,21 @@
                     <p id="address-text">取得するには「記録」を押してください</p>
                 </div>
 
-                <div class="input-grid">
+                <div class="input-grid duo">
                     <div class="input-group">
-                        <label>人数</label>
+                        <label>男性</label>
                         <div class="stepper">
-                            <button type="button" onclick="changeCount('total', -1)">−</button>
-                            <span id="total-count">1</span>
-                            <button type="button" onclick="changeCount('total', 1)">+</button>
+                            <button type="button" onclick="changeCount('men', -1)">−</button>
+                            <span id="men-count">0</span>
+                            <button type="button" onclick="changeCount('men', 1)">+</button>
                         </div>
                     </div>
-
-                    <div class="gender-split">
-                        <div class="input-group mini">
-                            <label>男性</label>
-                            <div class="stepper mini">
-                                <button type="button" onclick="changeCount('men', -1)">−</button>
-                                <span id="men-count">0</span>
-                                <button type="button" onclick="changeCount('men', 1)">+</button>
-                            </div>
-                        </div>
-                        <div class="input-group mini">
-                            <label>女性</label>
-                            <div class="stepper mini">
-                                <button type="button" onclick="changeCount('women', -1)">−</button>
-                                <span id="women-count">0</span>
-                                <button type="button" onclick="changeCount('women', 1)">+</button>
-                            </div>
+                    <div class="input-group">
+                        <label>女性</label>
+                        <div class="stepper">
+                            <button type="button" onclick="changeCount('women', -1)">−</button>
+                            <span id="women-count">0</span>
+                            <button type="button" onclick="changeCount('women', 1)">+</button>
                         </div>
                     </div>
                 </div>

@@ -237,13 +237,9 @@ function stopTracking() { if (state.trackingIntervalId) clearInterval(state.trac
 function changeCount(type, delta) {
     state.counts[type] = Math.max(0, state.counts[type] + delta);
     UI.render(`${type}-count`, state.counts[type]);
-    if (type !== 'total') {
-        const sum = state.counts.men + state.counts.women;
-        if (sum > state.counts.total) { 
-            state.counts.total = sum; 
-            UI.render('total-count', state.counts.total); 
-        }
-    }
+    
+    // 合計を自動更新
+    state.counts.total = state.counts.men + state.counts.women;
 }
 
 // --- 8. BOOTSTRAP ---

@@ -85,7 +85,15 @@ body {
 #address-text { font-size: 0.95rem; font-weight: 500; color: var(--text-main); }
 
 /* Stepper */
-.input-grid { display: grid; gap: 16px; margin-bottom: 20px; }
+.input-grid {
+    display: grid;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.input-grid.duo {
+    grid-template-columns: 1fr 1fr;
+}
 .stepper {
     display: flex; align-items: center; justify-content: space-between;
     background: var(--bg-surface);
