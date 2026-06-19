@@ -64,47 +64,73 @@ async function handleMainAction() {
     navigator.geolocation.getCurrentPosition(async (pos) => {
         try {
             const { latitude, longitude } = pos.coords;
-            const address = await fetchAddress(latitude, longitude);
             const now = new Date().toISOString();
+            
+            // ひとまず座標だけで表示を更新（待たせない）
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
 
             if (!currentRide) {
+                // --- 乗車開始 ---
                 currentRide = {
-                    pickup: { address, lat: latitude, lon: longitude, time: now },
+                    pickup: { address: "住所取得中...", lat: latitude, lon: longitude, time: now },
                     pax: { ...counts }
                 };
                 localStorage.setItem('current_ride', JSON.stringify(currentRide));
                 updateRideUI(true);
-                addrEl.textContent = "乗車中: " + address;
+                addrEl.textContent = "乗車地点を取得しました";
+                
+                // バックグラウンドで住所を取得
+                fetchAddress(latitude, longitude).then(address => {
+                    if (currentRide) {
+                        currentRide.pickup.address = address;
+                        localStorage.setItem('current_ride', JSON.stringify(currentRide));
+                        addrEl.textContent = "乗車: " + address;
+                    }
+                });
             } else {
+                // --- 降車完了 ---
                 const fareInput = document.getElementById('fare-input');
                 const fare = fareInput ? (parseInt(fareInput.value) || 0) : 0;
                 const newLog = {
                     id: Date.now(),
                     pickup: currentRide.pickup,
-                    dropoff: { address, lat: latitude, lon: longitude, time: now },
+                    dropoff: { address: "住所取得中...", lat: latitude, lon: longitude, time: now },
                     pax: currentRide.pax,
                     fare: fare
                 };
 
                 logs.unshift(newLog);
                 localStorage.setItem('taxi_logs', JSON.stringify(logs.slice(0, 100)));
+                
+                const tempId = newLog.id;
                 currentRide = null;
                 localStorage.removeItem('current_ride');
                 if (fareInput) fareInput.value = "";
                 updateRideUI(false);
                 renderHistory();
-                addrEl.textContent = "前回降車: " + address;
+                addrEl.textContent = "降車地点を記録しました";
+
+                // バックグラウンドで住所を補完
+                fetchAddress(latitude, longitude).then(address => {
+                    const target = logs.find(l => l.id === tempId);
+                    if (target) {
+                        target.dropoff.address = address;
+                        localStorage.setItem('taxi_logs', JSON.stringify(logs));
+                        renderHistory();
+                    }
+                });
             }
         } catch (e) {
             console.error("Action error:", e);
-            alert("記録に失敗しました");
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
         }
-        btn.disabled = false;
     }, (err) => {
         alert("GPS失敗: " + err.message);
         btn.disabled = false;
         btn.innerHTML = originalContent;
-    }, { enableHighAccuracy: true, timeout: 10000 });
+    }, { enableHighAccuracy: true, timeout: 8000 });
 }
 
 function updateRideUI(isRiding) {
