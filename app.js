@@ -152,9 +152,9 @@ function updateAppView() {
     UI.show('fare-container', isRiding);
     
     if (isRiding) {
-        UI.render('address-text', `乗車中: ${state.currentRide.pickup.address}`);
+        UI.render('address-text', `目的地に向かいましょう`);
     } else {
-        UI.render('address-text', `目的地でお客さんを降ろしましょう`);
+        UI.render('address-text', `次回乗車をお待ちください`);
     }
     renderHistory();
 }
