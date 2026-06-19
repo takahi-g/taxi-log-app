@@ -65,7 +65,19 @@ async function fetchAddress(lat, lon) {
             headers: { 'Accept-Language': 'ja' }
         });
         const data = await response.json();
-        return data.display_name || "住所不明";
+        const addr = data.address;
+        
+        // 市区町村、町名、丁目などを抽出
+        const city = addr.city || addr.town || addr.village || "";
+        const suburb = addr.suburb || addr.neighbourhood || "";
+        const road = addr.road || "";
+        // 丁目や番地
+        const block = addr.house_number || "";
+
+        // 筑紫野市 + 塔原東 + 1丁目 のように組み合わせる
+        let simpleAddr = `${city}${suburb}${road}${block}`;
+        
+        return simpleAddr || "住所不明";
     } catch (e) {
         console.error("Address fetch error:", e);
         return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
