@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TAXI Log Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <header class="main-header">
+        <div class="logo">
+            <span class="logo-icon">🚖</span>
+            <h1>TAXI Log <span>Pro</span></h1>
+        </div>
+        <div id="live-clock" class="live-clock">--:--:--</div>
+    </header>
+
+    <main class="container">
+        <!-- クイック乗車記録セクション -->
+        <section class="card record-card">
+            <div class="card-header">
+                <h2>乗車記録</h2>
+                <div class="status-badge" id="gps-status">GPS待機中</div>
+            </div>
+            
+            <div class="location-display" id="current-location">
+                <span class="label">📍 現在地（住所）</span>
+                <p id="address-text">取得するには「記録」を押してください</p>
+            </div>
+
+            <div class="input-grid">
+                <div class="input-group">
+                    <label>人数</label>
+                    <div class="stepper">
+                        <button type="button" onclick="changeCount('total', -1)">−</button>
+                        <span id="total-count">1</span>
+                        <button type="button" onclick="changeCount('total', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="gender-split">
+                    <div class="input-group mini">
+                        <label>男性</label>
+                        <div class="stepper mini">
+                            <button type="button" onclick="changeCount('men', -1)">−</button>
+                            <span id="men-count">0</span>
+                            <button type="button" onclick="changeCount('men', 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="input-group mini">
+                        <label>女性</label>
+                        <div class="stepper mini">
+                            <button type="button" onclick="changeCount('women', -1)">−</button>
+                            <span id="women-count">0</span>
+                            <button type="button" onclick="changeCount('women', 1)">+</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="save-log-btn" class="main-action-btn">
+                <span class="btn-icon">💾</span> 今この場所で記録する
+            </button>
+        </section>
+
+        <!-- 走行ログ設定 -->
+        <section class="card tracking-card">
+            <div class="flex-between">
+                <div>
+                    <h3>自動走行ログ</h3>
+                    <p class="desc">移動経路を定期的に自動記録します</p>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="tracking-toggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </section>
+
+        <!-- 最近の履歴 -->
+        <section class="history-section">
+            <div class="card-header">
+                <h2>最近の履歴</h2>
+                <button class="text-btn">すべて見る</button>
+            </div>
+            <div id="history-list" class="history-list">
+                <!-- JavaScriptで履歴が追加されます -->
+                <div class="empty-state">履歴はまだありません</div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="main-footer">
+        <nav class="tab-bar">
+            <button class="tab-item active">📊 ログ</button>
+            <button class="tab-item">📍 マップ</button>
+            <button class="tab-item">⚙️ 設定</button>
+        </nav>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
