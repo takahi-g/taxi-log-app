@@ -91,7 +91,8 @@ async function handleMainAction() {
             });
         } else {
             // --- 降車 ---
-            const fare = parseInt(UI.get('fare-input').value) || 0;
+            const fareInput = UI.get('fare-input');
+            const fare = fareInput ? (parseInt(fareInput.value) || 0) : 0;
             const newLog = {
                 id: Date.now(),
                 pickup: state.currentRide.pickup,
@@ -125,7 +126,7 @@ async function handleMainAction() {
             });
         }
     } catch (e) {
-        alert("GPSが取得できませんでした。");
+        alert("エラーが発生しました: " + e.message);
     } finally {
         btn.disabled = false;
         updateAppView();
