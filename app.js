@@ -161,7 +161,10 @@ function renderHistory() {
                 <span class="addr">自: ${log.pickup.address}</span>
                 <span class="addr">至: ${log.dropoff.address}</span>
             </div>
-            <div class="pax-badge">${log.pax.total}名</div>
+            <div class="pax-badge">
+                <span class="men">♂${log.pax.men}</span>
+                <span class="women">♀${log.pax.women}</span>
+            </div>
         </div>
     `).join('');
     UI.render('history-list', html);
