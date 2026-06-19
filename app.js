@@ -63,6 +63,7 @@ const GeoService = {
 // --- 4. CORE ACTIONS ---
 async function handleMainAction() {
     const btn = UI.get('main-log-btn');
+    const addrEl = UI.get('address-text');
     if (!btn || btn.disabled) return;
 
     btn.disabled = true;
@@ -114,19 +115,22 @@ async function handleMainAction() {
             updateAppView();
             UI.render('men-count', 0);
             UI.render('women-count', 0);
-            addrEl.textContent = "目的地でお客さんを降ろしました";
+            if (addrEl) addrEl.textContent = "目的地でお客さんを降ろしました";
 
             GeoService.getAddress(lat, lon).then(addr => {
                 const target = state.logs.find(l => l.id === logId);
                 if (target) {
                     target.dropoff.address = addr;
-                    localStorage.setItem('taxi_logs', JSON.stringify(state.logs));
+                    try {
+                        localStorage.setItem('taxi_logs', JSON.stringify(state.logs.slice(0, CONFIG.MAX_LOGS)));
+                    } catch(e) { console.error("Save failed"); }
                     renderHistory();
                 }
             });
         }
     } catch (e) {
-        alert("エラーが発生しました: " + e.message);
+        console.error("Action Error Detail:", e);
+        alert("エラー詳細: " + e.name + ": " + e.message + "\n(場所: " + (state.currentRide ? "降車処理" : "乗車処理") + ")");
     } finally {
         btn.disabled = false;
         updateAppView();
@@ -172,11 +176,9 @@ function renderHistory() {
     });
 
     let html = '';
-    // 日付グループをループ（新しい日付順）
     Object.keys(groups).forEach(date => {
         html += `<div class="date-header">${date}</div>`;
         const dayLogs = groups[date];
-        // その日の組数を計算（履歴全体での順番ではなく、その日の下から数えた順番）
         dayLogs.forEach((log, index) => {
             const rideNumber = dayLogs.length - index;
             html += `
@@ -206,14 +208,12 @@ function initOrUpdateMap() {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OS' }).addTo(state.map);
     }
 
-    // 清掃
     state.mapLayers.markers.forEach(m => state.map.removeLayer(m));
     state.mapLayers.rideLines.forEach(l => state.map.removeLayer(l));
     if (state.mapLayers.path) state.map.removeLayer(state.mapLayers.path);
     state.mapLayers.markers = [];
     state.mapLayers.rideLines = [];
 
-    // トリップ描画
     state.logs.forEach(log => {
         if (!log.pickup || !log.dropoff) return;
         const start = L.circleMarker([log.pickup.lat, log.pickup.lon], { color: 'gold', radius: 5, fillOpacity: 0.8 }).addTo(state.map);
@@ -269,8 +269,6 @@ function stopTracking() { if (state.trackingIntervalId) clearInterval(state.trac
 function changeCount(type, delta) {
     state.counts[type] = Math.max(0, state.counts[type] + delta);
     UI.render(`${type}-count`, state.counts[type]);
-    
-    // 合計を自動更新
     state.counts.total = state.counts.men + state.counts.women;
 }
 
