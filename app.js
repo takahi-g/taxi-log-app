@@ -1,286 +1,265 @@
-// app.js - TAXI Log Pro (Version 2.1 - Robust Edition)
+/**
+ * TAXI Log Pro - Core Logic v2.5 (Refactored)
+ * -------------------------------------------
+ * concerns: State Management, UI Sync, Geolocation, API Services
+ */
 
-// データの読み込みを安全に行う
+// --- 1. CONFIG & STATE ---
+const CONFIG = {
+    MAX_LOGS: 100,
+    GPS_TIMEOUT: 10000,
+    TRACKING_INTERVAL: 60000,
+    DUMMY_COORDS: [33.5002, 130.5168] // 二日市駅
+};
+
+const state = {
+    logs: safeJSON('taxi_logs', []),
+    moveLogs: safeJSON('move_logs', []),
+    currentRide: safeJSON('current_ride', null),
+    trackingIntervalId: null,
+    map: null,
+    mapLayers: { markers: [], path: null, rideLines: [] },
+    counts: { total: 1, men: 0, women: 0 }
+};
+
+// --- 2. UTILITIES ---
 function safeJSON(key, fallback) {
     try {
         const item = localStorage.getItem(key);
         return item ? JSON.parse(item) : fallback;
-    } catch (e) {
-        console.error("Data load error for " + key, e);
-        return fallback;
-    }
+    } catch (e) { return fallback; }
 }
 
-let logs = safeJSON('taxi_logs', []);
-let moveLogs = safeJSON('move_logs', []);
-let currentRide = safeJSON('current_ride', null);
-let trackingInterval = null;
-let mapInstance = null;
-let mapLayers = { markers: [], path: null, rideLines: [] };
+const UI = {
+    get: (id) => document.getElementById(id),
+    render: (id, html) => { const el = UI.get(id); if (el) el.innerHTML = html; },
+    show: (id, visible = true) => { const el = UI.get(id); if (el) el.style.display = visible ? 'block' : 'none'; },
+    active: (id, isActive = true) => { const el = UI.get(id); if (el) el.classList.toggle('active', isActive); }
+};
 
-let counts = { total: 1, men: 0, women: 0 };
+const Formatter = {
+    time: (date) => new Date(date).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+    currency: (val) => `¥${Number(val).toLocaleString()}`
+};
 
-// 初期化
-document.addEventListener('DOMContentLoaded', () => {
-    try {
-        updateClock();
-        setInterval(updateClock, 1000);
-        renderHistory();
-        checkGPSStatus();
-
-        const mainBtn = document.getElementById('main-log-btn');
-        if (mainBtn) {
-            mainBtn.addEventListener('click', handleMainAction);
-        } else {
-            console.error("Main button not found");
-        }
-        
-        if (currentRide) updateRideUI(true);
-
-        const trackToggle = document.getElementById('tracking-toggle');
-        if (trackToggle) {
-            trackToggle.addEventListener('change', (e) => {
-                if (e.target.checked) startTracking(); else stopTracking();
-            });
-        }
-
-        setupTabs();
-        console.log("App initialized successfully");
-    } catch (e) {
-        console.error("Initialization failed:", e);
+// --- 3. GEO & ADDRESS SERVICE ---
+const GeoService = {
+    async getAddress(lat, lon) {
+        try {
+            const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`, { headers: { 'Accept-Language': 'ja' } });
+            const d = await r.json();
+            const a = d.address;
+            if (!a) return "住所詳細不明";
+            return `${a.city || a.town || a.village || ""}${a.suburb || a.neighbourhood || ""}${a.road || ""}${a.house_number || ""}` || "不明な住所";
+        } catch (e) { return `${lat.toFixed(4)}, ${lon.toFixed(4)}`; }
+    },
+    getCurrentPosition() {
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: CONFIG.GPS_TIMEOUT });
+        });
     }
-});
+};
 
-// メインアクション（乗車・降車）
+// --- 4. CORE ACTIONS ---
 async function handleMainAction() {
-    const btn = document.getElementById('main-log-btn');
-    const addrEl = document.getElementById('address-text');
-    const btnText = document.getElementById('btn-text');
-    if (!btn || !addrEl) return;
+    const btn = UI.get('main-log-btn');
+    if (!btn || btn.disabled) return;
 
     btn.disabled = true;
-    const oldIcon = document.getElementById('btn-icon').textContent;
-    const oldText = btnText.textContent;
-    btnText.textContent = "位置取得中...";
+    UI.render('btn-text', '⌛ 位置取得中...');
 
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-            const { latitude, longitude } = pos.coords;
-            const now = new Date().toISOString();
+    try {
+        const pos = await GeoService.getCurrentPosition();
+        const { latitude: lat, longitude: lon } = pos.coords;
+        const now = new Date().toISOString();
+
+        if (!state.currentRide) {
+            // --- 乗車 ---
+            state.currentRide = {
+                pickup: { address: '取得中...', lat, lon, time: now },
+                pax: { ...state.counts }
+            };
+            localStorage.setItem('current_ride', JSON.stringify(state.currentRide));
+            updateAppView();
             
-            if (!currentRide) {
-                // --- 乗車開始 ---
-                currentRide = {
-                    pickup: { address: "住所取得中...", lat: latitude, lon: longitude, time: now },
-                    pax: { ...counts }
-                };
-                localStorage.setItem('current_ride', JSON.stringify(currentRide));
-                addrEl.textContent = "乗車地点を確定しました";
-                
-                // 速やかにUIを「乗車中（降車ボタン）」に変える
-                updateRideUI(true);
+            GeoService.getAddress(lat, lon).then(addr => {
+                if (state.currentRide) {
+                    state.currentRide.pickup.address = addr;
+                    localStorage.setItem('current_ride', JSON.stringify(state.currentRide));
+                    UI.render('address-text', `乗車: ${addr}`);
+                }
+            });
+        } else {
+            // --- 降車 ---
+            const fare = parseInt(UI.get('fare-input').value) || 0;
+            const newLog = {
+                id: Date.now(),
+                pickup: state.currentRide.pickup,
+                dropoff: { address: '取得中...', lat, lon, time: now },
+                pax: state.currentRide.pax,
+                fare
+            };
 
-                fetchAddress(latitude, longitude).then(address => {
-                    if (currentRide) {
-                        currentRide.pickup.address = address;
-                        localStorage.setItem('current_ride', JSON.stringify(currentRide));
-                        addrEl.textContent = "乗車: " + address;
-                    }
-                });
-            } else {
-                // --- 降車完了 ---
-                const fareInput = document.getElementById('fare-input');
-                const fare = fareInput ? (parseInt(fareInput.value) || 0) : 0;
-                const newLog = {
-                    id: Date.now(),
-                    pickup: currentRide.pickup,
-                    dropoff: { address: "住所取得中...", lat: latitude, lon: longitude, time: now },
-                    pax: currentRide.pax,
-                    fare: fare
-                };
+            state.logs.unshift(newLog);
+            localStorage.setItem('taxi_logs', JSON.stringify(state.logs.slice(0, CONFIG.MAX_LOGS)));
+            
+            const logId = newLog.id;
+            state.currentRide = null;
+            localStorage.removeItem('current_ride');
+            UI.get('fare-input').value = "";
+            updateAppView();
 
-                logs.unshift(newLog);
-                localStorage.setItem('taxi_logs', JSON.stringify(logs.slice(0, 100)));
-                
-                const tempId = newLog.id;
-                currentRide = null;
-                localStorage.removeItem('current_ride');
-                if (fareInput) fareInput.value = "";
-                
-                addrEl.textContent = "降車地点を確定しました";
-
-                // 速やかにUIを「待機中（乗車ボタン）」に変える
-                updateRideUI(false);
-                renderHistory();
-
-                fetchAddress(latitude, longitude).then(address => {
-                    const target = logs.find(l => l.id === tempId);
-                    if (target) {
-                        target.dropoff.address = address;
-                        localStorage.setItem('taxi_logs', JSON.stringify(logs));
-                        renderHistory();
-                    }
-                });
-            }
-        } catch (e) {
-            console.error("Action error:", e);
-            updateRideUI(!!currentRide); // 状態を復復元
-        }
-        btn.disabled = false;
-    }, (err) => {
-        alert("GPS失敗: " + err.message);
-        btn.disabled = false;
-        updateRideUI(!!currentRide);
-    }, { enableHighAccuracy: true, timeout: 8000 });
-}
-
-function updateRideUI(isRiding) {
-    const btn = document.getElementById('main-log-btn');
-    const btnIcon = document.getElementById('btn-icon');
-    const btnText = document.getElementById('btn-text');
-    const fareContainer = document.getElementById('fare-container');
-
-    if (!btn || !btnIcon || !btnText || !fareContainer) return;
-
-    if (isRiding) {
-        btn.className = 'main-action-btn dropoff';
-        btnIcon.textContent = "🏁";
-        btnText.textContent = "降車（記録完了・売上）";
-        fareContainer.style.display = "block";
-    } else {
-        btn.className = 'main-action-btn pickup';
-        btnIcon.textContent = "🚖";
-        btnText.textContent = "乗車（記録開始）";
-        fareContainer.style.display = "none";
-    }
-}
-
-function setupTabs() {
-    ['log', 'map', 'settings'].forEach(tab => {
-        const el = document.getElementById(`tab-${tab}`);
-        if (el) {
-            el.addEventListener('click', () => {
-                document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-                
-                const targetView = document.getElementById(`view-${tab}`);
-                if (targetView) {
-                    targetView.classList.add('active');
-                    el.classList.add('active');
-                    if (tab === 'map') initOrUpdateMap();
+            GeoService.getAddress(lat, lon).then(addr => {
+                const target = state.logs.find(l => l.id === logId);
+                if (target) {
+                    target.dropoff.address = addr;
+                    localStorage.setItem('taxi_logs', JSON.stringify(state.logs));
+                    renderHistory();
                 }
             });
         }
-    });
-}
-
-function initOrUpdateMap() {
-    try {
-        if (!mapInstance) {
-            mapInstance = L.map('log-map').setView([33.5002, 130.5168], 14);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(mapInstance);
-        }
-        mapLayers.markers.forEach(m => mapInstance.removeLayer(m));
-        mapLayers.markers = [];
-        mapLayers.rideLines.forEach(l => mapInstance.removeLayer(l));
-        mapLayers.rideLines = [];
-        if (mapLayers.path) mapInstance.removeLayer(mapLayers.path);
-
-        logs.forEach(log => {
-            if (log.pickup && log.dropoff) {
-                const start = L.circleMarker([log.pickup.lat, log.pickup.lon], { color: 'gold', radius: 6, fillOpacity: 0.8 }).addTo(mapInstance);
-                const end = L.circleMarker([log.dropoff.lat, log.dropoff.lon], { color: '#ef4444', radius: 6, fillOpacity: 0.8 }).addTo(mapInstance);
-                const line = L.polyline([[log.pickup.lat, log.pickup.lon], [log.dropoff.lat, log.dropoff.lon]], { color: 'white', weight: 2, dashArray: '5, 8', opacity: 0.5 }).addTo(mapInstance);
-                mapLayers.markers.push(start, end);
-                mapLayers.rideLines.push(line);
-            }
-        });
-
-        if (moveLogs.length > 1) {
-            mapLayers.path = L.polyline(moveLogs.map(m => [m.lat, m.lon]), { color: '#3b82f6', weight: 3, opacity: 0.4 }).addTo(mapInstance);
-        }
-
-        setTimeout(() => {
-            if (mapInstance) {
-                mapInstance.invalidateSize();
-                if (mapLayers.markers.length > 0) mapInstance.fitBounds(new L.featureGroup(mapLayers.markers).getBounds().pad(0.2));
-            }
-        }, 200);
     } catch (e) {
-        console.error("Map error:", e);
+        alert("GPSが取得できませんでした。");
+    } finally {
+        btn.disabled = false;
+        updateAppView();
     }
 }
 
-function updateClock() {
-    const clock = document.getElementById('live-clock');
-    if (clock) clock.textContent = new Date().toLocaleTimeString('ja-JP', { hour12: false });
-}
+// --- 5. UI SYNCING ---
+function updateAppView() {
+    const isRiding = !!state.currentRide;
+    const btn = UI.get('main-log-btn');
+    if (!btn) return;
 
-function changeCount(type, delta) {
-    counts[type] = Math.max(0, counts[type] + delta);
-    const el = document.getElementById(`${type}-count`);
-    if (el) el.textContent = counts[type];
-    if (type !== 'total') {
-        const sum = counts.men + counts.women;
-        if (sum > counts.total) { 
-            counts.total = sum; 
-            const totalEl = document.getElementById('total-count');
-            if (totalEl) totalEl.textContent = counts.total;
-        }
+    // View Switching
+    btn.className = `main-action-btn ${isRiding ? 'dropoff' : 'pickup'}`;
+    UI.render('main-log-btn', isRiding ? 
+        `<span id="btn-icon">🏁</span> <span id="btn-text">降車（記録完了・売上）</span>` : 
+        `<span id="btn-icon">🚖</span> <span id="btn-text">乗車（記録開始）</span>`
+    );
+    UI.show('fare-container', isRiding);
+    
+    if (isRiding) {
+        UI.render('address-text', `乗車中: ${state.currentRide.pickup.address}`);
+    } else {
+        UI.render('address-text', `目的地でお客さんを降ろしましょう`);
     }
-}
-
-async function fetchAddress(lat, lon) {
-    try {
-        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`, { headers: { 'Accept-Language': 'ja' } });
-        const d = await r.json();
-        const a = d.address;
-        if (!a) return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-        return `${a.city || a.town || a.village || ""}${a.suburb || a.neighbourhood || ""}${a.road || ""}${a.house_number || ""}` || "住所不明";
-    } catch (e) { return `${lat.toFixed(4)}, ${lon.toFixed(4)}`; }
-}
-
-function checkGPSStatus() { 
-    const s = document.getElementById('gps-status');
-    if ("geolocation" in navigator && s) { 
-        s.textContent = "GPS 有効"; 
-        s.style.color = "var(--success)"; 
-    } 
+    renderHistory();
 }
 
 function renderHistory() {
-    const list = document.getElementById('history-list');
-    if (!list) return;
-    if (logs.length === 0) { list.innerHTML = '<div class="empty-state">履歴なし</div>'; return; }
-    list.innerHTML = logs.slice(0, 10).map(log => {
-        const d = new Date(log.dropoff ? log.dropoff.time : log.id);
-        const fare = log.fare !== undefined ? ` <span style="color:var(--success)">¥${log.fare}</span>` : "";
-        const from = log.pickup ? log.pickup.address : "不明";
-        const to = log.dropoff ? log.dropoff.address : "不明";
-        return `<div class="history-item"><div class="history-info"><span class="time">${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}${fare}</span><span class="addr" style="font-size:0.75rem;opacity:0.8;display:block">自: ${from}</span><span class="addr" style="font-size:0.75rem;opacity:0.8;display:block">至: ${to}</span></div><div class="history-pax">${log.pax ? log.pax.total : "?"}名</div></div>`;
-    }).join('');
+    if (state.logs.length === 0) {
+        UI.render('history-list', '<div class="empty-state">履歴はまだありません</div>');
+        return;
+    }
+
+    const html = state.logs.slice(0, 10).map(log => `
+        <div class="history-item">
+            <div class="history-info">
+                <span class="time">${Formatter.time(log.dropoff.time)} <span class="fare-tag">${Formatter.currency(log.fare)}</span></span>
+                <span class="addr">自: ${log.pickup.address}</span>
+                <span class="addr">至: ${log.dropoff.address}</span>
+            </div>
+            <div class="pax-badge">${log.pax.total}名</div>
+        </div>
+    `).join('');
+    UI.render('history-list', html);
 }
 
-function startTracking() { 
-    if (trackingInterval) clearInterval(trackingInterval);
-    trackingInterval = setInterval(() => { 
-        navigator.geolocation.getCurrentPosition((pos) => { 
-            moveLogs.push({ time: new Date().toISOString(), lat: pos.coords.latitude, lon: pos.coords.longitude }); 
-            localStorage.setItem('move_logs', JSON.stringify(moveLogs.slice(-1000))); 
-        }); 
-    }, 60000); 
+// --- 6. MAP LOGIC ---
+function initOrUpdateMap() {
+    if (!state.map) {
+        state.map = L.map('log-map').setView(CONFIG.DUMMY_COORDS, 14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OS' }).addTo(state.map);
+    }
+
+    // 清掃
+    state.mapLayers.markers.forEach(m => state.map.removeLayer(m));
+    state.mapLayers.rideLines.forEach(l => state.map.removeLayer(l));
+    if (state.mapLayers.path) state.map.removeLayer(state.mapLayers.path);
+    state.mapLayers.markers = [];
+    state.mapLayers.rideLines = [];
+
+    // トリップ描画
+    state.logs.forEach(log => {
+        if (!log.pickup || !log.dropoff) return;
+        const start = L.circleMarker([log.pickup.lat, log.pickup.lon], { color: 'gold', radius: 5, fillOpacity: 0.8 }).addTo(state.map);
+        const end = L.circleMarker([log.dropoff.lat, log.dropoff.lon], { color: '#ef4444', radius: 5, fillOpacity: 0.8 }).addTo(state.map);
+        const line = L.polyline([[log.pickup.lat, log.pickup.lon], [log.dropoff.lat, log.dropoff.lon]], { color: 'white', weight: 1, dashArray: '5, 8', opacity: 0.5 }).addTo(state.map);
+        state.mapLayers.markers.push(start, end);
+        state.mapLayers.rideLines.push(line);
+    });
+
+    if (state.moveLogs.length > 1) {
+        state.mapLayers.path = L.polyline(state.moveLogs.map(m => [m.lat, m.lon]), { color: '#3b82f6', weight: 3, opacity: 0.4 }).addTo(state.map);
+    }
+
+    setTimeout(() => {
+        state.map.invalidateSize();
+        if (state.mapLayers.markers.length > 0) {
+            state.map.fitBounds(new L.featureGroup(state.mapLayers.markers).getBounds().pad(0.2));
+        }
+    }, 200);
 }
 
-function stopTracking() { if (trackingInterval) clearInterval(trackingInterval); }
-function clearData() { if (confirm("全消去してもよろしいですか？")) { localStorage.clear(); location.reload(); } }
+// --- 7. ECO SYSTEM & EVENTS ---
+function setupEventListeners() {
+    UI.get('main-log-btn')?.addEventListener('click', handleMainAction);
+    
+    UI.get('tracking-toggle')?.addEventListener('change', (e) => {
+        if (e.target.checked) startTracking(); else stopTracking();
+    });
+
+    ['log', 'map', 'settings'].forEach(tab => {
+        UI.get(`tab-${tab}`)?.addEventListener('click', () => {
+            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            UI.active(`view-${tab}`);
+            UI.active(`tab-${tab}`);
+            if (tab === 'map') initOrUpdateMap();
+        });
+    });
+}
+
+function startTracking() {
+    stopTracking();
+    state.trackingIntervalId = setInterval(() => {
+        navigator.geolocation.getCurrentPosition(pos => {
+            state.moveLogs.push({ time: new Date().toISOString(), lat: pos.coords.latitude, lon: pos.coords.longitude });
+            localStorage.setItem('move_logs', JSON.stringify(state.moveLogs.slice(-1000)));
+        });
+    }, CONFIG.TRACKING_INTERVAL);
+}
+
+function stopTracking() { if (state.trackingIntervalId) clearInterval(state.trackingIntervalId); }
+
+function changeCount(type, delta) {
+    state.counts[type] = Math.max(0, state.counts[type] + delta);
+    UI.render(`${type}-count`, state.counts[type]);
+    if (type !== 'total') {
+        const sum = state.counts.men + state.counts.women;
+        if (sum > state.counts.total) { 
+            state.counts.total = sum; 
+            UI.render('total-count', state.counts.total); 
+        }
+    }
+}
+
+// --- 8. BOOTSTRAP ---
+document.addEventListener('DOMContentLoaded', () => {
+    setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
+    setupEventListeners();
+    updateAppView();
+    if ("geolocation" in navigator) {
+        const s = UI.get('gps-status');
+        if (s) { s.textContent = "GPS 有効"; s.style.color = "#10b981"; }
+    }
+});
+
+// Settings
+function clearData() { if (confirm("全消去しますか？")) { localStorage.clear(); location.reload(); } }
 function exportData() {
-    try {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(logs));
-        const a = document.createElement('a'); 
-        a.setAttribute("href", dataStr); 
-        a.setAttribute("download", "taxi_log.json"); 
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-    } catch (e) { alert("エクスポート失敗"); }
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.logs));
+    const a = document.createElement('a'); a.href = dataStr; a.download = `taxi_log_${Date.now()}.json`; a.click();
 }
