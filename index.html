@@ -66,9 +66,15 @@
                     </div>
                 </div>
 
-                <button id="save-log-btn" class="main-action-btn">
-                    <span class="btn-icon">💾</span> 今この場所で記録する
-                </button>
+            <!-- 売上入力（降車時のみ表示） -->
+            <div id="fare-container" class="fare-container" style="display: none;">
+                <label>売上金額 (円)</label>
+                <input type="number" id="fare-input" placeholder="0" inputmode="numeric">
+            </div>
+
+            <button id="main-log-btn" class="main-action-btn pickup">
+                <span id="btn-icon">🚖</span> <span id="btn-text">乗車（記録開始）</span>
+            </button>
             </section>
 
             <!-- 走行ログ設定 -->
