@@ -54,7 +54,9 @@ body {
 .logo { display: flex; align-items: center; gap: 10px; }
 .logo h1 { font-size: 1.1rem; font-weight: 600; }
 .logo span { color: var(--accent); font-weight: 300; }
-.live-clock { font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--accent); }
+.header-right { text-align: right; }
+.live-clock { font-family: 'Outfit', sans-serif; font-size: 1.1rem; color: var(--accent); line-height: 1; }
+.app-version { font-size: 0.6rem; color: var(--text-muted); opacity: 0.6; margin-top: 2px; }
 
 /* Card System */
 .card {
