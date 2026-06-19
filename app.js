@@ -55,21 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
 async function handleMainAction() {
     const btn = document.getElementById('main-log-btn');
     const addrEl = document.getElementById('address-text');
+    const btnText = document.getElementById('btn-text');
     if (!btn || !addrEl) return;
 
     btn.disabled = true;
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = "⌛ 位置取得中...";
+    const oldIcon = document.getElementById('btn-icon').textContent;
+    const oldText = btnText.textContent;
+    btnText.textContent = "位置取得中...";
 
     navigator.geolocation.getCurrentPosition(async (pos) => {
         try {
             const { latitude, longitude } = pos.coords;
             const now = new Date().toISOString();
             
-            // ひとまず座標だけで表示を更新（待たせない）
-            btn.disabled = false;
-            btn.innerHTML = originalContent;
-
             if (!currentRide) {
                 // --- 乗車開始 ---
                 currentRide = {
@@ -77,10 +75,11 @@ async function handleMainAction() {
                     pax: { ...counts }
                 };
                 localStorage.setItem('current_ride', JSON.stringify(currentRide));
-                updateRideUI(true);
-                addrEl.textContent = "乗車地点を取得しました";
+                addrEl.textContent = "乗車地点を確定しました";
                 
-                // バックグラウンドで住所を取得
+                // 速やかにUIを「乗車中（降車ボタン）」に変える
+                updateRideUI(true);
+
                 fetchAddress(latitude, longitude).then(address => {
                     if (currentRide) {
                         currentRide.pickup.address = address;
@@ -107,11 +106,13 @@ async function handleMainAction() {
                 currentRide = null;
                 localStorage.removeItem('current_ride');
                 if (fareInput) fareInput.value = "";
+                
+                addrEl.textContent = "降車地点を確定しました";
+
+                // 速やかにUIを「待機中（乗車ボタン）」に変える
                 updateRideUI(false);
                 renderHistory();
-                addrEl.textContent = "降車地点を記録しました";
 
-                // バックグラウンドで住所を補完
                 fetchAddress(latitude, longitude).then(address => {
                     const target = logs.find(l => l.id === tempId);
                     if (target) {
@@ -123,13 +124,13 @@ async function handleMainAction() {
             }
         } catch (e) {
             console.error("Action error:", e);
-            btn.disabled = false;
-            btn.innerHTML = originalContent;
+            updateRideUI(!!currentRide); // 状態を復復元
         }
+        btn.disabled = false;
     }, (err) => {
         alert("GPS失敗: " + err.message);
         btn.disabled = false;
-        btn.innerHTML = originalContent;
+        updateRideUI(!!currentRide);
     }, { enableHighAccuracy: true, timeout: 8000 });
 }
 
