@@ -180,7 +180,7 @@ function renderHistory() {
             const rideNumber = dayLogs.length - index;
             html += `
                 <div class="history-item">
-                    <div class="ride-num">#${rideNumber}</div>
+                    <div class="ride-num">${rideNumber}</div>
                     <div class="history-info">
                         <span class="time">${Formatter.time(log.dropoff.time)} <span class="fare-tag">${Formatter.currency(log.fare)}</span></span>
                         <span class="addr">自: ${log.pickup.address}</span>

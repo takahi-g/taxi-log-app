@@ -163,12 +163,17 @@ body {
 }
 
 .ride-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
     font-family: 'Outfit', sans-serif;
-    font-size: 1.1rem;
+    font-size: 0.85rem;
     font-weight: 800;
-    color: var(--text-muted);
-    min-width: 36px;
-    opacity: 0.5;
 }
 
 .history-info .time { font-size: 0.8rem; color: var(--accent); display: block; margin-bottom: 6px; }
