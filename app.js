@@ -160,19 +160,41 @@ function renderHistory() {
         return;
     }
 
-    const html = state.logs.slice(0, 10).map(log => `
-        <div class="history-item">
-            <div class="history-info">
-                <span class="time">${Formatter.time(log.dropoff.time)} <span class="fare-tag">${Formatter.currency(log.fare)}</span></span>
-                <span class="addr">自: ${log.pickup.address}</span>
-                <span class="addr">至: ${log.dropoff.address}</span>
-            </div>
-            <div class="pax-badge">
-                <span class="men">♂${log.pax.men}</span>
-                <span class="women">♀${log.pax.women}</span>
-            </div>
-        </div>
-    `).join('');
+    // 日付ごとにグループ化
+    const groups = {};
+    state.logs.forEach(log => {
+        const dateKey = new Date(log.dropoff.time).toLocaleDateString('ja-JP', {
+            year: 'numeric', month: 'long', day: 'numeric', weekday: 'short'
+        });
+        if (!groups[dateKey]) groups[dateKey] = [];
+        groups[dateKey].push(log);
+    });
+
+    let html = '';
+    // 日付グループをループ（新しい日付順）
+    Object.keys(groups).forEach(date => {
+        html += `<div class="date-header">${date}</div>`;
+        const dayLogs = groups[date];
+        // その日の組数を計算（履歴全体での順番ではなく、その日の下から数えた順番）
+        dayLogs.forEach((log, index) => {
+            const rideNumber = dayLogs.length - index;
+            html += `
+                <div class="history-item">
+                    <div class="ride-num">#${rideNumber}</div>
+                    <div class="history-info">
+                        <span class="time">${Formatter.time(log.dropoff.time)} <span class="fare-tag">${Formatter.currency(log.fare)}</span></span>
+                        <span class="addr">自: ${log.pickup.address}</span>
+                        <span class="addr">至: ${log.dropoff.address}</span>
+                    </div>
+                    <div class="pax-badge">
+                        <span class="men">♂${log.pax.men}</span>
+                        <span class="women">♀${log.pax.women}</span>
+                    </div>
+                </div>
+            `;
+        });
+    });
+
     UI.render('history-list', html);
 }
 

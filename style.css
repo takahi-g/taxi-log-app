@@ -141,11 +141,32 @@ body {
 }
 
 /* History List */
+.date-header {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent);
+    padding: 12px 4px 8px;
+    border-bottom: 1px solid var(--border);
+    margin: 10px 0 12px;
+    background: rgba(237, 180, 24, 0.03);
+    border-radius: 4px;
+}
+
 .history-item {
     background: var(--bg-card);
     border: 1px solid var(--border);
     padding: 16px; border-radius: 16px; margin-bottom: 12px;
     display: flex; justify-content: space-between; align-items: center;
+    gap: 12px;
+}
+
+.ride-num {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    min-width: 36px;
+    opacity: 0.5;
 }
 
 .history-info .time { font-size: 0.8rem; color: var(--accent); display: block; margin-bottom: 6px; }
