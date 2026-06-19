@@ -104,10 +104,16 @@ async function handleMainAction() {
             localStorage.setItem('taxi_logs', JSON.stringify(state.logs.slice(0, CONFIG.MAX_LOGS)));
             
             const logId = newLog.id;
+            // リセット
             state.currentRide = null;
+            state.counts = { total: 1, men: 0, women: 0 }; // カウントをリセット
             localStorage.removeItem('current_ride');
-            UI.get('fare-input').value = "";
+            if (fareInput) fareInput.value = "";
+            
             updateAppView();
+            UI.render('men-count', 0);
+            UI.render('women-count', 0);
+            addrEl.textContent = "目的地でお客さんを降ろしました";
 
             GeoService.getAddress(lat, lon).then(addr => {
                 const target = state.logs.find(l => l.id === logId);
