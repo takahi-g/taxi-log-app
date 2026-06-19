@@ -8,6 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Leaflet Map library -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="dark-theme">
     <header class="main-header">
@@ -19,85 +22,113 @@
     </header>
 
     <main class="container">
-        <!-- クイック乗車記録セクション -->
-        <section class="card record-card">
-            <div class="card-header">
-                <h2>乗車記録</h2>
-                <div class="status-badge" id="gps-status">GPS待機中</div>
-            </div>
-            
-            <div class="location-display" id="current-location">
-                <span class="label">📍 現在地（住所）</span>
-                <p id="address-text">取得するには「記録」を押してください</p>
-            </div>
-
-            <div class="input-grid">
-                <div class="input-group">
-                    <label>人数</label>
-                    <div class="stepper">
-                        <button type="button" onclick="changeCount('total', -1)">−</button>
-                        <span id="total-count">1</span>
-                        <button type="button" onclick="changeCount('total', 1)">+</button>
-                    </div>
+        <!-- 1. ログ記録ビュー -->
+        <div id="view-log" class="view-content active">
+            <!-- クイック乗車記録セクション -->
+            <section class="card record-card">
+                <div class="card-header">
+                    <h2>乗車記録</h2>
+                    <div class="status-badge" id="gps-status">GPS待機中</div>
+                </div>
+                
+                <div class="location-display" id="current-location">
+                    <span class="label">📍 現在地（住所）</span>
+                    <p id="address-text">取得するには「記録」を押してください</p>
                 </div>
 
-                <div class="gender-split">
-                    <div class="input-group mini">
-                        <label>男性</label>
-                        <div class="stepper mini">
-                            <button type="button" onclick="changeCount('men', -1)">−</button>
-                            <span id="men-count">0</span>
-                            <button type="button" onclick="changeCount('men', 1)">+</button>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label>人数</label>
+                        <div class="stepper">
+                            <button type="button" onclick="changeCount('total', -1)">−</button>
+                            <span id="total-count">1</span>
+                            <button type="button" onclick="changeCount('total', 1)">+</button>
                         </div>
                     </div>
-                    <div class="input-group mini">
-                        <label>女性</label>
-                        <div class="stepper mini">
-                            <button type="button" onclick="changeCount('women', -1)">−</button>
-                            <span id="women-count">0</span>
-                            <button type="button" onclick="changeCount('women', 1)">+</button>
+
+                    <div class="gender-split">
+                        <div class="input-group mini">
+                            <label>男性</label>
+                            <div class="stepper mini">
+                                <button type="button" onclick="changeCount('men', -1)">−</button>
+                                <span id="men-count">0</span>
+                                <button type="button" onclick="changeCount('men', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="input-group mini">
+                            <label>女性</label>
+                            <div class="stepper mini">
+                                <button type="button" onclick="changeCount('women', -1)">−</button>
+                                <span id="women-count">0</span>
+                                <button type="button" onclick="changeCount('women', 1)">+</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <button id="save-log-btn" class="main-action-btn">
-                <span class="btn-icon">💾</span> 今この場所で記録する
-            </button>
-        </section>
+                <button id="save-log-btn" class="main-action-btn">
+                    <span class="btn-icon">💾</span> 今この場所で記録する
+                </button>
+            </section>
 
-        <!-- 走行ログ設定 -->
-        <section class="card tracking-card">
-            <div class="flex-between">
-                <div>
-                    <h3>自動走行ログ</h3>
-                    <p class="desc">移動経路を定期的に自動記録します</p>
+            <!-- 走行ログ設定 -->
+            <section class="card tracking-card">
+                <div class="flex-between">
+                    <div>
+                        <h3>自動走行ログ</h3>
+                        <p class="desc">移動経路を定期的に自動記録します</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="tracking-toggle">
+                        <span class="slider round"></span>
+                    </label>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" id="tracking-toggle">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-        </section>
+            </section>
 
-        <!-- 最近の履歴 -->
-        <section class="history-section">
-            <div class="card-header">
-                <h2>最近の履歴</h2>
-                <button class="text-btn">すべて見る</button>
-            </div>
-            <div id="history-list" class="history-list">
-                <!-- JavaScriptで履歴が追加されます -->
-                <div class="empty-state">履歴はまだありません</div>
-            </div>
-        </section>
+            <!-- 最近の履歴 -->
+            <section class="history-section">
+                <div class="card-header">
+                    <h2>最近の履歴</h2>
+                    <button class="text-btn">すべて見る</button>
+                </div>
+                <div id="history-list" class="history-list">
+                    <!-- JavaScriptで履歴が追加されます -->
+                    <div class="empty-state">履歴はまだありません</div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 2. マップビュー -->
+        <div id="view-map" class="view-content">
+            <section class="card map-full-card">
+                <div class="card-header">
+                    <h2>📍 記録・走行マップ</h2>
+                </div>
+                <div id="log-map" class="log-map"></div>
+                <p class="map-hint">青い線が走行ルート、黄色のピンが乗車場所です</p>
+            </section>
+        </div>
+
+        <!-- 3. 設定ビュー -->
+        <div id="view-settings" class="view-content">
+            <section class="card settings-card">
+                <div class="card-header">
+                    <h2>⚙️ 設定・データ管理</h2>
+                </div>
+                <div class="settings-list">
+                    <button class="setting-item delete" onclick="clearData()">🗑 全履歴を消去</button>
+                    <button class="setting-item" onclick="exportData()">📤 データをエクスポート(CSV)</button>
+                </div>
+                <p class="version">TAXI Log Pro v1.0.0</p>
+            </section>
+        </div>
     </main>
 
     <footer class="main-footer">
         <nav class="tab-bar">
-            <button class="tab-item active">📊 ログ</button>
-            <button class="tab-item">📍 マップ</button>
-            <button class="tab-item">⚙️ 設定</button>
+            <button id="tab-log" class="tab-item active">📊 ログ</button>
+            <button id="tab-map" class="tab-item">📍 マップ</button>
+            <button id="tab-settings" class="tab-item">⚙️ 設定</button>
         </nav>
     </footer>
 

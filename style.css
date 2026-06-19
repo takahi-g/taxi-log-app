@@ -322,26 +322,81 @@ input:checked + .slider:before {
     border-top: 1px solid var(--border);
 }
 
-.tab-item {
-    background: none;
-    border: none;
-    color: var(--text-muted);
+/* View Switching */
+.view-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.view-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Map View */
+.log-map {
+    height: 400px;
+    width: 100%;
+    background: #000;
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.map-hint {
     font-size: 0.8rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+/* Settings View */
+.settings-list {
+    display: grid;
+    gap: 12px;
+}
+
+.setting-item {
+    width: 100%;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: white;
+    text-align: left;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.setting-item.delete {
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.version {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* Tab Bar Adjustments */
+.tab-item {
+    cursor: pointer;
+    flex: 1;
+    transition: all 0.3s;
+    padding: 8px 0;
 }
 
 .tab-item.active {
     color: var(--accent);
+    background: rgba(251, 191, 36, 0.05);
+    border-radius: 12px;
 }
 
-/* Status Badge */
-.status-badge {
-    padding: 4px 10px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    font-size: 0.7rem;
-    color: var(--text-muted);
+/* Scroll adjustments */
+.container {
+    padding-bottom: 100px;
 }
