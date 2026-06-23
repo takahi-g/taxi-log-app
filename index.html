@@ -23,7 +23,7 @@
         </div>
         <div class="header-right">
             <div id="live-clock" class="live-clock">--:--:--</div>
-            <div class="app-version">Ver: 06/23 18:56</div>
+            <div class="app-version">Ver: 06/23 19:05</div>
         </div>
     </header>
 
@@ -126,6 +126,14 @@
                 <button onclick="saveCalcData()" class="main-action-btn pickup" style="width: 100%; margin-top: 15px; height: 50px; font-size: 1.1rem; padding: 10px;">売上を追加</button>
             </section>
 
+            <!-- アコーディオン式詳細履歴 -->
+            <section class="history-section">
+                <div class="card-header">
+                    <h2>日別売上詳細</h2>
+                </div>
+                <div id="history-groups"></div>
+            </section>
+
             <!-- カレンダー表示 -->
             <section class="card">
                 <div class="flex-between" style="margin-bottom: 15px; align-items: center;">
@@ -156,14 +164,6 @@
                     <div style="font-size:0.85rem; opacity:0.8; margin-bottom: 5px;">推定歩合給</div>
                     <div class="total-val" id="hist-total-income" style="font-size: 2.4rem; font-weight: 900; color: #FFD700;">0円</div>
                 </div>
-            </section>
-
-            <!-- アコーディオン式詳細履歴 -->
-            <section class="history-section">
-                <div class="card-header">
-                    <h2>日別売上詳細</h2>
-                </div>
-                <div id="history-groups"></div>
             </section>
         </div>
 
@@ -246,6 +246,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260623_1856"></script>
+    <script src="app.js?v=20260623_1905"></script>
 </body>
 </html>
