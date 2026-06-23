@@ -417,10 +417,15 @@ function updateHistoryTab(history, sets) {
     if (isNaN(y) || isNaN(m)) return;
     renderCalcCalendar(y, m, history);
     const fHist = history.filter(h => h.date.startsWith(`${y}-${String(m).padStart(2,'0')}`));
-    const totalNet = fHist.reduce((sum, h) => sum + h.net, 0), rate = getRate(totalNet), days = [...new Set(fHist.map(h => h.date))].length;
+    const totalNet = fHist.reduce((sum, h) => sum + h.net, 0);
+    const totalGross = fHist.reduce((sum, h) => sum + h.gross, 0);
+    const rate = getRate(totalNet);
+    const days = [...new Set(fHist.map(h => h.date))].length;
     document.getElementById('hist-label').innerText = `${y}年${m}月の合計`;
     document.getElementById('hist-rate').innerText = `暫定歩合: ${rate}%`;
     document.getElementById('hist-total-sales').innerText = Math.floor(totalNet).toLocaleString();
+    const grossEl = document.getElementById('hist-total-sales-gross');
+    if (grossEl) grossEl.innerText = Math.floor(totalGross).toLocaleString();
     document.getElementById('hist-avg-sales').innerText = (days > 0 ? Math.floor(totalNet/days) : 0).toLocaleString();
     document.getElementById('hist-target-avg').innerText = Math.floor(sets.goal/sets.days).toLocaleString();
     document.getElementById('hist-total-income').innerText = Math.floor(totalNet * (rate/100)).toLocaleString() + "円";
