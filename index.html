@@ -197,42 +197,74 @@
             </section>
 
             <section class="card settings-card">
-                <div class="card-header">
-                    <h2>💾 データ管理 & バックアップ</h2>
+            <section class="card" style="padding: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: bold;">ダークモード</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">UIテーマの切り替え</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-darkmode" checked>
+                        <span class="slider"></span>
+                    </label>
                 </div>
-                <p class="desc" style="font-size: 0.8rem; color: #8e8e93; margin-bottom: 15px;">機種変更やデータ保存のための機能です。</p>
-                <div class="settings-list" style="display: flex; flex-direction: column; gap: 10px;">
-                    <button class="setting-item" style="background:#1c1c1e; color:var(--ios-blue); border:1px solid #2c2c2e; padding: 12px; border-radius: 10px; font-weight: bold; text-align: left;" onclick="copyBackup()">📋 データをコピー</button>
-                    <button class="setting-item" style="background:#1c1c1e; color:var(--ios-green); border:1px solid #2c2c2e; padding: 12px; border-radius: 10px; font-weight: bold; text-align: left;" onclick="restoreBackup()">📥 データを復元</button>
-                    <button class="setting-item" style="background:#1c1c1e; color:white; border:1px solid #2c2c2e; padding: 12px; border-radius: 10px; font-weight: bold; text-align: left;" onclick="exportData()">📤 走行ログをエクスポート (JSON)</button>
-                    <button class="setting-item delete" style="background:#1c1c1e; color:var(--ios-red); border:1px solid #2c2c2e; padding: 12px; border-radius: 10px; font-weight: bold; text-align: left;" onclick="clearData()">🗑 全履歴・設定を消去</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: bold;">高精度GPS</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">バッテリー消費が増えます</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-highaccuracy">
+                        <span class="slider"></span>
+                    </label>
                 </div>
-                <p class="version" style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: 15px;">TAXI Log Pro v3.1.0</p>
+                <div style="padding: 12px 0;">
+                    <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 6px;">1日の目標売上 (税込)</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="setting-quota" value="50000" inputmode="numeric" style="flex: 1; height: 38px; padding: 0 10px; background: #1c1c1e; border: 1px solid var(--border); border-radius: 8px; color: white;">
+                        <button onclick="saveSettings()" class="btn-primary" style="height: 38px; padding: 0 16px; border-radius: 8px; font-weight: bold; background: var(--accent); border: none; color: black; cursor: pointer;">保存</button>
+                    </div>
+                </div>
+                <div style="padding: 12px 0; border-top: 1px solid var(--border); margin-top: 10px; text-align: center;">
+                    <button onclick="exportData()" class="btn-secondary" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 8px; margin-right: 8px;">データ書き出し</button>
+                    <button onclick="importData()" class="btn-secondary" style="padding: 8px 16px; font-size: 0.8rem; border-radius: 8px;">データ読み込み</button>
+                    <p class="version" style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: 15px;">TAXI Log Pro v3.1.0</p>
+                </div>
             </section>
         </div>
     </main>
 
     <!-- 4. 編集用モーダル -->
-    <div id="edit-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content card">
-            <h3>記録の修正</h3>
-            <div class="input-group">
-                <label>売上 (円)</label>
-                <input type="number" id="edit-fare" inputmode="numeric">
+    <div id="edit-modal" class="modal-overlay" style="display: none; align-items: flex-start; padding-top: 60px;">
+        <div class="modal-content card" style="background: var(--bg-surface); border: 1.5px solid var(--accent); max-width: 380px; margin-top: 10px;">
+            <h3 style="margin-bottom: 20px; color: var(--accent); font-size: 1.3rem; text-align: center;">記録の修正</h3>
+            <div class="input-group" style="margin-bottom: 20px;">
+                <label style="font-size: 0.9rem; margin-bottom: 6px; display: block; color: var(--text-muted);">売上金額 (円・税込)</label>
+                <input type="number" id="edit-fare" inputmode="numeric" placeholder="0" onfocus="if(this.value==='0' || this.value==='') this.value=''" style="font-size: 1.3rem; padding: 12px; width: 100%; background: #1c1c1e; border: 1px solid var(--border); border-radius: 12px; color: white; outline: none;">
             </div>
-            <div class="edit-pax-grid">
-                <div class="input-group">
-                    <label>男性</label>
-                    <input type="number" id="edit-men" inputmode="numeric">
+            
+            <div class="edit-pax-grid" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;">
+                <div class="input-group-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <label style="font-weight: bold; font-size: 0.95rem; color: var(--text-main);">男性人数</label>
+                    <div class="stepper" style="width: 140px; margin: 0;">
+                        <button type="button" onclick="changeEditCount('men', -1)">−</button>
+                        <span id="edit-men-count" style="font-size: 1.3rem; font-weight: 700; width: 40px; text-align: center;">0</span>
+                        <button type="button" onclick="changeEditCount('men', 1)">+</button>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>女性</label>
-                    <input type="number" id="edit-women" inputmode="numeric">
+                <div class="input-group-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <label style="font-weight: bold; font-size: 0.95rem; color: var(--text-main);">女性人数</label>
+                    <div class="stepper" style="width: 140px; margin: 0;">
+                        <button type="button" onclick="changeEditCount('women', -1)">−</button>
+                        <span id="edit-women-count" style="font-size: 1.3rem; font-weight: 700; width: 40px; text-align: center;">0</span>
+                        <button type="button" onclick="changeEditCount('women', 1)">+</button>
+                    </div>
                 </div>
             </div>
-            <div class="modal-actions">
-                <button class="btn-secondary" onclick="closeEditModal()">キャンセル</button>
-                <button class="btn-primary" onclick="saveEdit()">保存する</button>
+            
+            <div class="modal-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                <button class="btn-secondary" onclick="closeEditModal()" style="background: #2c2c2e; color: #fff; border: 1px solid #444; padding: 16px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: transform 0.1s; -webkit-appearance: none;">キャンセル</button>
+                <button class="btn-primary" onclick="saveEdit()" style="background: var(--success); color: #fff; border: none; padding: 16px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: transform 0.1s; -webkit-appearance: none;">保存する</button>
             </div>
         </div>
     </div>

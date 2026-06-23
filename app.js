@@ -159,9 +159,14 @@ function openEditModal(id) {
     if (!log) return;
     
     state.editingLogId = id;
-    UI.get('edit-fare').value = log.fare;
-    UI.get('edit-men').value = log.pax.men;
-    UI.get('edit-women').value = log.pax.women;
+    // If fare is 0, show empty string so user doesn't have to backspace a 0
+    UI.get('edit-fare').value = log.fare === 0 ? "" : log.fare;
+    
+    // Set stepper values for editing
+    state.editCounts = { men: log.pax.men || 0, women: log.pax.women || 0 };
+    UI.render('edit-men-count', state.editCounts.men);
+    UI.render('edit-women-count', state.editCounts.women);
+    
     UI.show('edit-modal', true);
 }
 
@@ -170,16 +175,43 @@ function closeEditModal() {
     state.editingLogId = null;
 }
 
+function changeEditCount(type, delta) {
+    if (!state.editCounts) return;
+    state.editCounts[type] = Math.max(0, state.editCounts[type] + delta);
+    UI.render(`edit-${type}-count`, state.editCounts[type]);
+}
+
 function saveEdit() {
     const log = state.logs.find(l => l.id === state.editingLogId);
     if (log) {
-        log.fare = parseInt(UI.get('edit-fare').value) || 0;
-        log.pax.men = parseInt(UI.get('edit-men').value) || 0;
-        log.pax.women = parseInt(UI.get('edit-women').value) || 0;
+        const newFare = parseInt(UI.get('edit-fare').value) || 0;
+        log.fare = newFare;
+        log.pax.men = state.editCounts ? state.editCounts.men : 0;
+        log.pax.women = state.editCounts ? state.editCounts.women : 0;
         log.pax.total = log.pax.men + log.pax.women;
         
         localStorage.setItem('taxi_logs', JSON.stringify(state.logs));
+
+        // Sync with calculator history if it exists, or add if it has a fare now
+        const calcHist = DB.load('taxi_v11_hist', []);
+        const calcItem = calcHist.find(x => x.id === state.editingLogId);
+        if (calcItem) {
+            calcItem.gross = newFare;
+            calcItem.net = Math.floor(newFare / 1.1);
+            DB.save('taxi_v11_hist', calcHist);
+        } else if (newFare > 0) {
+            const dateStr = new Date(log.dropoff.time).toISOString().split('T')[0];
+            calcHist.push({
+                id: log.id,
+                date: dateStr,
+                gross: newFare,
+                net: Math.floor(newFare / 1.1)
+            });
+            DB.save('taxi_v11_hist', calcHist);
+        }
+        
         renderHistory();
+        refreshCalc();
     }
     closeEditModal();
 }
@@ -321,6 +353,21 @@ function setupEventListeners() {
             if (tab === 'map') initOrUpdateMap();
             if (tab === 'calc') refreshCalc();
         });
+    });
+    // Click/Touch outside edit-modal to close it
+    const handleOutsideClick = (e) => {
+        if (e.target === UI.get('edit-modal')) {
+            closeEditModal();
+        }
+    };
+    UI.get('edit-modal')?.addEventListener('click', handleOutsideClick);
+    UI.get('edit-modal')?.addEventListener('touchstart', handleOutsideClick, { passive: true });
+
+    // Focus handler for edit-fare to clear if 0
+    UI.get('edit-fare')?.addEventListener('focus', function() {
+        if (this.value === '0' || this.value === '') {
+            this.value = '';
+        }
     });
 }
 
