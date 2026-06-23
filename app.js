@@ -458,7 +458,9 @@ function refreshCalc(isSave = false) {
     const workedDates = [...new Set(monthlyData.map(h => h.date))];
     const workedCount = workedDates.length;
     const now = new Date(); const todayStr = now.toISOString().split('T')[0];
-    let remainDays = Math.max(1, sets.days - (workedDates.includes(todayStr) && now.getHours() < 7 ? workedCount - 1 : workedCount));
+    const pastWorkedDates = workedDates.filter(d => d !== todayStr);
+    const pastWorkedDaysCount = pastWorkedDates.length;
+    const remainDays = Math.max(1, sets.days - pastWorkedDaysCount);
     const salesBeforeToday = monthlyData.filter(h => h.date !== todayStr).reduce((sum, h) => sum + h.net, 0);
     const dailyBaseNorm = Math.ceil(Math.max(0, sets.goal - salesBeforeToday) / remainDays);
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
