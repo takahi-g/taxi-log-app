@@ -29,7 +29,7 @@
 
     <main class="container">
         <!-- 1. ログ記録ビュー -->
-        <div id="view-log" class="view-content active">
+        <div id="view-log" class="view-content">
             <!-- クイック乗車記録セクション -->
             <section class="card record-card">
                 <div class="card-header">
@@ -100,7 +100,7 @@
         </div>
 
         <!-- 2. 売上計算ビュー (「タク計」機能) -->
-        <div id="view-calc" class="view-content">
+        <div id="view-calc" class="view-content active">
             <!-- 今日の残りノルマヒーロー -->
             <div class="target-hero">
                 <div style="font-size: 0.9rem; opacity: 0.8;">今日の残りノルマ (税抜)</div>
@@ -234,8 +234,8 @@
 
     <footer class="main-footer">
         <nav class="tab-bar">
-            <button id="tab-log" class="tab-item active">📊 記録</button>
-            <button id="tab-calc" class="tab-item">💰 売上計算</button>
+            <button id="tab-calc" class="tab-item active">💰 売上計算</button>
+            <button id="tab-log" class="tab-item">📊 記録</button>
             <button id="tab-map" class="tab-item">📍 マップ</button>
             <button id="tab-settings" class="tab-item">⚙️ 設定</button>
         </nav>
