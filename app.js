@@ -350,11 +350,16 @@ function getRate(net) { if (net >= 550000) return 60.8; if (net >= 470000) retur
 function updateNormPreview() {
     const inputEl = document.getElementById('input-gross');
     const normEl = document.getElementById('disp-norm');
+    const normGrossEl = document.getElementById('disp-norm-gross');
     if (!inputEl || !normEl) return;
     const inputVal = parseFloat(inputEl.value) || 0;
     const netInput = Math.floor(inputVal / 1.1);
     const currentNorm = parseFloat(normEl.getAttribute('data-base-norm')) || 0;
-    normEl.innerText = Math.floor(Math.max(0, currentNorm - netInput)).toLocaleString();
+    const finalNorm = Math.max(0, currentNorm - netInput);
+    normEl.innerText = Math.floor(finalNorm).toLocaleString();
+    if (normGrossEl) {
+        normGrossEl.innerText = Math.floor(Math.ceil(finalNorm * 1.1)).toLocaleString();
+    }
 }
 
 function refreshCalc(isSave = false) {
@@ -377,9 +382,13 @@ function refreshCalc(isSave = false) {
     const finalTodayNorm = Math.max(0, dailyBaseNorm - todayNetSum);
     if (isSave && finalTodayNorm <= 0 && !hasCelebratedToday && selectedDate === todayStr) { startCelebration(); hasCelebratedToday = true; }
     const normEl = document.getElementById('disp-norm'); 
+    const normGrossEl = document.getElementById('disp-norm-gross');
     if (normEl) {
         normEl.innerText = Math.floor(finalTodayNorm).toLocaleString();
         normEl.setAttribute('data-base-norm', finalTodayNorm + (isSave ? 0 : todayNetSum));
+    }
+    if (normGrossEl) {
+        normGrossEl.innerText = Math.floor(Math.ceil(finalTodayNorm * 1.1)).toLocaleString();
     }
     const progressEl = document.getElementById('disp-progress');
     if (progressEl) progressEl.innerText = `今月: ${workedCount} / ${sets.days} 回出勤`;
@@ -405,7 +414,9 @@ function updateHistoryTab(history, sets) {
     const groups = {}; fHist.sort((a,b) => a.id - b.id).forEach(h => { if(!groups[h.date]) groups[h.date] = []; groups[h.date].push(h); });
     document.getElementById('history-groups').innerHTML = Object.keys(groups).sort().reverse().map(date => {
         const sum = groups[date].reduce((s, h) => s + h.net, 0);
-        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${groups[date].map((h, i) => `<div class="detail-item"><div><div class="detail-label">${i+1}件目</div><div class="detail-value">税抜 ${h.net.toLocaleString()}円</div></div><div class="detail-actions"><button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button><button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button></div></div>`).join('')}</div></div>`;
+        const dayHtml = groups[date].map((h, i) => `<div class="detail-item"><div><div class="detail-label">${i+1}件目</div><div class="detail-value">税抜 ${h.net.toLocaleString()}円</div></div><div class="detail-actions"><button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button><button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button></div></div>`);
+        dayHtml.reverse();
+        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${dayHtml.join('')}</div></div>`;
     }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">データなし</div>';
 }
 
