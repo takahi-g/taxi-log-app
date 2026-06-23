@@ -184,6 +184,23 @@ function saveEdit() {
     closeEditModal();
 }
 
+function deleteLog(id) {
+    if (confirm("この乗車記録を削除しますか？")) {
+        const targetLog = state.logs.find(l => l.id === id);
+        if (targetLog) {
+            // Delete from calculator history if it exists
+            const calcHist = DB.load('taxi_v11_hist', []);
+            const updatedCalcHist = calcHist.filter(x => x.id !== id);
+            DB.save('taxi_v11_hist', updatedCalcHist);
+        }
+        state.logs = state.logs.filter(l => l.id !== id);
+        localStorage.setItem('taxi_logs', JSON.stringify(state.logs));
+        updateAppView();
+        if (state.map) initOrUpdateMap();
+        refreshCalc();
+    }
+}
+
 // --- 6. UI SYNCING ---
 function updateAppView() {
     const isRiding = !!state.currentRide;
@@ -227,24 +244,36 @@ function renderHistory() {
     Object.keys(groups).forEach(date => {
         html += `<div class="date-header">${date}</div>`;
         const dayLogs = groups[date];
-        dayLogs.forEach((log, index) => {
-            const rideNumber = dayLogs.length - index;
-            html += `
+        dayLogs.sort((a, b) => a.id - b.id);
+        
+        const dayHtml = dayLogs.map((log, i) => {
+            const rideNumber = i + 1;
+            return `
                 <div class="history-item">
                     <div class="ride-num">${rideNumber}</div>
                     <div class="history-info">
-                        <span class="time">${Formatter.time(log.dropoff.time)} <span class="fare-tag">${Formatter.currency(log.fare)}</span></span>
-                        <span class="addr">自: ${log.pickup.address}</span>
-                        <span class="addr">至: ${log.dropoff.address}</span>
+                        <span class="time-fare" style="display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--accent); margin-bottom: 2px;">
+                            ${Formatter.time(log.dropoff.time)} 
+                            <span class="fare-tag" style="background: rgba(16, 185, 129, 0.15); color: var(--success); padding: 2px 6px; border-radius: 4px; font-weight: bold;">${Formatter.currency(log.fare)}</span>
+                        </span>
+                        <span class="addr"><span class="addr-label">自</span> ${log.pickup.address}</span>
+                        <span class="addr"><span class="addr-label" style="background: rgba(239, 68, 68, 0.15); color: var(--danger);">至</span> ${log.dropoff.address}</span>
                     </div>
-                    <div class="pax-badge">
-                        <span class="men">♂${log.pax.men}</span>
-                        <span class="women">♀${log.pax.women}</span>
+                    <div class="target-col" style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                        <div class="pax-badge" style="width: auto; padding: 4px 6px;">
+                            <span class="men">♂${log.pax.men}</span>
+                            <span class="women">♀${log.pax.women}</span>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                            <button class="history-edit-btn" style="margin: 0; width: 32px; height: 32px;" onclick="openEditModal(${log.id})">✏️</button>
+                            <button class="history-edit-btn" style="margin: 0; width: 32px; height: 32px; background: rgba(239, 68, 68, 0.15); color: var(--danger);" onclick="deleteLog(${log.id})">🗑️</button>
+                        </div>
                     </div>
-                    <button class="history-edit-btn" onclick="openEditModal(${log.id})">✏️</button>
                 </div>
             `;
         });
+        dayHtml.reverse();
+        html += dayHtml.join('');
     });
     UI.render('history-list', html);
 }
