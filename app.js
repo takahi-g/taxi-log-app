@@ -493,6 +493,11 @@ function refreshCalc(isSave = false) {
             </div>
         `;
     }
+    const dailyQuotaEl = document.getElementById('disp-calc-quota-daily');
+    if (dailyQuotaEl && sets.days > 0) {
+        const dailyQuota = Math.ceil((sets.goal / sets.days) * 1.1);
+        dailyQuotaEl.innerText = `¥${dailyQuota.toLocaleString()}`;
+    }
     updateHistoryTab(history, sets);
 }
 

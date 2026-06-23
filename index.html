@@ -23,7 +23,7 @@
         </div>
         <div class="header-right">
             <div id="live-clock" class="live-clock">--:--:--</div>
-            <div class="app-version">Ver: 06/23 19:35</div>
+            <div class="app-version">Ver: 06/23 20:00</div>
         </div>
     </header>
 
@@ -185,13 +185,13 @@
                     <h2>⚙️ 目標設定</h2>
                 </div>
                 <div class="settings-list">
-                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #2c2c2e;">
-                        <span>目標売上 (税抜)</span>
-                        <input type="number" id="set-goal" oninput="saveCalcSettings()" style="width:120px; text-align:right; border:none; font-size:1.1rem; font-weight:bold; color:var(--ios-blue); background:none; outline:none;">
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">目標売上 (税抜)</span>
+                        <input type="number" id="set-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
                     </div>
-                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0;">
-                        <span>全出勤日数</span>
-                        <input type="number" id="set-days" oninput="saveCalcSettings()" style="width:120px; text-align:right; border:none; font-size:1.1rem; font-weight:bold; color:var(--ios-blue); background:none; outline:none;">
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
+                        <span style="font-weight: bold; font-size: 0.95rem;">全出勤日数</span>
+                        <input type="number" id="set-days" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
                     </div>
                 </div>
             </section>
@@ -217,12 +217,12 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div style="padding: 12px 0;">
-                    <label style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 6px;">1日の目標売上 (税込)</label>
-                    <div style="display: flex; gap: 8px;">
-                        <input type="number" id="setting-quota" value="50000" inputmode="numeric" style="flex: 1; height: 38px; padding: 0 10px; background: #1c1c1e; border: 1px solid var(--border); border-radius: 8px; color: white;">
-                        <button onclick="saveSettings()" class="btn-primary" style="height: 38px; padding: 0 16px; border-radius: 8px; font-weight: bold; background: var(--accent); border: none; color: black; cursor: pointer;">保存</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0;">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: bold;">1日の目標売上 (税込・自動計算)</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">目標と出勤日数から自動算出します</div>
                     </div>
+                    <strong id="disp-calc-quota-daily" style="font-size: 1.25rem; color: var(--success); font-family: 'Outfit', sans-serif;">¥0</strong>
                 </div>
             </section>
 
@@ -292,6 +292,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260623_1935"></script>
+    <script src="app.js?v=20260623_2000"></script>
 </body>
 </html>
