@@ -394,7 +394,20 @@ function refreshCalc(isSave = false) {
     if (progressEl) progressEl.innerText = `今月: ${workedCount} / ${sets.days} 回出勤`;
     const todaySumEl = document.getElementById('disp-today-sum');
     if (todaySumEl) {
-        todaySumEl.innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between; width: 100%;"><span style="font-size: 0.75rem; color: #aaa;">今日の合計(税抜)</span><span style="color: #FFD700; font-size: 1.6rem; font-weight: 900; flex-grow: 1; text-align: center;">${Math.floor(todayNetSum).toLocaleString()}<small style="font-size:0.8rem; margin-left:2px;">円</small></span><span style="font-size: 0.7rem; color: #8e8e93; width: 60px; text-align: right;">(税込${Math.floor(todayRecords.reduce((s,h)=>s+h.gross,0)).toLocaleString()})</span></div>`;
+        const todayGrossSum = todayRecords.reduce((s, h) => s + h.gross, 0);
+        todaySumEl.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; width: 100%; padding: 5px 0;">
+                <div style="font-size: 0.85rem; color: #aaa; font-weight: 600;">今日の合計売上</div>
+                <div style="display: flex; gap: 20px; align-items: baseline; justify-content: center; flex-wrap: wrap;">
+                    <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900;">
+                        <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税抜</small>${Math.floor(todayNetSum).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
+                    </div>
+                    <div style="color: var(--success); font-size: 1.8rem; font-weight: 900;">
+                        <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税込</small>${Math.floor(todayGrossSum).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
+                    </div>
+                </div>
+            </div>
+        `;
     }
     updateHistoryTab(history, sets);
 }
