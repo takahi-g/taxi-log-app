@@ -23,11 +23,18 @@ const state = {
 };
 
 // --- 2. UTILITIES ---
+const DB = {
+    save: (k, d) => localStorage.setItem(k, JSON.stringify(d)),
+    load: (k, def) => {
+        try {
+            const item = localStorage.getItem(k);
+            return item ? JSON.parse(item) : def;
+        } catch (e) { return def; }
+    }
+};
+
 function safeJSON(key, fallback) {
-    try {
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : fallback;
-    } catch (e) { return fallback; }
+    return DB.load(key, fallback);
 }
 
 const UI = {
@@ -102,6 +109,19 @@ async function handleMainAction() {
 
             state.logs.unshift(newLog);
             localStorage.setItem('taxi_logs', JSON.stringify(state.logs.slice(0, CONFIG.MAX_LOGS)));
+
+            // Automatically sync with the calculator history database
+            if (fare > 0) {
+                const hist = DB.load('taxi_v11_hist', []);
+                const todayStr = new Date().toISOString().split('T')[0];
+                hist.push({
+                    id: newLog.id,
+                    date: todayStr,
+                    gross: fare,
+                    net: Math.floor(fare / 1.1)
+                });
+                DB.save('taxi_v11_hist', hist);
+            }
             
             const logId = newLog.id;
             state.currentRide = null;
@@ -263,13 +283,14 @@ function setupEventListeners() {
     UI.get('tracking-toggle')?.addEventListener('change', (e) => {
         if (e.target.checked) startTracking(); else stopTracking();
     });
-    ['log', 'map', 'settings'].forEach(tab => {
+    ['log', 'calc', 'map', 'settings'].forEach(tab => {
         UI.get(`tab-${tab}`)?.addEventListener('click', () => {
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
             UI.active(`view-${tab}`);
             UI.active(`tab-${tab}`);
             if (tab === 'map') initOrUpdateMap();
+            if (tab === 'calc') refreshCalc();
         });
     });
 }
@@ -296,14 +317,151 @@ function changeCount(type, delta) {
     }
 }
 
+// --- 9. TAXI App (タク計) Integration Logic ---
+let hasCelebratedToday = false;
+const CELEB_DURATION = 5000; 
+
+function startCelebration() {
+    const overlay = document.getElementById('celebration-overlay');
+    const text = document.getElementById('celebration-text');
+    if (!overlay || !text) return;
+    overlay.style.opacity = '1'; text.style.transform = 'scale(1)';
+    for (let i = 0; i < 150; i++) setTimeout(createConfetti, i * 20);
+    setTimeout(() => { overlay.style.opacity = '0'; text.style.transform = 'scale(0.5)'; }, CELEB_DURATION);
+}
+
+function createConfetti() {
+    const c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random() * 100 + 'vw';
+    c.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+    const dur = 3 + Math.random() * 2; c.style.animation = `confetti-fall ${dur}s linear forwards`;
+    const size = Math.random() * 12 + 8; c.style.width = size + 'px'; c.style.height = (Math.random() > 0.5 ? size : size * 0.6) + 'px';
+    c.style.borderRadius = Math.random() > 0.5 ? '2px' : '50%'; document.body.appendChild(c); setTimeout(() => c.remove(), dur * 1000);
+}
+
+function getRate(net) { if (net >= 550000) return 60.8; if (net >= 470000) return 57.9; return 55.0; }
+
+function updateNormPreview() {
+    const inputVal = parseFloat(document.getElementById('input-gross').value) || 0;
+    const netInput = Math.floor(inputVal / 1.1);
+    const currentNorm = parseFloat(document.getElementById('disp-norm').getAttribute('data-base-norm')) || 0;
+    document.getElementById('disp-norm').innerText = Math.floor(Math.max(0, currentNorm - netInput)).toLocaleString();
+}
+
+function refreshCalc(isSave = false) {
+    const history = DB.load('taxi_v11_hist', []);
+    const sets = DB.load('taxi_v11_sets', { goal: 550000, days: 12 });
+    const selectedDate = document.getElementById('work-date').value;
+    if (!selectedDate) return;
+    const curMonth = selectedDate.substring(0, 7);
+    const monthlyData = history.filter(h => h.date.startsWith(curMonth));
+    const workedDates = [...new Set(monthlyData.map(h => h.date))];
+    const workedCount = workedDates.length;
+    const now = new Date(); const todayStr = now.toISOString().split('T')[0];
+    let remainDays = Math.max(1, sets.days - (workedDates.includes(todayStr) && now.getHours() < 7 ? workedCount - 1 : workedCount));
+    const salesBeforeToday = monthlyData.filter(h => h.date !== todayStr).reduce((sum, h) => sum + h.net, 0);
+    const dailyBaseNorm = Math.ceil(Math.max(0, sets.goal - salesBeforeToday) / remainDays);
+    const todayRecords = monthlyData.filter(h => h.date === selectedDate);
+    const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
+    const finalTodayNorm = Math.max(0, dailyBaseNorm - todayNetSum);
+    if (isSave && finalTodayNorm <= 0 && !hasCelebratedToday && selectedDate === todayStr) { startCelebration(); hasCelebratedToday = true; }
+    const normEl = document.getElementById('disp-norm'); normEl.innerText = Math.floor(finalTodayNorm).toLocaleString();
+    normEl.setAttribute('data-base-norm', finalTodayNorm + (isSave ? 0 : todayNetSum));
+    document.getElementById('disp-progress').innerText = `今月: ${workedCount} / ${sets.days} 回出勤`;
+    document.getElementById('disp-today-sum').innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between; width: 100%;"><span style="font-size: 0.75rem; color: #aaa;">今日の合計(税抜)</span><span style="color: #FFD700; font-size: 1.6rem; font-weight: 900; flex-grow: 1; text-align: center;">${Math.floor(todayNetSum).toLocaleString()}<small style="font-size:0.8rem; margin-left:2px;">円</small></span><span style="font-size: 0.7rem; color: #8e8e93; width: 60px; text-align: right;">(税込${Math.floor(todayRecords.reduce((s,h)=>s+h.gross,0)).toLocaleString()})</span></div>`;
+    updateHistoryTab(history, sets);
+}
+
+function updateHistoryTab(history, sets) {
+    const y = parseInt(document.getElementById('hist-year').value), m = parseInt(document.getElementById('hist-month').value);
+    if (isNaN(y) || isNaN(m)) return;
+    renderCalcCalendar(y, m, history);
+    const fHist = history.filter(h => h.date.startsWith(`${y}-${String(m).padStart(2,'0')}`));
+    const totalNet = fHist.reduce((sum, h) => sum + h.net, 0), rate = getRate(totalNet), days = [...new Set(fHist.map(h => h.date))].length;
+    document.getElementById('hist-label').innerText = `${y}年${m}月の合計`;
+    document.getElementById('hist-rate').innerText = `暫定歩合: ${rate}%`;
+    document.getElementById('hist-total-sales').innerText = Math.floor(totalNet).toLocaleString();
+    document.getElementById('hist-avg-sales').innerText = (days > 0 ? Math.floor(totalNet/days) : 0).toLocaleString();
+    document.getElementById('hist-target-avg').innerText = Math.floor(sets.goal/sets.days).toLocaleString();
+    document.getElementById('hist-total-income').innerText = Math.floor(totalNet * (rate/100)).toLocaleString() + "円";
+    const groups = {}; fHist.sort((a,b) => a.id - b.id).forEach(h => { if(!groups[h.date]) groups[h.date] = []; groups[h.date].push(h); });
+    document.getElementById('history-groups').innerHTML = Object.keys(groups).sort().reverse().map(date => {
+        const sum = groups[date].reduce((s, h) => s + h.net, 0);
+        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${groups[date].map((h, i) => `<div class="detail-item"><div><div class="detail-label">${i+1}件目</div><div class="detail-value">税抜 ${h.net.toLocaleString()}円</div></div><div class="detail-actions"><button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button><button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button></div></div>`).join('')}</div></div>`;
+    }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">データなし</div>';
+}
+
+function editCalcData(id) {
+    const h = DB.load('taxi_v11_hist', []); const item = h.find(x => x.id === id);
+    if(item) {
+        const newVal = prompt("売上(税込)を修正:", item.gross);
+        if(newVal !== null && !isNaN(newVal) && newVal !== "") {
+            item.gross = parseFloat(newVal); item.net = Math.floor(item.gross / 1.1);
+            DB.save('taxi_v11_hist', h); refreshCalc();
+        }
+    }
+}
+
+function scrollToCalcDate(dateStr) {
+    const el = document.getElementById(`group-${dateStr}`);
+    if (el) {
+        document.querySelectorAll('.day-group').forEach(g => g.classList.remove('open'));
+        el.classList.add('open'); el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.style.background = '#2c2c2e'; setTimeout(() => { el.style.background = 'transparent'; }, 1000);
+    }
+}
+
+function renderCalcCalendar(year, month, history) {
+    const container = document.getElementById('cal-container'); container.innerHTML = '';
+    const days = ['日','月','火','水','木','金','土']; days.forEach(d => container.innerHTML += `<div class="cal-day-label">${d}</div>`);
+    const first = new Date(year, month - 1, 1).getDay(), last = new Date(year, month, 0).getDate();
+    for (let i = 0; i < first; i++) container.innerHTML += '<div></div>';
+    for (let d = 1; d <= last; d++) {
+        const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const hasData = history.some(h => h.date === dateStr), isToday = dateStr === new Date().toISOString().split('T')[0] ? 'is-today' : '';
+        container.innerHTML += `<div class="cal-cell ${hasData ? 'has-data' : ''} ${isToday}" onclick="scrollToCalcDate('${dateStr}')">${d}</div>`;
+    }
+}
+
+function saveCalcData() { 
+    const date = document.getElementById('work-date').value, gross = parseFloat(document.getElementById('input-gross').value);
+    if (!gross) return; const h = DB.load('taxi_v11_hist', []); h.push({ id: Date.now(), date, gross, net: Math.floor(gross/1.1) });
+    DB.save('taxi_v11_hist', h); document.getElementById('input-gross').value = ''; refreshCalc(true);
+}
+
+function deleteCalcData(id) { if(confirm('消去しますか？')) { const h = DB.load('taxi_v11_hist', []); DB.save('taxi_v11_hist', h.filter(x => x.id !== id)); refreshCalc(); } }
+function saveCalcSettings() { DB.save('taxi_v11_sets', { goal: parseFloat(document.getElementById('set-goal').value)||550000, days: parseFloat(document.getElementById('set-days').value)||12 }); refreshCalc(); }
+function toggleCalcDay(dateStr) { const el = document.getElementById(`group-${dateStr}`); if (el) el.classList.toggle('open'); }
+function copyBackup() { const h = localStorage.getItem('taxi_v11_hist') || '[]', s = localStorage.getItem('taxi_v11_sets') || '{}', b = btoa(unescape(encodeURIComponent(JSON.stringify({ h, s })))); navigator.clipboard.writeText(b).then(() => alert('コピー完了！')); }
+function restoreBackup() { const s = prompt('コードを貼り付け：'); if(!s) return; try { const d = JSON.parse(decodeURIComponent(escape(atob(s)))); localStorage.setItem('taxi_v11_hist', d.h); localStorage.setItem('taxi_v11_sets', d.s); location.reload(); } catch(e) { alert('失敗'); } }
+
 document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
     setupEventListeners();
     updateAppView();
+
+    // Initialize TAXI App calculator inputs
+    const workDateInput = UI.get('work-date');
+    if (workDateInput) {
+        workDateInput.valueAsDate = new Date();
+    }
+    const yr = UI.get('hist-year'), mt = UI.get('hist-month');
+    if (yr && mt) {
+        for(let y=new Date().getFullYear(); y>=2024; y--) { let o = document.createElement('option'); o.value=y; o.text=y+'年'; yr.add(o); }
+        for(let m=1; m<=12; m++) { let o = document.createElement('option'); o.value=m; o.text=m+'月'; if(m === new Date().getMonth()+1) o.selected = true; mt.add(o); }
+    }
+    const setsInit = DB.load('taxi_v11_sets', { goal: 550000, days: 12 });
+    if (UI.get('set-goal')) UI.get('set-goal').value = setsInit.goal;
+    if (UI.get('set-days')) UI.get('set-days').value = setsInit.days;
+    refreshCalc();
 });
 
-function clearData() { if (confirm("全消去しますか？")) { localStorage.clear(); location.reload(); } }
+function clearData() { if (confirm("すべての設定および履歴データを完全に消去しますか？")) { localStorage.clear(); location.reload(); } }
 function exportData() {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state.logs));
-    const a = document.createElement('a'); a.href = dataStr; a.download = `taxi_log_${Date.now()}.json`; a.click();
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+        logs: state.logs,
+        moveLogs: state.moveLogs,
+        taxiHist: DB.load('taxi_v11_hist', []),
+        taxiSets: DB.load('taxi_v11_sets', {})
+    }));
+    const a = document.createElement('a'); a.href = dataStr; a.download = `taxi_log_full_${Date.now()}.json`; a.click();
 }

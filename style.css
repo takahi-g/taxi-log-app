@@ -157,17 +157,17 @@ body {
 .history-item {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    padding: 16px; border-radius: 16px; margin-bottom: 12px;
-    display: flex; justify-content: space-between; align-items: center;
-    gap: 12px;
+    padding: 16px 12px; border-radius: 20px; margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: 36px 1fr 64px; /* 左：番号、中：住所、右：人数・編集 */
+    align-items: center;
+    gap: 8px;
 }
 
 .ride-num {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 28px;
-    height: 28px;
+    align-items: center; justify-content: center;
+    width: 28px; height: 28px;
     border-radius: 50%;
     border: 1.5px solid var(--accent);
     color: var(--accent);
@@ -176,26 +176,60 @@ body {
     font-weight: 800;
 }
 
-.history-info .time { font-size: 0.8rem; color: var(--accent); display: block; margin-bottom: 6px; }
-.fare-tag { background: rgba(16, 185, 129, 0.2); color: var(--success); padding: 2px 6px; border-radius: 4px; font-weight: 600; margin-left: 8px; }
+.history-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+}
+
+.history-info .time-fare {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.8rem;
+    color: var(--accent);
+    margin-bottom: 2px;
+}
+
 .history-info .addr { 
     font-size: 1.15rem; 
     font-weight: 600;
     color: var(--text-main);
-    display: block; 
-    margin-top: 4px;
-    line-height: 1.3;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.addr-label { 
+    font-size: 0.7rem; 
+    padding: 2px 4px; 
+    background: rgba(237, 180, 24, 0.15); 
+    border-radius: 4px; 
+    color: var(--accent);
+    min-width: 24px;
+    text-align: center;
+}
+
+.target-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
 }
 
 .pax-badge { 
     background: var(--bg-surface); 
-    padding: 8px; 
-    border-radius: 12px; 
+    padding: 6px 8px; 
+    border-radius: 10px; 
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
     font-weight: 700; 
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    text-align: right;
+    width: 100%;
 }
 .pax-badge .men { color: #60a5fa; } /* 青色 */
 .pax-badge .women { color: #f87171; } /* 赤色 */
@@ -283,4 +317,96 @@ input:checked + .slider:before { transform: translateX(24px); }
     font-size: 1.1rem;
     margin-left: 12px;
     cursor: pointer;
+}
+
+/* --- TAXI App (タク計) Integration Styles --- */
+#celebration-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 10000;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.5s;
+    background: rgba(5, 5, 16, 0.85);
+}
+#celebration-text {
+    color: #FFD700; font-size: 3.2rem; font-weight: 900;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+    transform: scale(0.5); transition: transform 0.5s;
+    text-align: center; line-height: 1.1; z-index: 10002;
+}
+.confetti { position: fixed; z-index: 10001; pointer-events: none; top: -20px; }
+
+.target-hero {
+    background: linear-gradient(135deg, #5e5ce6, #af52de);
+    color: white; border-radius: 24px; padding: 24px 20px;
+    text-align: center; margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(94, 92, 230, 0.3);
+}
+.target-hero .val {
+    font-size: 2.6rem; font-weight: 800; margin: 8px 0;
+    font-family: 'Outfit', sans-serif;
+    color: #fff;
+}
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+.cal-day-label { font-size: 0.75rem; color: var(--text-muted); font-weight: bold; padding: 4px 0; }
+.cal-cell {
+    aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 700; border-radius: 10px; cursor: pointer;
+    position: relative; background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    transition: all 0.2s;
+}
+.cal-cell:active { transform: scale(0.9); background: rgba(255,255,255,0.08); }
+.cal-cell.has-data::after {
+    content: ''; width: 5px; height: 5px; background: var(--accent);
+    border-radius: 50%; position: absolute; bottom: 4px;
+    left: 50%; transform: translateX(-50%);
+}
+.cal-cell.is-today { border: 2px solid var(--accent); color: var(--accent); }
+
+/* Accordion Styles */
+.day-group {
+    margin-bottom: 12px; overflow: hidden;
+    border: 1px solid var(--border); border-radius: 18px;
+    background: var(--bg-card);
+}
+.day-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 20px; cursor: pointer; transition: background 0.2s;
+}
+.day-header:active { background: rgba(255,255,255,0.04); }
+.day-details {
+    display: none; padding: 0 16px 12px 16px;
+    border-top: 1px solid var(--border); background: rgba(0, 0, 0, 0.2);
+}
+.open .day-details { display: block; }
+.open .arrow { transform: rotate(90deg); }
+.arrow { transition: 0.2s; color: var(--text-muted); font-size: 0.8rem; margin-left: 6px; display: inline-block; }
+
+.detail-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.detail-item:last-child { border-bottom: none; }
+.detail-label { font-size: 0.8rem; color: var(--text-muted); }
+.detail-value { font-size: 1.05rem; font-weight: 700; color: var(--text-main); }
+.detail-actions { display: flex; gap: 8px; }
+
+.btn-pencil {
+    width: 36px; height: 36px; border-radius: 10px; border: none;
+    background: rgba(96, 165, 250, 0.15); color: #60a5fa;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; cursor: pointer; transition: transform 0.1s;
+}
+.btn-trash {
+    width: 36px; height: 36px; border-radius: 10px; border: none;
+    background: rgba(239, 68, 68, 0.15); color: var(--danger);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; cursor: pointer; transition: transform 0.1s;
+}
+.btn-pencil:active, .btn-trash:active { transform: scale(0.9); }
+
+/* Confetti animation */
+@keyframes confetti-fall {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
 }

@@ -13,6 +13,9 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="dark-theme">
+    <div id="celebration-overlay">
+        <div id="celebration-text">TARGET<br>ACHIEVED!</div>
+    </div>
     <header class="main-header">
         <div class="logo">
             <span class="logo-icon">🚖</span>
@@ -96,7 +99,70 @@
             </section>
         </div>
 
-        <!-- 2. マップビュー -->
+        <!-- 2. 売上計算ビュー (「タク計」機能) -->
+        <div id="view-calc" class="view-content">
+            <!-- 今日の残りノルマヒーロー -->
+            <div class="target-hero">
+                <div style="font-size: 0.9rem; opacity: 0.8;">今日の残りノルマ (税抜)</div>
+                <div class="val"><span id="disp-norm">0</span> 円</div>
+                <div id="disp-progress" style="font-size: 0.8rem; opacity: 0.8;">---</div>
+            </div>
+
+            <!-- 売上追加カード (手動入力用) -->
+            <section class="card">
+                <div class="card-header">
+                    <h2>💰 売上を追加</h2>
+                </div>
+                <input type="date" id="work-date" onchange="refreshCalc()" class="input-date" style="border: 1px solid #444; border-radius: 12px; padding: 12px; font-size: 1.1rem; color: var(--ios-blue); font-weight: bold; width: 100%; margin-bottom:20px; background:#2c2c2e; -webkit-appearance: none; box-sizing: border-box;">
+                <div class="today-sum-box" style="background: #1c1c1e; color: white; padding: 15px 10px; border-radius: 16px; display: inline-block; margin-bottom: 25px; width: 100%; box-sizing: border-box;">
+                    <div id="disp-today-sum"></div>
+                </div>
+                
+                <div class="input-group">
+                    <label>売上金額を入力 (税込)</label>
+                    <div class="currency-input-wrapper" style="position: relative; width: 100%; margin: 10px auto 0;">
+                        <span class="currency-symbol" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 2rem; font-weight: 800; color: var(--ios-blue);">¥</span>
+                        <input type="number" id="input-gross" pattern="\d*" placeholder="0" oninput="updateNormPreview()" class="huge-input" style="width: 100%; border: 2px solid #3a3a3c; border-radius: 16px; padding: 15px 15px 15px 50px; font-size: 2.8rem; text-align: right; font-weight: 800; outline: none; background: #2c2c2e; color: white; box-sizing: border-box; -webkit-appearance: none;">
+                    </div>
+                </div>
+                <button onclick="saveCalcData()" class="main-action-btn pickup" style="width: 100%; margin-top: 25px; height: 60px; font-size: 1.2rem;">売上を追加</button>
+            </section>
+
+            <!-- カレンダー表示 -->
+            <section class="card">
+                <div class="flex-between" style="margin-bottom: 15px; align-items: center;">
+                    <h2 style="margin: 0;">📅 売上カレンダー</h2>
+                    <div class="select-group" style="display: flex; gap: 8px;">
+                        <select id="hist-year" onchange="refreshCalc()" style="padding: 8px; border-radius: 8px; background: #2c2c2e; color: white; border: 1px solid #444; font-weight: bold;"></select>
+                        <select id="hist-month" onchange="refreshCalc()" style="padding: 8px; border-radius: 8px; background: #2c2c2e; color: white; border: 1px solid #444; font-weight: bold;"></select>
+                    </div>
+                </div>
+                <div class="cal-grid" id="cal-container"></div>
+            </section>
+
+            <!-- 集計カード -->
+            <section class="card black-card" style="background: var(--dark-card); text-align: center;">
+                <div id="hist-label" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 15px;">集計</div>
+                <div style="font-size:0.9rem; opacity:0.8;">期間総売上 (税抜)</div>
+                <div style="font-size: 2.2rem; font-weight: 900; margin: 5px 0;"><span id="hist-total-sales" style="color: #FFD700;">0</span> <small style="font-size:1.2rem; color: #FFD700;">円</small></div>
+                <div style="font-size: 0.85rem; color: var(--ios-green); font-weight: bold; margin-bottom: 15px;">( 1日平均: <span id="hist-avg-sales">0</span>円 / 目標: <span id="hist-target-avg">0</span>円 )</div>
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <div class="badge" id="hist-rate" style="background: rgba(255,255,255,0.2); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 10px;">暫定歩合: 55%</div>
+                    <div style="font-size:0.85rem; opacity:0.8; margin-bottom: 5px;">推定歩合給</div>
+                    <div class="total-val" id="hist-total-income" style="font-size: 2.4rem; font-weight: 900; color: #FFD700;">0円</div>
+                </div>
+            </section>
+
+            <!-- アコーディオン式詳細履歴 -->
+            <section class="history-section">
+                <div class="card-header">
+                    <h2>日別売上詳細</h2>
+                </div>
+                <div id="history-groups"></div>
+            </section>
+        </div>
+
+        <!-- 3. マップビュー -->
         <div id="view-map" class="view-content">
             <section class="card map-full-card">
                 <div class="card-header">
@@ -107,17 +173,36 @@
             </section>
         </div>
 
-        <!-- 3. 設定ビュー -->
+        <!-- 4. 設定ビュー -->
         <div id="view-settings" class="view-content">
             <section class="card settings-card">
                 <div class="card-header">
-                    <h2>⚙️ 設定・データ管理</h2>
+                    <h2>⚙️ 目標設定</h2>
                 </div>
                 <div class="settings-list">
-                    <button class="setting-item delete" onclick="clearData()">🗑 全履歴を消去</button>
-                    <button class="setting-item" onclick="exportData()">📤 データをエクスポート(CSV)</button>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0; border-bottom:1px solid #2c2c2e;">
+                        <span>目標売上 (税抜)</span>
+                        <input type="number" id="set-goal" oninput="saveCalcSettings()" style="width:120px; text-align:right; border:none; font-size:1.1rem; font-weight:bold; color:var(--ios-blue); background:none; outline:none;">
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:15px 0;">
+                        <span>全出勤日数</span>
+                        <input type="number" id="set-days" oninput="saveCalcSettings()" style="width:120px; text-align:right; border:none; font-size:1.1rem; font-weight:bold; color:var(--ios-blue); background:none; outline:none;">
+                    </div>
                 </div>
-                <p class="version">TAXI Log Pro v1.0.0</p>
+            </section>
+
+            <section class="card settings-card">
+                <div class="card-header">
+                    <h2>💾 データ管理 & バックアップ</h2>
+                </div>
+                <p class="desc" style="font-size: 0.8rem; color: #8e8e93; margin-bottom: 15px;">機種変更やデータ保存のための機能です。</p>
+                <div class="settings-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="setting-item" style="background:#1c1c1e; color:var(--ios-blue); border:1px solid #2c2c2e; padding: 12px; border-radius: 10px; font-weight: bold; text-align: left;" onclick="copyBackup()">📋 データをコピー</button>
+                    <button class="setting-item" style="background:#1c1c1e; color:var(--ios-green); border:1px solid #2c2c2e; padding: 12px; border-radius: 10px; font-weight: bold; text-align: left;" onclick="restoreBackup()">📥 データを復元</button>
+                    <button class="setting-item" style="background:#1c1c1e; color:white; border:1px solid #2c2c2e; padding: 12px; border-radius: 10px; font-weight: bold; text-align: left;" onclick="exportData()">📤 走行ログをエクスポート (JSON)</button>
+                    <button class="setting-item delete" style="background:#1c1c1e; color:var(--ios-red); border:1px solid #2c2c2e; padding: 12px; border-radius: 10px; font-weight: bold; text-align: left;" onclick="clearData()">🗑 全履歴・設定を消去</button>
+                </div>
+                <p class="version" style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: 15px;">TAXI Log Pro v3.1.0</p>
             </section>
         </div>
     </main>
@@ -149,7 +234,8 @@
 
     <footer class="main-footer">
         <nav class="tab-bar">
-            <button id="tab-log" class="tab-item active">📊 ログ</button>
+            <button id="tab-log" class="tab-item active">📊 記録</button>
+            <button id="tab-calc" class="tab-item">💰 売上計算</button>
             <button id="tab-map" class="tab-item">📍 マップ</button>
             <button id="tab-settings" class="tab-item">⚙️ 設定</button>
         </nav>
