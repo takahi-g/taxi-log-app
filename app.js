@@ -427,7 +427,21 @@ function updateHistoryTab(history, sets) {
     const groups = {}; fHist.sort((a,b) => a.id - b.id).forEach(h => { if(!groups[h.date]) groups[h.date] = []; groups[h.date].push(h); });
     document.getElementById('history-groups').innerHTML = Object.keys(groups).sort().reverse().map(date => {
         const sum = groups[date].reduce((s, h) => s + h.net, 0);
-        const dayHtml = groups[date].map((h, i) => `<div class="detail-item"><div><div class="detail-label">${i+1}件目</div><div class="detail-value">税抜 ${h.net.toLocaleString()}円</div></div><div class="detail-actions"><button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button><button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button></div></div>`);
+        const dayHtml = groups[date].map((h, i) => `
+            <div class="detail-item">
+                <div>
+                    <div class="detail-label">${i+1}件目</div>
+                    <div class="detail-value" style="display: flex; gap: 10px; font-size: 1rem; align-items: baseline; margin-top: 4px;">
+                        <span style="color: #FFD700; font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税抜</small>${h.net.toLocaleString()}円</span>
+                        <span style="color: var(--success); font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税込</small>${h.gross.toLocaleString()}円</span>
+                    </div>
+                </div>
+                <div class="detail-actions">
+                    <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
+                    <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
+                </div>
+            </div>
+        `);
         dayHtml.reverse();
         return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${dayHtml.join('')}</div></div>`;
     }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">データなし</div>';
