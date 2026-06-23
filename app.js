@@ -3,7 +3,22 @@
  * -------------------------------------------
  */
 
-// --- 1. CONFIG & STATE ---
+// --- 1. UTILITIES ---
+const DB = {
+    save: (k, d) => localStorage.setItem(k, JSON.stringify(d)),
+    load: (k, def) => {
+        try {
+            const item = localStorage.getItem(k);
+            return item ? JSON.parse(item) : def;
+        } catch (e) { return def; }
+    }
+};
+
+function safeJSON(key, fallback) {
+    return DB.load(key, fallback);
+}
+
+// --- 2. CONFIG & STATE ---
 const CONFIG = {
     MAX_LOGS: 100,
     GPS_TIMEOUT: 10000,
@@ -21,21 +36,6 @@ const state = {
     mapLayers: { markers: [], path: null, rideLines: [] },
     counts: { total: 1, men: 0, women: 0 }
 };
-
-// --- 2. UTILITIES ---
-const DB = {
-    save: (k, d) => localStorage.setItem(k, JSON.stringify(d)),
-    load: (k, def) => {
-        try {
-            const item = localStorage.getItem(k);
-            return item ? JSON.parse(item) : def;
-        } catch (e) { return def; }
-    }
-};
-
-function safeJSON(key, fallback) {
-    return DB.load(key, fallback);
-}
 
 const UI = {
     get: (id) => document.getElementById(id),
