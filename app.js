@@ -325,9 +325,16 @@ function startCelebration() {
     const overlay = document.getElementById('celebration-overlay');
     const text = document.getElementById('celebration-text');
     if (!overlay || !text) return;
-    overlay.style.opacity = '1'; text.style.transform = 'scale(1)';
+    overlay.style.display = 'flex';
+    setTimeout(() => {
+        overlay.style.opacity = '1'; text.style.transform = 'scale(1)';
+    }, 50);
     for (let i = 0; i < 150; i++) setTimeout(createConfetti, i * 20);
-    setTimeout(() => { overlay.style.opacity = '0'; text.style.transform = 'scale(0.5)'; }, CELEB_DURATION);
+    setTimeout(() => { 
+        overlay.style.opacity = '0'; 
+        text.style.transform = 'scale(0.5)'; 
+        setTimeout(() => { overlay.style.display = 'none'; }, 500);
+    }, CELEB_DURATION);
 }
 
 function createConfetti() {
@@ -341,16 +348,21 @@ function createConfetti() {
 function getRate(net) { if (net >= 550000) return 60.8; if (net >= 470000) return 57.9; return 55.0; }
 
 function updateNormPreview() {
-    const inputVal = parseFloat(document.getElementById('input-gross').value) || 0;
+    const inputEl = document.getElementById('input-gross');
+    const normEl = document.getElementById('disp-norm');
+    if (!inputEl || !normEl) return;
+    const inputVal = parseFloat(inputEl.value) || 0;
     const netInput = Math.floor(inputVal / 1.1);
-    const currentNorm = parseFloat(document.getElementById('disp-norm').getAttribute('data-base-norm')) || 0;
-    document.getElementById('disp-norm').innerText = Math.floor(Math.max(0, currentNorm - netInput)).toLocaleString();
+    const currentNorm = parseFloat(normEl.getAttribute('data-base-norm')) || 0;
+    normEl.innerText = Math.floor(Math.max(0, currentNorm - netInput)).toLocaleString();
 }
 
 function refreshCalc(isSave = false) {
     const history = DB.load('taxi_v11_hist', []);
     const sets = DB.load('taxi_v11_sets', { goal: 550000, days: 12 });
-    const selectedDate = document.getElementById('work-date').value;
+    const workDateEl = document.getElementById('work-date');
+    if (!workDateEl) return;
+    const selectedDate = workDateEl.value;
     if (!selectedDate) return;
     const curMonth = selectedDate.substring(0, 7);
     const monthlyData = history.filter(h => h.date.startsWith(curMonth));
@@ -364,10 +376,17 @@ function refreshCalc(isSave = false) {
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
     const finalTodayNorm = Math.max(0, dailyBaseNorm - todayNetSum);
     if (isSave && finalTodayNorm <= 0 && !hasCelebratedToday && selectedDate === todayStr) { startCelebration(); hasCelebratedToday = true; }
-    const normEl = document.getElementById('disp-norm'); normEl.innerText = Math.floor(finalTodayNorm).toLocaleString();
-    normEl.setAttribute('data-base-norm', finalTodayNorm + (isSave ? 0 : todayNetSum));
-    document.getElementById('disp-progress').innerText = `今月: ${workedCount} / ${sets.days} 回出勤`;
-    document.getElementById('disp-today-sum').innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between; width: 100%;"><span style="font-size: 0.75rem; color: #aaa;">今日の合計(税抜)</span><span style="color: #FFD700; font-size: 1.6rem; font-weight: 900; flex-grow: 1; text-align: center;">${Math.floor(todayNetSum).toLocaleString()}<small style="font-size:0.8rem; margin-left:2px;">円</small></span><span style="font-size: 0.7rem; color: #8e8e93; width: 60px; text-align: right;">(税込${Math.floor(todayRecords.reduce((s,h)=>s+h.gross,0)).toLocaleString()})</span></div>`;
+    const normEl = document.getElementById('disp-norm'); 
+    if (normEl) {
+        normEl.innerText = Math.floor(finalTodayNorm).toLocaleString();
+        normEl.setAttribute('data-base-norm', finalTodayNorm + (isSave ? 0 : todayNetSum));
+    }
+    const progressEl = document.getElementById('disp-progress');
+    if (progressEl) progressEl.innerText = `今月: ${workedCount} / ${sets.days} 回出勤`;
+    const todaySumEl = document.getElementById('disp-today-sum');
+    if (todaySumEl) {
+        todaySumEl.innerHTML = `<div style="display: flex; align-items: center; justify-content: space-between; width: 100%;"><span style="font-size: 0.75rem; color: #aaa;">今日の合計(税抜)</span><span style="color: #FFD700; font-size: 1.6rem; font-weight: 900; flex-grow: 1; text-align: center;">${Math.floor(todayNetSum).toLocaleString()}<small style="font-size:0.8rem; margin-left:2px;">円</small></span><span style="font-size: 0.7rem; color: #8e8e93; width: 60px; text-align: right;">(税込${Math.floor(todayRecords.reduce((s,h)=>s+h.gross,0)).toLocaleString()})</span></div>`;
+    }
     updateHistoryTab(history, sets);
 }
 

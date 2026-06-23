@@ -323,7 +323,7 @@ input:checked + .slider:before { transform: translateX(24px); }
 #celebration-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     pointer-events: none; z-index: 10000;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
     opacity: 0; transition: opacity 0.5s;
     background: rgba(5, 5, 16, 0.85);
 }
