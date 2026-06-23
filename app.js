@@ -146,7 +146,15 @@ async function handleMainAction() {
             });
         }
     } catch (e) {
-        alert("エラー詳細: " + e.name + ": " + e.message);
+        let msg = "位置情報の取得に失敗しました。";
+        if (e.code === 1) {
+            msg += "\nブラウザや端末の設定で、位置情報の使用（GPS）が許可されているかご確認ください。";
+        } else if (e.code === 2) {
+            msg += "\n位置情報を判定できませんでした。GPS信号の届く場所でお試しください。";
+        } else if (e.code === 3) {
+            msg += "\n位置情報の取得中にタイムアウトしました。";
+        }
+        alert(msg + "\n\n(エラー詳細: " + (e.message || "Unknown error") + ")");
     } finally {
         btn.disabled = false;
         updateAppView();
