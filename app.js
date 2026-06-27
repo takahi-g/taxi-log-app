@@ -631,7 +631,18 @@ function updateHistoryTab(history, sets) {
     document.getElementById('hist-target-avg').innerText = Math.floor(sets.goal/sets.days).toLocaleString();
     document.getElementById('hist-total-income').innerText = Math.floor(totalNet * (rate/100)).toLocaleString() + "円";
     const groups = {}; fHist.sort((a,b) => a.id - b.id).forEach(h => { if(!groups[h.date]) groups[h.date] = []; groups[h.date].push(h); });
-    document.getElementById('history-groups').innerHTML = Object.keys(groups).sort().reverse().map(date => {
+    
+    // 日付キーを降順でソート
+    const sortedDates = Object.keys(groups).sort().reverse();
+    // 選択された日付（selectedDate）がある場合は最上部に移動
+    const selectedDate = getSelectedDateStr();
+    const index = sortedDates.indexOf(selectedDate);
+    if (index > -1) {
+        sortedDates.splice(index, 1);
+        sortedDates.unshift(selectedDate);
+    }
+    
+    document.getElementById('history-groups').innerHTML = sortedDates.map(date => {
         const sum = groups[date].reduce((s, h) => s + h.net, 0);
         const dayHtml = groups[date].map((h, i) => `
             <div class="detail-item">
