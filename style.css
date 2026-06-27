@@ -23,7 +23,7 @@ body {
     font-family: 'Outfit', 'Noto Sans JP', sans-serif;
     letter-spacing: -0.01em;
     overflow-x: hidden;
-    padding-bottom: 90px;
+    padding-bottom: calc(105px + env(safe-area-inset-bottom, 16px));
 }
 
 .container {
@@ -236,18 +236,26 @@ body {
 
 /* Tab Bar */
 .main-footer {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 2000;
+    position: fixed; 
+    bottom: calc(6px + env(safe-area-inset-bottom, 8px)); /* 画面最下部から浮かせる */
+    left: 12px; 
+    right: 12px; 
+    z-index: 2000;
 }
 .tab-bar {
-    background: rgba(5, 5, 20, 0.9); backdrop-filter: blur(20px);
-    display: flex; justify-content: space-around; 
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 12px));
-    border-top: 1px solid var(--border);
+    background: rgba(18, 18, 36, 0.95); /* 背面の透過度を下げて視認性を確保 */
+    backdrop-filter: blur(20px);
+    display: flex; 
+    justify-content: space-around; 
+    padding: 6px 4px;
+    border: 1px solid var(--border);
+    border-radius: 20px; /* 角を大きく丸めてフロート化 */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5); /* 浮遊感のある影 */
 }
 .tab-item {
     background: none; border: none; color: var(--text-muted); font-size: 0.72rem;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
-    flex: 1; min-height: 52px; padding: 6px 2px; transition: all 0.2s; border-radius: 12px;
+    flex: 1; min-height: 52px; padding: 6px 2px; transition: all 0.2s; border-radius: 14px;
     -webkit-tap-highlight-color: transparent;
 }
 .tab-item.active { color: var(--accent); background: rgba(237, 180, 24, 0.08); font-weight: bold; }
