@@ -632,15 +632,56 @@ function updateHistoryTab(history, sets) {
     document.getElementById('hist-total-income').innerText = Math.floor(totalNet * (rate/100)).toLocaleString() + "円";
     const groups = {}; fHist.sort((a,b) => a.id - b.id).forEach(h => { if(!groups[h.date]) groups[h.date] = []; groups[h.date].push(h); });
     
-    // 日付キーを降順でソート
-    const sortedDates = Object.keys(groups).sort().reverse();
-    // 選択された日付（selectedDate）がある場合は最上部に移動
     const selectedDate = getSelectedDateStr();
-    const index = sortedDates.indexOf(selectedDate);
-    if (index > -1) {
-        sortedDates.splice(index, 1);
-        sortedDates.unshift(selectedDate);
+    const selectedGroup = groups[selectedDate];
+    const detailsBox = document.getElementById('selected-day-details-box');
+    
+    if (detailsBox) {
+        const [yPart, mPart, dPart] = selectedDate.split('-');
+        if (selectedGroup && selectedGroup.length > 0) {
+            const sumNet = selectedGroup.reduce((s, h) => s + h.net, 0);
+            const sumGross = selectedGroup.reduce((s, h) => s + h.gross, 0);
+            const itemsHtml = selectedGroup.map((h, i) => `
+                <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <div>
+                        <div class="detail-label" style="font-size:0.75rem; color:var(--text-muted);">${i+1}件目</div>
+                        <div class="detail-value" style="display: flex; gap: 10px; font-size: 0.95rem; align-items: baseline; margin-top: 2px;">
+                            <span style="color: #FFD700; font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税抜</small>${h.net.toLocaleString()}円</span>
+                            <span style="color: var(--success); font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税込</small>${h.gross.toLocaleString()}円</span>
+                        </div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="btn-pencil" onclick="editCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">✏️</button>
+                        <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
+                    </div>
+                </div>
+            `).reverse().join('');
+            
+            detailsBox.innerHTML = `
+                <section class="card" style="margin-bottom: 0; padding: 15px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px;">
+                        <h3 style="margin: 0; font-size: 1rem; color: var(--accent);">📌 選択中の詳細 (${mPart}/${dPart})</h3>
+                        <div style="text-align: right;">
+                            <span style="font-size: 1.15rem; font-weight: 800; color: var(--success);">${Math.floor(sumGross).toLocaleString()}円 <small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);">(税込)</small></span>
+                        </div>
+                    </div>
+                    <div class="day-details" style="display: block;">
+                        ${itemsHtml}
+                    </div>
+                </section>
+            `;
+        } else {
+            detailsBox.innerHTML = `
+                <section class="card" style="margin-bottom: 0; padding: 15px; text-align: center; color: var(--text-muted); border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 5px 0; font-size: 0.95rem; color: var(--text-muted);">📌 選択中 (${mPart}/${dPart})</h3>
+                    <div style="font-size: 0.85rem;">この日の売上記録はありません</div>
+                </section>
+            `;
+        }
     }
+
+    // アコーディオン履歴表示（選択された日付 selectedDate は除外する）
+    const sortedDates = Object.keys(groups).sort().reverse().filter(d => d !== selectedDate);
     
     document.getElementById('history-groups').innerHTML = sortedDates.map(date => {
         const sum = groups[date].reduce((s, h) => s + h.net, 0);
@@ -660,10 +701,8 @@ function updateHistoryTab(history, sets) {
             </div>
         `);
         dayHtml.reverse();
-        const selectedDate = getSelectedDateStr();
-        const isOpen = (date === selectedDate);
-        return `<div class="day-group ${isOpen ? 'open' : ''}" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">${isOpen ? '▼' : '▶'}</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${dayHtml.join('')}</div></div>`;
-    }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">データなし</div>';
+        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${dayHtml.join('')}</div></div>`;
+    }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">過去のデータなし</div>';
 }
 
 function editCalcData(id) {

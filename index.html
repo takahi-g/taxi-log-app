@@ -27,7 +27,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 06/27 16:15</div>
+                <div class="app-version">Ver: 06/27 16:20</div>
             </div>
         </div>
     </header>
@@ -106,6 +106,9 @@
 
         <!-- 新設：詳細履歴ビュー -->
         <div id="view-history" class="view-content" style="padding: 10px; box-sizing: border-box;">
+            <!-- 選択された日の詳細 (カレンダーより上に表示) -->
+            <div id="selected-day-details-box" style="margin-bottom: 15px;"></div>
+
             <!-- カレンダー表示 -->
             <section class="card" style="margin-bottom: 15px;">
                 <div class="flex-between" style="margin-bottom: 15px; align-items: center;">
@@ -381,6 +384,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260627_1615"></script>
+    <script src="app.js?v=20260627_1620"></script>
 </body>
 </html>
