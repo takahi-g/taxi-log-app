@@ -524,9 +524,12 @@ function refreshCalc(isSave = false) {
         elapsedMinutes = Math.floor(diffMs / 60000);
     }
 
-    // 過去の日付、または22時間を超える場合は、標準勤務時間の19時間40分(1180分)を基準にする
+    // 過去の日付、または22時間を超える場合は、設定された標準勤務時間を基準にする
+    const stdWorkHours = sets.standardWorkHours !== undefined ? sets.standardWorkHours : 19;
+    const stdWorkMinutes = sets.standardWorkMinutes !== undefined ? sets.standardWorkMinutes : 40;
+    const stdTotalMinutes = stdWorkHours * 60 + stdWorkMinutes;
     if (elapsedMinutes > 1320 || selectedDate !== todayStr) {
-        elapsedMinutes = 1180;
+        elapsedMinutes = stdTotalMinutes;
     }
 
     // 現在計測中の休憩時間も加算する
@@ -640,7 +643,16 @@ function saveCalcData() {
 }
 
 function deleteCalcData(id) { if(confirm('消去しますか？')) { const h = DB.load('taxi_v11_hist', []); DB.save('taxi_v11_hist', h.filter(x => x.id !== id)); refreshCalc(); } }
-function saveCalcSettings() { DB.save('taxi_v11_sets', { goal: parseFloat(document.getElementById('set-goal').value)||550000, days: parseFloat(document.getElementById('set-days').value)||12 }); refreshCalc(); }
+function saveCalcSettings() {
+    DB.save('taxi_v11_sets', {
+        goal: parseFloat(document.getElementById('set-goal').value)||550000,
+        days: parseFloat(document.getElementById('set-days').value)||12,
+        baseStartTime: document.getElementById('set-base-start-time').value || "08:00",
+        standardWorkHours: parseFloat(document.getElementById('set-standard-work-hours').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-hours').value) : 19,
+        standardWorkMinutes: parseFloat(document.getElementById('set-standard-work-minutes').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-minutes').value) : 40
+    });
+    refreshCalc();
+}
 function toggleCalcDay(dateStr) { const el = document.getElementById(`group-${dateStr}`); if (el) el.classList.toggle('open'); }
 function copyBackup() { const h = localStorage.getItem('taxi_v11_hist') || '[]', s = localStorage.getItem('taxi_v11_sets') || '{}', b = btoa(unescape(encodeURIComponent(JSON.stringify({ h, s })))); navigator.clipboard.writeText(b).then(() => alert('コピー完了！')); }
 function restoreBackup() { const s = prompt('コードを貼り付け：'); if(!s) return; try { const d = JSON.parse(decodeURIComponent(escape(atob(s)))); localStorage.setItem('taxi_v11_hist', d.h); localStorage.setItem('taxi_v11_sets', d.s); location.reload(); } catch(e) { alert('失敗'); } }
@@ -660,9 +672,12 @@ document.addEventListener('DOMContentLoaded', () => {
         for(let y=new Date().getFullYear(); y>=2024; y--) { let o = document.createElement('option'); o.value=y; o.text=y+'年'; yr.add(o); }
         for(let m=1; m<=12; m++) { let o = document.createElement('option'); o.value=m; o.text=m+'月'; if(m === new Date().getMonth()+1) o.selected = true; mt.add(o); }
     }
-    const setsInit = DB.load('taxi_v11_sets', { goal: 550000, days: 12 });
+    const setsInit = DB.load('taxi_v11_sets', { goal: 550000, days: 12, baseStartTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
     if (UI.get('set-goal')) UI.get('set-goal').value = setsInit.goal;
     if (UI.get('set-days')) UI.get('set-days').value = setsInit.days;
+    if (UI.get('set-base-start-time')) UI.get('set-base-start-time').value = setsInit.baseStartTime || "08:00";
+    if (UI.get('set-standard-work-hours')) UI.get('set-standard-work-hours').value = setsInit.standardWorkHours !== undefined ? setsInit.standardWorkHours : 19;
+    if (UI.get('set-standard-work-minutes')) UI.get('set-standard-work-minutes').value = setsInit.standardWorkMinutes !== undefined ? setsInit.standardWorkMinutes : 40;
     refreshCalc();
     
     // 時給表示を最新化するためのタイマー（1分ごと）
@@ -717,10 +732,10 @@ function getSelectedDateStr() {
 
 function loadWorkState(dateStr) {
     const states = DB.load('taxi_v11_work_states', {});
+    const sets = DB.load('taxi_v11_sets', { goal: 550000, days: 12, baseStartTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
     if (!states[dateStr]) {
-        // デフォルト設定: 出勤08:00、休憩180分 (3時間)
         states[dateStr] = {
-            startTime: "08:00",
+            startTime: sets.baseStartTime || "08:00",
             breakMinutes: 180,
             activeBreakStarted: null
         };
