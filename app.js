@@ -534,9 +534,13 @@ function refreshCalc(isSave = false) {
         if (workState.breaks && workState.breaks.length > 0) {
             breakHistoryList.style.display = 'block';
             const listHtml = workState.breaks.map((b, i) => `
-                <div style="display:flex; justify-content:space-between; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 4px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 4px;">
                     <span>☕ 休憩${i+1}: ${b.start} 〜 ${b.end}</span>
-                    <span style="font-weight:bold; color:var(--accent);">${b.duration}分</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-weight:bold; color:var(--accent); margin-right:4px;">${b.duration}分</span>
+                        <button onclick="editBreakSession(${i})" style="background:none; border:none; font-size:1rem; cursor:pointer; padding:2px;">✏️</button>
+                        <button onclick="deleteBreakSession(${i})" style="background:none; border:none; font-size:1rem; cursor:pointer; padding:2px;">🗑️</button>
+                    </div>
                 </div>
             `).join('');
             breakHistoryList.innerHTML = `<div style="font-weight:bold; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px; color:var(--text-main); font-size:0.85rem;">⏱️ 休憩時間セッション履歴</div>` + listHtml;
@@ -1052,5 +1056,58 @@ function updateBreakTimerDisplay() {
         btn.innerHTML = `<span>☕ 休憩に入る</span>`;
         btn.style.background = 'rgba(94, 92, 230, 0.15)';
         btn.style.color = '#5e5ce6';
+    }
+}
+
+function editBreakSession(index) {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    if (!stateObj.breaks || !stateObj.breaks[index]) return;
+    
+    const b = stateObj.breaks[index];
+    const newStart = prompt("開始時刻を修正 (例: 12:30)：", b.start);
+    if (newStart === null || newStart === "") return;
+    const newEnd = prompt("終了時刻を修正 (例: 13:30)：", b.end);
+    if (newEnd === null || newEnd === "") return;
+    
+    const timeReg = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeReg.test(newStart) || !timeReg.test(newEnd)) {
+        alert("時刻の形式が正しくありません。(例: 12:30)");
+        return;
+    }
+    
+    const calculateDuration = (startStr, endStr) => {
+        const [sh, sm] = startStr.split(':').map(Number);
+        const [eh, em] = endStr.split(':').map(Number);
+        let diff = (eh * 60 + em) - (sh * 60 + sm);
+        if (diff < 0) diff += 24 * 60;
+        return diff;
+    };
+    
+    const oldDuration = b.duration;
+    const newDuration = calculateDuration(newStart, newEnd);
+    
+    b.start = newStart;
+    b.end = newEnd;
+    b.duration = newDuration;
+    
+    stateObj.breakMinutes = Math.max(0, stateObj.breakMinutes - oldDuration + newDuration);
+    
+    saveWorkState(dateStr, stateObj);
+    refreshCalc();
+}
+
+function deleteBreakSession(index) {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    if (!stateObj.breaks || !stateObj.breaks[index]) return;
+    
+    if (confirm("この休憩記録を削除しますか？")) {
+        const b = stateObj.breaks[index];
+        stateObj.breakMinutes = Math.max(0, stateObj.breakMinutes - b.duration);
+        stateObj.breaks.splice(index, 1);
+        
+        saveWorkState(dateStr, stateObj);
+        refreshCalc();
     }
 }
