@@ -618,3 +618,30 @@ function exportData() {
     }));
     const a = document.createElement('a'); a.href = dataStr; a.download = `taxi_log_full_${Date.now()}.json`; a.click();
 }
+function importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+            try {
+                const d = JSON.parse(evt.target.result);
+                if (d.logs) state.logs = d.logs;
+                if (d.moveLogs) state.moveLogs = d.moveLogs;
+                if (d.taxiHist) DB.save('taxi_v11_hist', d.taxiHist);
+                if (d.taxiSets) DB.save('taxi_v11_sets', d.taxiSets);
+                localStorage.setItem('taxi_logs', JSON.stringify(state.logs));
+                localStorage.setItem('move_logs', JSON.stringify(state.moveLogs));
+                alert('読み込みが完了しました！');
+                location.reload();
+            } catch(err) {
+                alert('データの読み込みに失敗しました。');
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
