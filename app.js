@@ -649,7 +649,9 @@ function updateHistoryTab(history, sets) {
             </div>
         `);
         dayHtml.reverse();
-        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${dayHtml.join('')}</div></div>`;
+        const selectedDate = getSelectedDateStr();
+        const isOpen = (date === selectedDate);
+        return `<div class="day-group ${isOpen ? 'open' : ''}" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">${isOpen ? '▼' : '▶'}</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${dayHtml.join('')}</div></div>`;
     }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">データなし</div>';
 }
 
@@ -702,7 +704,16 @@ function saveCalcSettings() {
     });
     refreshCalc();
 }
-function toggleCalcDay(dateStr) { const el = document.getElementById(`group-${dateStr}`); if (el) el.classList.toggle('open'); }
+function toggleCalcDay(dateStr) {
+    const el = document.getElementById(`group-${dateStr}`);
+    if (el) {
+        el.classList.toggle('open');
+        const arrow = el.querySelector('.arrow');
+        if (arrow) {
+            arrow.innerText = el.classList.contains('open') ? '▼' : '▶';
+        }
+    }
+}
 function copyBackup() { const h = localStorage.getItem('taxi_v11_hist') || '[]', s = localStorage.getItem('taxi_v11_sets') || '{}', b = btoa(unescape(encodeURIComponent(JSON.stringify({ h, s })))); navigator.clipboard.writeText(b).then(() => alert('コピー完了！')); }
 function restoreBackup() {
     const s = prompt('コードを貼り付け：');

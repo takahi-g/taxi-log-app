@@ -27,7 +27,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 06/27 15:42</div>
+                <div class="app-version">Ver: 06/27 15:47</div>
             </div>
         </div>
     </header>
@@ -101,6 +101,14 @@
                     <!-- JavaScriptで履歴が追加されます -->
                     <div class="empty-state">履歴はまだありません</div>
                 </div>
+            </section>
+
+            <!-- アコーディオン式詳細履歴 -->
+            <section class="history-section" style="margin-top: 15px;">
+                <div class="card-header">
+                    <h2>日別売上詳細</h2>
+                </div>
+                <div id="history-groups"></div>
             </section>
         </div>
 
@@ -196,13 +204,6 @@
                 </div>
             </section>
 
-            <!-- アコーディオン式詳細履歴 -->
-            <section class="history-section">
-                <div class="card-header">
-                    <h2>日別売上詳細</h2>
-                </div>
-                <div id="history-groups"></div>
-            </section>
 
             <!-- カレンダー表示 -->
             <section class="card">
@@ -375,6 +376,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260627_1542"></script>
+    <script src="app.js?v=20260627_1547"></script>
 </body>
 </html>
