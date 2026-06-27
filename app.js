@@ -363,14 +363,14 @@ function setupEventListeners() {
     UI.get('tracking-toggle')?.addEventListener('change', (e) => {
         if (e.target.checked) startTracking(); else stopTracking();
     });
-    ['log', 'calc', 'map', 'settings'].forEach(tab => {
+    ['log', 'calc', 'history', 'map', 'settings'].forEach(tab => {
         UI.get(`tab-${tab}`)?.addEventListener('click', () => {
             document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
             UI.active(`view-${tab}`);
             UI.active(`tab-${tab}`);
             if (tab === 'map') initOrUpdateMap();
-            if (tab === 'calc') refreshCalc();
+            if (tab === 'calc' || tab === 'history') refreshCalc();
         });
     });
     // Click/Touch outside edit-modal to close it

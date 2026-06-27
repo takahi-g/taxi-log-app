@@ -27,7 +27,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 06/27 15:47</div>
+                <div class="app-version">Ver: 06/27 15:50</div>
             </div>
         </div>
     </header>
@@ -102,11 +102,13 @@
                     <div class="empty-state">履歴はまだありません</div>
                 </div>
             </section>
+        </div>
 
-            <!-- アコーディオン式詳細履歴 -->
-            <section class="history-section" style="margin-top: 15px;">
-                <div class="card-header">
-                    <h2>日別売上詳細</h2>
+        <!-- 新設：詳細履歴ビュー -->
+        <div id="view-history" class="view-content">
+            <section class="history-section" style="padding: 10px; box-sizing: border-box;">
+                <div class="card-header" style="margin-bottom: 12px;">
+                    <h2>📝 日別売上詳細</h2>
                 </div>
                 <div id="history-groups"></div>
             </section>
@@ -370,12 +372,13 @@
     <footer class="main-footer">
         <nav class="tab-bar">
             <button id="tab-calc" class="tab-item active">💰 売上計算</button>
+            <button id="tab-history" class="tab-item">📝 詳細履歴</button>
             <button id="tab-log" class="tab-item">📊 記録</button>
             <button id="tab-map" class="tab-item">📍 マップ</button>
             <button id="tab-settings" class="tab-item">⚙️ 設定</button>
         </nav>
     </footer>
 
-    <script src="app.js?v=20260627_1547"></script>
+    <script src="app.js?v=20260627_1550"></script>
 </body>
 </html>
