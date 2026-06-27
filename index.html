@@ -27,7 +27,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 06/27 15:50</div>
+                <div class="app-version">Ver: 06/27 16:00</div>
             </div>
         </div>
     </header>
@@ -105,10 +105,43 @@
         </div>
 
         <!-- 新設：詳細履歴ビュー -->
-        <div id="view-history" class="view-content">
-            <section class="history-section" style="padding: 10px; box-sizing: border-box;">
+        <div id="view-history" class="view-content" style="padding: 10px; box-sizing: border-box;">
+            <!-- カレンダー表示 -->
+            <section class="card" style="margin-bottom: 15px;">
+                <div class="flex-between" style="margin-bottom: 15px; align-items: center;">
+                    <h2 style="margin: 0; font-size: 1.1rem;">📅 売上カレンダー</h2>
+                    <div class="select-group" style="display: flex; gap: 8px;">
+                        <select id="hist-year" onchange="refreshCalc()" style="padding: 6px 10px; border-radius: 8px; background: #2c2c2e; color: white; border: 1px solid #444; font-weight: bold;"></select>
+                        <select id="hist-month" onchange="refreshCalc()" style="padding: 6px 10px; border-radius: 8px; background: #2c2c2e; color: white; border: 1px solid #444; font-weight: bold;"></select>
+                    </div>
+                </div>
+                <div class="cal-grid" id="cal-container"></div>
+            </section>
+
+            <!-- 集計カード -->
+            <section class="card black-card" style="background: var(--dark-card); text-align: center; margin-bottom: 15px;">
+                <div id="hist-label" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 15px;">集計</div>
+                <div style="font-size:0.9rem; opacity:0.8; margin-bottom: 5px;">期間総売上</div>
+                <div style="display: flex; gap: 20px; align-items: baseline; justify-content: center; flex-wrap: wrap; margin-bottom: 5px;">
+                    <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900;">
+                        <small style="font-size:0.8rem; color:#aaa; font-weight:normal; margin-right:2px;">税抜</small><span id="hist-total-sales">0</span><small style="font-size:1rem; color:#FFD700;">円</small>
+                    </div>
+                    <div style="color: var(--success); font-size: 1.8rem; font-weight: 900;">
+                        <small style="font-size:0.8rem; color:#aaa; font-weight:normal; margin-right:2px;">税込</small><span id="hist-total-sales-gross">0</span><small style="font-size:1rem; color:var(--success);">円</small>
+                    </div>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold; margin-bottom: 15px;">( 1日平均(税抜): <span id="hist-avg-sales">0</span>円 / 目標: <span id="hist-target-avg">0</span>円 )</div>
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <div class="badge" id="hist-rate" style="background: rgba(255,255,255,0.2); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 10px;">暫定歩合: 55%</div>
+                    <div style="font-size:0.85rem; opacity:0.8; margin-bottom: 5px;">推定歩合給</div>
+                    <div class="total-val" id="hist-total-income" style="font-size: 2.4rem; font-weight: 900; color: #FFD700;">0円</div>
+                </div>
+            </section>
+
+            <!-- アコーディオン式詳細履歴 -->
+            <section class="history-section">
                 <div class="card-header" style="margin-bottom: 12px;">
-                    <h2>📝 日別売上詳細</h2>
+                    <h2 style="font-size: 1.1rem;">📝 日別売上詳細</h2>
                 </div>
                 <div id="history-groups"></div>
             </section>
@@ -207,37 +240,6 @@
             </section>
 
 
-            <!-- カレンダー表示 -->
-            <section class="card">
-                <div class="flex-between" style="margin-bottom: 15px; align-items: center;">
-                    <h2 style="margin: 0;">📅 売上カレンダー</h2>
-                    <div class="select-group" style="display: flex; gap: 8px;">
-                        <select id="hist-year" onchange="refreshCalc()" style="padding: 8px; border-radius: 8px; background: #2c2c2e; color: white; border: 1px solid #444; font-weight: bold;"></select>
-                        <select id="hist-month" onchange="refreshCalc()" style="padding: 8px; border-radius: 8px; background: #2c2c2e; color: white; border: 1px solid #444; font-weight: bold;"></select>
-                    </div>
-                </div>
-                <div class="cal-grid" id="cal-container"></div>
-            </section>
-
-            <!-- 集計カード -->
-            <section class="card black-card" style="background: var(--dark-card); text-align: center;">
-                <div id="hist-label" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 15px;">集計</div>
-                <div style="font-size:0.9rem; opacity:0.8; margin-bottom: 5px;">期間総売上</div>
-                <div style="display: flex; gap: 20px; align-items: baseline; justify-content: center; flex-wrap: wrap; margin-bottom: 5px;">
-                    <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900;">
-                        <small style="font-size:0.8rem; color:#aaa; font-weight:normal; margin-right:2px;">税抜</small><span id="hist-total-sales">0</span><small style="font-size:1rem; color:#FFD700;">円</small>
-                    </div>
-                    <div style="color: var(--success); font-size: 1.8rem; font-weight: 900;">
-                        <small style="font-size:0.8rem; color:#aaa; font-weight:normal; margin-right:2px;">税込</small><span id="hist-total-sales-gross">0</span><small style="font-size:1rem; color:var(--success);">円</small>
-                    </div>
-                </div>
-                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold; margin-bottom: 15px;">( 1日平均(税抜): <span id="hist-avg-sales">0</span>円 / 目標: <span id="hist-target-avg">0</span>円 )</div>
-                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                    <div class="badge" id="hist-rate" style="background: rgba(255,255,255,0.2); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 10px;">暫定歩合: 55%</div>
-                    <div style="font-size:0.85rem; opacity:0.8; margin-bottom: 5px;">推定歩合給</div>
-                    <div class="total-val" id="hist-total-income" style="font-size: 2.4rem; font-weight: 900; color: #FFD700;">0円</div>
-                </div>
-            </section>
         </div>
 
         <!-- 3. マップビュー -->
@@ -379,6 +381,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260627_1550"></script>
+    <script src="app.js?v=20260627_1600"></script>
 </body>
 </html>

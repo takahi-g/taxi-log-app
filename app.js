@@ -667,10 +667,19 @@ function editCalcData(id) {
 }
 
 function scrollToCalcDate(dateStr) {
+    const workDateInput = document.getElementById('work-date');
+    if (workDateInput) {
+        workDateInput.value = dateStr;
+        refreshCalc();
+    }
+
     const el = document.getElementById(`group-${dateStr}`);
     if (el) {
         document.querySelectorAll('.day-group').forEach(g => g.classList.remove('open'));
-        el.classList.add('open'); el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('open');
+        const arrow = el.querySelector('.arrow');
+        if (arrow) arrow.innerText = '▼';
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         el.style.background = '#2c2c2e'; setTimeout(() => { el.style.background = 'transparent'; }, 1000);
     }
 }
