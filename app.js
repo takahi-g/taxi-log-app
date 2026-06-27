@@ -507,11 +507,32 @@ function refreshCalc(isSave = false) {
     
     // UI要素の同期
     const startTimeInput = document.getElementById('work-start-time');
+    const endTimeInput = document.getElementById('work-end-time');
+    const dispEndTimeStatus = document.getElementById('disp-end-time-status');
+    const btnActionEndTime = document.getElementById('btn-action-end-time');
     const breakMinutesInput = document.getElementById('input-break-minutes');
     const dispBreakHoursSpan = document.getElementById('disp-break-hours');
+    
     if (startTimeInput) startTimeInput.value = workState.startTime;
     if (breakMinutesInput && document.activeElement !== breakMinutesInput) breakMinutesInput.value = workState.breakMinutes;
     if (dispBreakHoursSpan) dispBreakHoursSpan.innerText = `${(workState.breakMinutes / 60).toFixed(1)}時間`;
+    
+    if (endTimeInput && dispEndTimeStatus && btnActionEndTime) {
+        if (workState.endTime) {
+            endTimeInput.style.display = 'block';
+            endTimeInput.value = workState.endTime;
+            dispEndTimeStatus.style.display = 'none';
+            btnActionEndTime.innerText = '戻す';
+            btnActionEndTime.style.background = 'rgba(94, 92, 230, 0.15)';
+            btnActionEndTime.style.color = '#5e5ce6';
+        } else {
+            endTimeInput.style.display = 'none';
+            dispEndTimeStatus.style.display = 'block';
+            btnActionEndTime.innerText = '退勤';
+            btnActionEndTime.style.background = 'rgba(255, 255, 255, 0.08)';
+            btnActionEndTime.style.color = 'white';
+        }
+    }
 
     // 経過時間の算出
     const [sh, sm] = workState.startTime.split(':').map(Number);
@@ -519,17 +540,34 @@ function refreshCalc(isSave = false) {
     workStart.setHours(sh, sm, 0, 0);
 
     let elapsedMinutes = 0;
-    const diffMs = now - workStart;
-    if (diffMs > 0) {
-        elapsedMinutes = Math.floor(diffMs / 60000);
-    }
-
-    // 過去の日付、または22時間を超える場合は、設定された標準勤務時間を基準にする
-    const stdWorkHours = sets.standardWorkHours !== undefined ? sets.standardWorkHours : 19;
-    const stdWorkMinutes = sets.standardWorkMinutes !== undefined ? sets.standardWorkMinutes : 40;
-    const stdTotalMinutes = stdWorkHours * 60 + stdWorkMinutes;
-    if (elapsedMinutes > 1320 || selectedDate !== todayStr) {
-        elapsedMinutes = stdTotalMinutes;
+    
+    if (workState.endTime) {
+        // 退勤時刻が登録されている場合
+        const [eh, em] = workState.endTime.split(':').map(Number);
+        let workEnd = new Date(selectedDate);
+        workEnd.setHours(eh, em, 0, 0);
+        // 退勤時刻が出勤時刻以下の場合は翌日とみなす（日付またぎ運行）
+        if (workEnd <= workStart) {
+            workEnd.setDate(workEnd.getDate() + 1);
+        }
+        const diffMs = workEnd - workStart;
+        if (diffMs > 0) {
+            elapsedMinutes = Math.floor(diffMs / 60000);
+        }
+    } else {
+        // 乗務中（endTimeがnull）の場合、現在時刻との差分
+        const diffMs = now - workStart;
+        if (diffMs > 0) {
+            elapsedMinutes = Math.floor(diffMs / 60000);
+        }
+        
+        // 過去の日付、または22時間を超える場合は設定された標準勤務時間を基準にする
+        const stdWorkHours = sets.standardWorkHours !== undefined ? sets.standardWorkHours : 19;
+        const stdWorkMinutes = sets.standardWorkMinutes !== undefined ? sets.standardWorkMinutes : 40;
+        const stdTotalMinutes = stdWorkHours * 60 + stdWorkMinutes;
+        if (elapsedMinutes > 1320 || selectedDate !== todayStr) {
+            elapsedMinutes = stdTotalMinutes;
+        }
     }
 
     // 現在計測中の休憩時間も加算する
@@ -736,6 +774,7 @@ function loadWorkState(dateStr) {
     if (!states[dateStr]) {
         states[dateStr] = {
             startTime: sets.baseStartTime || "08:00",
+            endTime: null,
             breakMinutes: 180,
             activeBreakStarted: null
         };
@@ -758,6 +797,44 @@ function changeWorkStartTime() {
         saveWorkState(dateStr, stateObj);
         refreshCalc();
     }
+}
+
+function changeWorkEndTime() {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    const inputEl = document.getElementById('work-end-time');
+    if (inputEl) {
+        stateObj.endTime = inputEl.value;
+        saveWorkState(dateStr, stateObj);
+        refreshCalc();
+    }
+}
+
+function toggleWorkEnd() {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    const now = new Date();
+
+    if (!stateObj.endTime) {
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        stateObj.endTime = `${hh}:${mm}`;
+        if (stateObj.activeBreakStarted) {
+            const start = new Date(stateObj.activeBreakStarted);
+            const diffMs = now - start;
+            const diffMinutes = Math.floor(diffMs / 60000);
+            stateObj.breakMinutes += diffMinutes;
+            stateObj.activeBreakStarted = null;
+            stopBreakTimer();
+        }
+        saveWorkState(dateStr, stateObj);
+        alert(`退勤時刻を ${stateObj.endTime} で確定しました。`);
+    } else {
+        stateObj.endTime = null;
+        saveWorkState(dateStr, stateObj);
+        alert('リアルタイム乗務中に戻しました。');
+    }
+    refreshCalc();
 }
 
 function changeBreakMinutes() {
