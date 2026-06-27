@@ -11,7 +11,8 @@ const DB = {
             const item = localStorage.getItem(k);
             return item ? JSON.parse(item) : def;
         } catch (e) { return def; }
-    }
+    },
+    remove: (k) => localStorage.removeItem(k)
 };
 
 function safeJSON(key, fallback) {
@@ -23,7 +24,17 @@ const CONFIG = {
     MAX_LOGS: 100,
     GPS_TIMEOUT: 10000,
     TRACKING_INTERVAL: 30000,
-    DUMMY_COORDS: [33.5002, 130.5168]
+    DUMMY_COORDS: [33.5002, 130.5168],
+    
+    // デフォルト目標設定
+    DEFAULT_GOAL: 550000,
+    DEFAULT_DAYS: 12,
+    
+    // 乗務・休憩のデフォルト設定
+    DEFAULT_START_TIME: "08:00",
+    DEFAULT_BREAK_MINUTES: 180,
+    DEFAULT_STANDARD_WORK_HOURS: 19,
+    DEFAULT_STANDARD_WORK_MINUTES: 40
 };
 
 const state = {
@@ -31,7 +42,7 @@ const state = {
     moveLogs: safeJSON('move_logs', []),
     currentRide: safeJSON('current_ride', null),
     trackingIntervalId: null,
-    editingLogId: null, // 編集中のID
+    editingLogId: null,
     map: null,
     mapLayers: { markers: [], path: null, rideLines: [] },
     counts: { total: 1, men: 0, women: 0 }
@@ -86,13 +97,13 @@ async function handleMainAction() {
                 pickup: { address: '取得中...', lat, lon, time: now },
                 pax: { ...state.counts }
             };
-            localStorage.setItem('current_ride', JSON.stringify(state.currentRide));
+            DB.save('current_ride', state.currentRide);
             updateAppView();
             
             GeoService.getAddress(lat, lon).then(addr => {
                 if (state.currentRide) {
                     state.currentRide.pickup.address = addr;
-                    localStorage.setItem('current_ride', JSON.stringify(state.currentRide));
+                    DB.save('current_ride', state.currentRide);
                     UI.render('address-text', `目的地に向かいましょう`);
                 }
             });
@@ -108,7 +119,7 @@ async function handleMainAction() {
             };
 
             state.logs.unshift(newLog);
-            localStorage.setItem('taxi_logs', JSON.stringify(state.logs.slice(0, CONFIG.MAX_LOGS)));
+            DB.save('taxi_logs', state.logs.slice(0, CONFIG.MAX_LOGS));
 
             // Automatically sync with the calculator history database
             if (fare > 0) {
@@ -126,7 +137,7 @@ async function handleMainAction() {
             const logId = newLog.id;
             state.currentRide = null;
             state.counts = { total: 1, men: 0, women: 0 }; 
-            localStorage.removeItem('current_ride');
+            DB.remove('current_ride');
             if (fareInput) fareInput.value = "";
             
             updateAppView();
@@ -139,7 +150,7 @@ async function handleMainAction() {
                 if (target) {
                     target.dropoff.address = addr;
                     try {
-                        localStorage.setItem('taxi_logs', JSON.stringify(state.logs.slice(0, CONFIG.MAX_LOGS)));
+                        DB.save('taxi_logs', state.logs.slice(0, CONFIG.MAX_LOGS));
                     } catch(e) { }
                     renderHistory();
                 }
@@ -198,7 +209,7 @@ function saveEdit() {
         log.pax.women = state.editCounts ? state.editCounts.women : 0;
         log.pax.total = log.pax.men + log.pax.women;
         
-        localStorage.setItem('taxi_logs', JSON.stringify(state.logs));
+        DB.save('taxi_logs', state.logs);
 
         // Sync with calculator history if it exists, or add if it has a fare now
         const calcHist = DB.load('taxi_v11_hist', []);
@@ -234,7 +245,7 @@ function deleteLog(id) {
             DB.save('taxi_v11_hist', updatedCalcHist);
         }
         state.logs = state.logs.filter(l => l.id !== id);
-        localStorage.setItem('taxi_logs', JSON.stringify(state.logs));
+        DB.save('taxi_logs', state.logs);
         updateAppView();
         if (state.map) initOrUpdateMap();
         refreshCalc();
@@ -384,7 +395,7 @@ function startTracking() {
     state.trackingIntervalId = setInterval(() => {
         navigator.geolocation.getCurrentPosition(pos => {
             state.moveLogs.push({ time: new Date().toISOString(), lat: pos.coords.latitude, lon: pos.coords.longitude });
-            localStorage.setItem('move_logs', JSON.stringify(state.moveLogs.slice(-1000)));
+            DB.save('move_logs', state.moveLogs.slice(-1000));
         });
     }, CONFIG.TRACKING_INTERVAL);
 }
@@ -397,7 +408,7 @@ function changeCount(type, delta) {
     state.counts.total = state.counts.men + state.counts.women;
     if (state.currentRide) {
         state.currentRide.pax = { ...state.counts };
-        localStorage.setItem('current_ride', JSON.stringify(state.currentRide));
+        DB.save('current_ride', state.currentRide);
     }
 }
 
@@ -693,7 +704,18 @@ function saveCalcSettings() {
 }
 function toggleCalcDay(dateStr) { const el = document.getElementById(`group-${dateStr}`); if (el) el.classList.toggle('open'); }
 function copyBackup() { const h = localStorage.getItem('taxi_v11_hist') || '[]', s = localStorage.getItem('taxi_v11_sets') || '{}', b = btoa(unescape(encodeURIComponent(JSON.stringify({ h, s })))); navigator.clipboard.writeText(b).then(() => alert('コピー完了！')); }
-function restoreBackup() { const s = prompt('コードを貼り付け：'); if(!s) return; try { const d = JSON.parse(decodeURIComponent(escape(atob(s)))); localStorage.setItem('taxi_v11_hist', d.h); localStorage.setItem('taxi_v11_sets', d.s); location.reload(); } catch(e) { alert('失敗'); } }
+function restoreBackup() {
+    const s = prompt('コードを貼り付け：');
+    if (!s) return;
+    try {
+        const d = JSON.parse(decodeURIComponent(escape(atob(s))));
+        DB.save('taxi_v11_hist', d.h);
+        DB.save('taxi_v11_sets', d.s);
+        location.reload();
+    } catch(e) {
+        alert('失敗');
+    }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
@@ -747,8 +769,8 @@ function importData() {
                 if (d.moveLogs) state.moveLogs = d.moveLogs;
                 if (d.taxiHist) DB.save('taxi_v11_hist', d.taxiHist);
                 if (d.taxiSets) DB.save('taxi_v11_sets', d.taxiSets);
-                localStorage.setItem('taxi_logs', JSON.stringify(state.logs));
-                localStorage.setItem('move_logs', JSON.stringify(state.moveLogs));
+                DB.save('taxi_logs', state.logs);
+                DB.save('move_logs', state.moveLogs);
                 alert('読み込みが完了しました！');
                 location.reload();
             } catch(err) {
