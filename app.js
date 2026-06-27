@@ -478,9 +478,10 @@ function refreshCalc(isSave = false) {
     }
     const progressEl = document.getElementById('disp-progress');
     if (progressEl) progressEl.innerText = `今月: ${workedCount} / ${sets.days} 回出勤`;
+    
+    const todayGrossSum = todayRecords.reduce((s, h) => s + h.gross, 0);
     const todaySumEl = document.getElementById('disp-today-sum');
     if (todaySumEl) {
-        const todayGrossSum = todayRecords.reduce((s, h) => s + h.gross, 0);
         todaySumEl.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; width: 100%; padding: 5px 0;">
                 <div style="font-size: 0.85rem; color: #aaa; font-weight: 600;">今日の合計売上</div>
@@ -500,6 +501,63 @@ function refreshCalc(isSave = false) {
         const dailyQuota = Math.ceil((sets.goal / sets.days) * 1.1);
         dailyQuotaEl.innerText = `¥${dailyQuota.toLocaleString()}`;
     }
+
+    // --- 乗務・時間売上ステータス（時給計算）の更新 ---
+    const workState = loadWorkState(selectedDate);
+    
+    // UI要素の同期
+    const startTimeInput = document.getElementById('work-start-time');
+    const breakMinutesInput = document.getElementById('input-break-minutes');
+    const dispBreakHoursSpan = document.getElementById('disp-break-hours');
+    if (startTimeInput) startTimeInput.value = workState.startTime;
+    if (breakMinutesInput && document.activeElement !== breakMinutesInput) breakMinutesInput.value = workState.breakMinutes;
+    if (dispBreakHoursSpan) dispBreakHoursSpan.innerText = `${(workState.breakMinutes / 60).toFixed(1)}時間`;
+
+    // 経過時間の算出
+    const [sh, sm] = workState.startTime.split(':').map(Number);
+    const workStart = new Date(selectedDate);
+    workStart.setHours(sh, sm, 0, 0);
+
+    let elapsedMinutes = 0;
+    const diffMs = now - workStart;
+    if (diffMs > 0) {
+        elapsedMinutes = Math.floor(diffMs / 60000);
+    }
+
+    // 過去の日付、または22時間を超える場合は、標準勤務時間の19時間40分(1180分)を基準にする
+    if (elapsedMinutes > 1320 || selectedDate !== todayStr) {
+        elapsedMinutes = 1180;
+    }
+
+    // 現在計測中の休憩時間も加算する
+    let activeBreakMinutes = 0;
+    if (workState.activeBreakStarted) {
+        const breakStart = new Date(workState.activeBreakStarted);
+        const activeDiff = now - breakStart;
+        if (activeDiff > 0) {
+            activeBreakMinutes = Math.floor(activeDiff / 60000);
+        }
+        if (!activeBreakIntervalId) startBreakTimer();
+    }
+
+    const totalBreakMinutes = workState.breakMinutes + activeBreakMinutes;
+    const actualWorkMinutes = Math.max(6, elapsedMinutes - totalBreakMinutes); // 最低6分（0.1時間）
+    const actualWorkHours = actualWorkMinutes / 60;
+
+    const dispWorkHoursSpan = document.getElementById('disp-work-hours');
+    if (dispWorkHoursSpan) {
+        dispWorkHoursSpan.innerText = `${actualWorkHours.toFixed(1)} 時間`;
+    }
+
+    // 時給の算出
+    const hourlyNet = Math.round(todayNetSum / actualWorkHours);
+    const hourlyGross = Math.round(todayGrossSum / actualWorkHours);
+
+    const dispHourlyNetStrong = document.getElementById('disp-hourly-net');
+    const dispHourlyGrossSpan = document.getElementById('disp-hourly-gross');
+    if (dispHourlyNetStrong) dispHourlyNetStrong.innerText = `¥${hourlyNet.toLocaleString()} /h`;
+    if (dispHourlyGrossSpan) dispHourlyGrossSpan.innerText = `¥${hourlyGross.toLocaleString()} /h`;
+
     updateHistoryTab(history, sets);
 }
 
@@ -606,6 +664,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (UI.get('set-goal')) UI.get('set-goal').value = setsInit.goal;
     if (UI.get('set-days')) UI.get('set-days').value = setsInit.days;
     refreshCalc();
+    
+    // 時給表示を最新化するためのタイマー（1分ごと）
+    setInterval(refreshCalc, 60000);
 });
 
 function clearData() { if (confirm("すべての設定および履歴データを完全に消去しますか？")) { localStorage.clear(); location.reload(); } }
@@ -644,4 +705,127 @@ function importData() {
         reader.readAsText(file);
     };
     input.click();
+}
+
+// --- 9. WORK STATE & BREAK TIMING FUNCTIONS ---
+let activeBreakIntervalId = null;
+
+function getSelectedDateStr() {
+    const el = document.getElementById('work-date');
+    return el ? el.value : new Date().toISOString().split('T')[0];
+}
+
+function loadWorkState(dateStr) {
+    const states = DB.load('taxi_v11_work_states', {});
+    if (!states[dateStr]) {
+        // デフォルト設定: 出勤08:00、休憩180分 (3時間)
+        states[dateStr] = {
+            startTime: "08:00",
+            breakMinutes: 180,
+            activeBreakStarted: null
+        };
+    }
+    return states[dateStr];
+}
+
+function saveWorkState(dateStr, data) {
+    const states = DB.load('taxi_v11_work_states', {});
+    states[dateStr] = data;
+    DB.save('taxi_v11_work_states', states);
+}
+
+function changeWorkStartTime() {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    const inputEl = document.getElementById('work-start-time');
+    if (inputEl) {
+        stateObj.startTime = inputEl.value;
+        saveWorkState(dateStr, stateObj);
+        refreshCalc();
+    }
+}
+
+function changeBreakMinutes() {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    const inputEl = document.getElementById('input-break-minutes');
+    if (inputEl) {
+        stateObj.breakMinutes = Math.max(0, parseInt(inputEl.value) || 0);
+        saveWorkState(dateStr, stateObj);
+        refreshCalc();
+    }
+}
+
+function adjustBreakTime(delta) {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    stateObj.breakMinutes = Math.max(0, stateObj.breakMinutes + delta);
+    saveWorkState(dateStr, stateObj);
+    refreshCalc();
+}
+
+function toggleBreak() {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    const now = new Date();
+
+    if (!stateObj.activeBreakStarted) {
+        // 休憩開始
+        stateObj.activeBreakStarted = now.toISOString();
+        saveWorkState(dateStr, stateObj);
+        startBreakTimer();
+        alert('休憩計測を開始しました！');
+    } else {
+        // 休憩終了
+        const start = new Date(stateObj.activeBreakStarted);
+        const diffMs = now - start;
+        const diffMinutes = Math.floor(diffMs / 60000); // 分に変換
+        
+        stateObj.breakMinutes += diffMinutes;
+        stateObj.activeBreakStarted = null;
+        saveWorkState(dateStr, stateObj);
+        stopBreakTimer();
+        alert(`休憩計測を終了しました。${diffMinutes}分加算されました！`);
+    }
+    refreshCalc();
+}
+
+function startBreakTimer() {
+    if (activeBreakIntervalId) clearInterval(activeBreakIntervalId);
+    activeBreakIntervalId = setInterval(updateBreakTimerDisplay, 10000); // 10秒おきに表示更新
+    updateBreakTimerDisplay();
+}
+
+function stopBreakTimer() {
+    if (activeBreakIntervalId) {
+        clearInterval(activeBreakIntervalId);
+        activeBreakIntervalId = null;
+    }
+    const btn = document.getElementById('btn-toggle-break');
+    if (btn) {
+        btn.innerHTML = `<span>☕ 休憩に入る</span>`;
+        btn.style.background = 'rgba(94, 92, 230, 0.15)';
+        btn.style.color = '#5e5ce6';
+    }
+}
+
+function updateBreakTimerDisplay() {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    const btn = document.getElementById('btn-toggle-break');
+    if (!btn) return;
+
+    if (stateObj.activeBreakStarted) {
+        const start = new Date(stateObj.activeBreakStarted);
+        const diffMs = new Date() - start;
+        const diffMinutes = Math.floor(diffMs / 60000);
+        
+        btn.innerHTML = `<span>⏱️ 休憩終了 (${diffMinutes}分経過)</span>`;
+        btn.style.background = 'var(--danger)';
+        btn.style.color = '#fff';
+    } else {
+        btn.innerHTML = `<span>☕ 休憩に入る</span>`;
+        btn.style.background = 'rgba(94, 92, 230, 0.15)';
+        btn.style.color = '#5e5ce6';
+    }
 }
