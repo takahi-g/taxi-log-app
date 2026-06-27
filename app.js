@@ -32,7 +32,7 @@ const CONFIG = {
     
     // 乗務・休憩のデフォルト設定
     DEFAULT_START_TIME: "08:00",
-    DEFAULT_BREAK_MINUTES: 180,
+    DEFAULT_BREAK_MINUTES: 0,
     DEFAULT_STANDARD_WORK_HOURS: 19,
     DEFAULT_STANDARD_WORK_MINUTES: 40
 };
@@ -528,6 +528,23 @@ function refreshCalc(isSave = false) {
     if (breakMinutesInput && document.activeElement !== breakMinutesInput) breakMinutesInput.value = workState.breakMinutes;
     if (dispBreakHoursSpan) dispBreakHoursSpan.innerText = `${(workState.breakMinutes / 60).toFixed(1)}時間`;
     
+    // 休憩履歴リストの同期・描画
+    const breakHistoryList = document.getElementById('break-history-list');
+    if (breakHistoryList) {
+        if (workState.breaks && workState.breaks.length > 0) {
+            breakHistoryList.style.display = 'block';
+            const listHtml = workState.breaks.map((b, i) => `
+                <div style="display:flex; justify-content:space-between; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 4px;">
+                    <span>☕ 休憩${i+1}: ${b.start} 〜 ${b.end}</span>
+                    <span style="font-weight:bold; color:var(--accent);">${b.duration}分</span>
+                </div>
+            `).join('');
+            breakHistoryList.innerHTML = `<div style="font-weight:bold; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px; color:var(--text-main); font-size:0.85rem;">⏱️ 休憩時間セッション履歴</div>` + listHtml;
+        } else {
+            breakHistoryList.style.display = 'none';
+        }
+    }
+    
     if (endTimeInput && dispEndTimeStatus && btnActionEndTime) {
         if (workState.endTime) {
             endTimeInput.style.display = 'block';
@@ -867,9 +884,13 @@ function loadWorkState(dateStr) {
         states[dateStr] = {
             startTime: sets.baseStartTime || "08:00",
             endTime: null,
-            breakMinutes: 180,
-            activeBreakStarted: null
+            breakMinutes: CONFIG.DEFAULT_BREAK_MINUTES,
+            activeBreakStarted: null,
+            breaks: []
         };
+    }
+    if (!states[dateStr].breaks) {
+        states[dateStr].breaks = [];
     }
     return states[dateStr];
 }
@@ -915,7 +936,16 @@ function toggleWorkEnd() {
             const start = new Date(stateObj.activeBreakStarted);
             const diffMs = now - start;
             const diffMinutes = Math.floor(diffMs / 60000);
+            
+            const formatTime = (d) => {
+                const h = String(d.getHours()).padStart(2, '0');
+                const m = String(d.getMinutes()).padStart(2, '0');
+                return `${h}:${m}`;
+            };
+            
             stateObj.breakMinutes += diffMinutes;
+            if (!stateObj.breaks) stateObj.breaks = [];
+            stateObj.breaks.push({ start: formatTime(start), end: `${hh}:${mm}`, duration: diffMinutes });
             stateObj.activeBreakStarted = null;
             stopBreakTimer();
         }
@@ -965,11 +995,22 @@ function toggleBreak() {
         const diffMs = now - start;
         const diffMinutes = Math.floor(diffMs / 60000); // 分に変換
         
+        const formatTime = (d) => {
+            const hh = String(d.getHours()).padStart(2, '0');
+            const mm = String(d.getMinutes()).padStart(2, '0');
+            return `${hh}:${mm}`;
+        };
+        const startStr = formatTime(start);
+        const endStr = formatTime(now);
+
         stateObj.breakMinutes += diffMinutes;
+        if (!stateObj.breaks) stateObj.breaks = [];
+        stateObj.breaks.push({ start: startStr, end: endStr, duration: diffMinutes });
         stateObj.activeBreakStarted = null;
+        
         saveWorkState(dateStr, stateObj);
         stopBreakTimer();
-        alert(`休憩計測を終了しました。${diffMinutes}分加算されました！`);
+        alert(`休憩計測を終了しました。${startStr}〜${endStr} (${diffMinutes}分) 加算されました！`);
     }
     refreshCalc();
 }
