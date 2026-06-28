@@ -27,7 +27,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 06/27 16:45</div>
+                <div class="app-version">Ver: 06/28 11:55</div>
             </div>
         </div>
     </header>
@@ -267,6 +267,13 @@
                 </div>
                 <div class="settings-list">
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">設定対象の年月</span>
+                        <div style="display: flex; gap: 8px;">
+                            <select id="set-year" onchange="loadMonthlySettings()" style="padding: 8px; border-radius: 8px; background: #1c1c1e; color: white; border: 1px solid var(--border); font-weight: bold;"></select>
+                            <select id="set-month" onchange="loadMonthlySettings()" style="padding: 8px; border-radius: 8px; background: #1c1c1e; color: white; border: 1px solid var(--border); font-weight: bold;"></select>
+                        </div>
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
                         <span style="font-weight: bold; font-size: 0.95rem;">目標売上 (税抜)</span>
                         <input type="number" id="set-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
                     </div>
@@ -387,6 +394,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260627_1645"></script>
+    <script src="app.js?v=20260628_1155"></script>
 </body>
 </html>

@@ -459,21 +459,28 @@ function updateNormPreview() {
 
 function refreshCalc(isSave = false) {
     const history = DB.load('taxi_v11_hist', []);
-    const sets = DB.load('taxi_v11_sets', { goal: 550000, days: 12 });
     const workDateEl = document.getElementById('work-date');
     if (!workDateEl) return;
     const selectedDate = workDateEl.value;
     if (!selectedDate) return;
     const curMonth = selectedDate.substring(0, 7);
+    
+    // 選択された日付の年月をもとに月別目標を読み込む
+    const [yPart, mPart] = selectedDate.split('-').map(Number);
+    const mSets = getMonthlySettings(yPart, mPart);
+    const sets = DB.load('taxi_v11_sets', { baseStartTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
+    const curGoal = mSets.goal;
+    const curDays = mSets.days;
+
     const monthlyData = history.filter(h => h.date.startsWith(curMonth));
     const workedDates = [...new Set(monthlyData.map(h => h.date))];
     const workedCount = workedDates.length;
     const now = new Date(); const todayStr = now.toISOString().split('T')[0];
     const pastWorkedDates = workedDates.filter(d => d !== todayStr);
     const pastWorkedDaysCount = pastWorkedDates.length;
-    const remainDays = Math.max(1, sets.days - pastWorkedDaysCount);
+    const remainDays = Math.max(1, curDays - pastWorkedDaysCount);
     const salesBeforeToday = monthlyData.filter(h => h.date !== todayStr).reduce((sum, h) => sum + h.net, 0);
-    const dailyBaseNorm = Math.ceil(Math.max(0, sets.goal - salesBeforeToday) / remainDays);
+    const dailyBaseNorm = Math.ceil(Math.max(0, curGoal - salesBeforeToday) / remainDays);
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
     const finalTodayNorm = Math.max(0, dailyBaseNorm - todayNetSum);
@@ -488,7 +495,7 @@ function refreshCalc(isSave = false) {
         normGrossEl.innerText = Math.floor(Math.ceil(finalTodayNorm * 1.1)).toLocaleString();
     }
     const progressEl = document.getElementById('disp-progress');
-    if (progressEl) progressEl.innerText = `今月: ${workedCount} / ${sets.days} 回出勤`;
+    if (progressEl) progressEl.innerText = `今月: ${workedCount} / ${curDays} 回出勤`;
     
     const todayGrossSum = todayRecords.reduce((s, h) => s + h.gross, 0);
     const todaySumEl = document.getElementById('disp-today-sum');
@@ -508,8 +515,8 @@ function refreshCalc(isSave = false) {
         `;
     }
     const dailyQuotaEl = document.getElementById('disp-calc-quota-daily');
-    if (dailyQuotaEl && sets.days > 0) {
-        const dailyQuota = Math.ceil((sets.goal / sets.days) * 1.1);
+    if (dailyQuotaEl && curDays > 0) {
+        const dailyQuota = Math.ceil((curGoal / curDays) * 1.1);
         dailyQuotaEl.innerText = `¥${dailyQuota.toLocaleString()}`;
     }
 
@@ -638,6 +645,10 @@ function updateHistoryTab(history, sets) {
     const y = parseInt(document.getElementById('hist-year').value), m = parseInt(document.getElementById('hist-month').value);
     if (isNaN(y) || isNaN(m)) return;
     renderCalcCalendar(y, m, history);
+    
+    // 表示中月の月別目標をロード
+    const mSets = getMonthlySettings(y, m);
+    
     const fHist = history.filter(h => h.date.startsWith(`${y}-${String(m).padStart(2,'0')}`));
     const totalNet = fHist.reduce((sum, h) => sum + h.net, 0);
     const totalGross = fHist.reduce((sum, h) => sum + h.gross, 0);
@@ -649,7 +660,7 @@ function updateHistoryTab(history, sets) {
     const grossEl = document.getElementById('hist-total-sales-gross');
     if (grossEl) grossEl.innerText = Math.floor(totalGross).toLocaleString();
     document.getElementById('hist-avg-sales').innerText = (days > 0 ? Math.floor(totalNet/days) : 0).toLocaleString();
-    document.getElementById('hist-target-avg').innerText = Math.floor(sets.goal/sets.days).toLocaleString();
+    document.getElementById('hist-target-avg').innerText = Math.floor(mSets.goal/mSets.days).toLocaleString();
     document.getElementById('hist-total-income').innerText = Math.floor(totalNet * (rate/100)).toLocaleString() + "円";
     const groups = {}; fHist.sort((a,b) => a.id - b.id).forEach(h => { if(!groups[h.date]) groups[h.date] = []; groups[h.date].push(h); });
     
@@ -775,13 +786,31 @@ function saveCalcData() {
 
 function deleteCalcData(id) { if(confirm('消去しますか？')) { const h = DB.load('taxi_v11_hist', []); DB.save('taxi_v11_hist', h.filter(x => x.id !== id)); refreshCalc(); } }
 function saveCalcSettings() {
-    DB.save('taxi_v11_sets', {
-        goal: parseFloat(document.getElementById('set-goal').value)||550000,
-        days: parseFloat(document.getElementById('set-days').value)||12,
-        baseStartTime: document.getElementById('set-base-start-time').value || "08:00",
-        standardWorkHours: parseFloat(document.getElementById('set-standard-work-hours').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-hours').value) : 19,
-        standardWorkMinutes: parseFloat(document.getElementById('set-standard-work-minutes').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-minutes').value) : 40
+    const sets = DB.load('taxi_v11_sets', {
+        goal: CONFIG.DEFAULT_GOAL,
+        days: CONFIG.DEFAULT_DAYS,
+        baseStartTime: CONFIG.DEFAULT_START_TIME,
+        standardWorkHours: CONFIG.DEFAULT_STANDARD_WORK_HOURS,
+        standardWorkMinutes: CONFIG.DEFAULT_STANDARD_WORK_MINUTES
     });
+    
+    const sy = parseInt(document.getElementById('set-year').value);
+    const sm = parseInt(document.getElementById('set-month').value);
+    
+    if (!isNaN(sy) && !isNaN(sm)) {
+        const key = `${sy}-${String(sm).padStart(2, '0')}`;
+        if (!sets.monthly) sets.monthly = {};
+        sets.monthly[key] = {
+            goal: parseFloat(document.getElementById('set-goal').value) || CONFIG.DEFAULT_GOAL,
+            days: parseFloat(document.getElementById('set-days').value) || CONFIG.DEFAULT_DAYS
+        };
+    }
+    
+    sets.baseStartTime = document.getElementById('set-base-start-time').value || CONFIG.DEFAULT_START_TIME;
+    sets.standardWorkHours = parseFloat(document.getElementById('set-standard-work-hours').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-hours').value) : CONFIG.DEFAULT_STANDARD_WORK_HOURS;
+    sets.standardWorkMinutes = parseFloat(document.getElementById('set-standard-work-minutes').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-minutes').value) : CONFIG.DEFAULT_STANDARD_WORK_MINUTES;
+    
+    DB.save('taxi_v11_sets', sets);
     refreshCalc();
 }
 function toggleCalcDay(dateStr) {
@@ -823,9 +852,21 @@ document.addEventListener('DOMContentLoaded', () => {
         for(let y=new Date().getFullYear(); y>=2024; y--) { let o = document.createElement('option'); o.value=y; o.text=y+'年'; yr.add(o); }
         for(let m=1; m<=12; m++) { let o = document.createElement('option'); o.value=m; o.text=m+'月'; if(m === new Date().getMonth()+1) o.selected = true; mt.add(o); }
     }
+    
+    // 設定対象年月プルダウンの初期化
+    const sy = UI.get('set-year'), sm = UI.get('set-month');
+    if (sy && sm) {
+        for(let y=new Date().getFullYear(); y>=2024; y--) { let o = document.createElement('option'); o.value=y; o.text=y+'年'; sy.add(o); }
+        for(let m=1; m<=12; m++) { let o = document.createElement('option'); o.value=m; o.text=m+'月'; if(m === new Date().getMonth()+1) o.selected = true; sm.add(o); }
+    }
+    
     const setsInit = DB.load('taxi_v11_sets', { goal: 550000, days: 12, baseStartTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
-    if (UI.get('set-goal')) UI.get('set-goal').value = setsInit.goal;
-    if (UI.get('set-days')) UI.get('set-days').value = setsInit.days;
+    const initY = new Date().getFullYear();
+    const initM = new Date().getMonth() + 1;
+    const mSetsInit = getMonthlySettings(initY, initM);
+    
+    if (UI.get('set-goal')) UI.get('set-goal').value = mSetsInit.goal;
+    if (UI.get('set-days')) UI.get('set-days').value = mSetsInit.days;
     if (UI.get('set-base-start-time')) UI.get('set-base-start-time').value = setsInit.baseStartTime || "08:00";
     if (UI.get('set-standard-work-hours')) UI.get('set-standard-work-hours').value = setsInit.standardWorkHours !== undefined ? setsInit.standardWorkHours : 19;
     if (UI.get('set-standard-work-minutes')) UI.get('set-standard-work-minutes').value = setsInit.standardWorkMinutes !== undefined ? setsInit.standardWorkMinutes : 40;
@@ -1110,4 +1151,39 @@ function deleteBreakSession(index) {
         saveWorkState(dateStr, stateObj);
         refreshCalc();
     }
+}
+
+// --- 10. MONTHLY CALCULATOR SETTINGS ---
+function getMonthlySettings(year, month) {
+    const sets = DB.load('taxi_v11_sets', {
+        goal: CONFIG.DEFAULT_GOAL,
+        days: CONFIG.DEFAULT_DAYS,
+        baseStartTime: CONFIG.DEFAULT_START_TIME,
+        standardWorkHours: CONFIG.DEFAULT_STANDARD_WORK_HOURS,
+        standardWorkMinutes: CONFIG.DEFAULT_STANDARD_WORK_MINUTES
+    });
+    
+    const key = `${year}-${String(month).padStart(2, '0')}`;
+    if (!sets.monthly) {
+        sets.monthly = {};
+    }
+    
+    // データがない場合のフォールバックおよびマイグレーション
+    if (!sets.monthly[key]) {
+        sets.monthly[key] = {
+            goal: sets.goal !== undefined ? sets.goal : CONFIG.DEFAULT_GOAL,
+            days: sets.days !== undefined ? sets.days : CONFIG.DEFAULT_DAYS
+        };
+    }
+    return sets.monthly[key];
+}
+
+function loadMonthlySettings() {
+    const sy = parseInt(document.getElementById('set-year').value);
+    const sm = parseInt(document.getElementById('set-month').value);
+    if (isNaN(sy) || isNaN(sm)) return;
+    
+    const mSets = getMonthlySettings(sy, sm);
+    if (UI.get('set-goal')) UI.get('set-goal').value = mSets.goal;
+    if (UI.get('set-days')) UI.get('set-days').value = mSets.days;
 }
