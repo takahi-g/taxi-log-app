@@ -27,7 +27,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 06/28 11:55</div>
+                <div class="app-version">Ver: 06/28 12:00</div>
             </div>
         </div>
     </header>
@@ -230,7 +230,7 @@
                 </div>
 
                 <!-- 時間売上 (税込・税抜の横並び) -->
-                <div>
+                <div style="margin-bottom: 12px;">
                     <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">現在の時間売上 (時給)</span>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <div style="flex: 1; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 8px; border-radius: 12px; text-align: center;">
@@ -242,6 +242,12 @@
                             <span id="disp-hourly-gross" style="font-size: 1.35rem; font-weight: 900; color: var(--success); font-family: 'Outfit', sans-serif;">¥0 /h</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- 手取り時給 (歩合考慮) -->
+                <div id="disp-hourly-income-box" style="background: rgba(237, 180, 24, 0.04); border: 1px solid rgba(237, 180, 24, 0.2); padding: 12px; border-radius: 14px; text-align: center; box-sizing: border-box;">
+                    <span id="disp-hourly-income-label" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600;">手取り時給 (暫定歩合: 0%)</span>
+                    <span id="disp-hourly-income" style="font-size: 1.5rem; font-weight: 900; color: var(--accent); font-family: 'Outfit', sans-serif;">¥0 /h</span>
                 </div>
             </section>
 
@@ -394,6 +400,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260628_1155"></script>
+    <script src="app.js?v=20260628_1200"></script>
 </body>
 </html>

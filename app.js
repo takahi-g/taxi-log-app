@@ -638,6 +638,21 @@ function refreshCalc(isSave = false) {
     if (dispHourlyNetStrong) dispHourlyNetStrong.innerText = `¥${hourlyNet.toLocaleString()} /h`;
     if (dispHourlyGrossSpan) dispHourlyGrossSpan.innerText = `¥${hourlyGross.toLocaleString()} /h`;
 
+    // 手取り時給の計算 (歩合考慮)
+    const dispHourlyIncomeLabel = document.getElementById('disp-hourly-income-label');
+    const dispHourlyIncome = document.getElementById('disp-hourly-income');
+    if (dispHourlyIncome) {
+        const [yPart, mPart] = selectedDate.split('-').map(Number);
+        const monthlyData = history.filter(h => h.date.startsWith(`${yPart}-${String(mPart).padStart(2,'0')}`));
+        const totalNetVal = monthlyData.reduce((sum, h) => sum + h.net, 0);
+        const rate = getRate(totalNetVal);
+        
+        const hourlyIncome = Math.round(hourlyNet * (rate / 100));
+        
+        if (dispHourlyIncomeLabel) dispHourlyIncomeLabel.innerText = `手取り時給 (暫定歩合: ${rate}%)`;
+        dispHourlyIncome.innerText = `¥${hourlyIncome.toLocaleString()} /h`;
+    }
+
     updateHistoryTab(history, sets);
 }
 
