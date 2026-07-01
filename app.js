@@ -491,61 +491,6 @@ function refreshCalc(isSave = false) {
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
     const finalTodayNorm = Math.max(0, dailyBaseNorm - todayNetSum);
     
-    // 今日の曜日・特別目標と現在の達成差分（プラスマイナス表示）の更新
-    const workStateObj = loadWorkState(selectedDate);
-    const todayTargetTypeEl = document.getElementById('disp-today-target-type');
-    const todayTargetValEl = document.getElementById('disp-today-target-value');
-    const todayTargetDiffEl = document.getElementById('disp-today-target-diff');
-    const btnToggleTargetType = document.getElementById('btn-toggle-target-type');
-    
-    let activeTargetType = workStateObj.targetType || "auto";
-    let isWeekendOrHoliday = isDayBeforeHolidayOrWeekend(selectedDate);
-    let resolvedTargetType = "weekday";
-    
-    if (activeTargetType === "weekend" || (activeTargetType === "auto" && isWeekendOrHoliday)) {
-        resolvedTargetType = "weekend";
-    }
-    
-    const targetVal = resolvedTargetType === "weekend" ? mSets.weekendGoal : mSets.weekdayGoal;
-    
-    if (todayTargetTypeEl) {
-        let typeText = resolvedTargetType === "weekend" ? "金土祝前目標" : "平日標準目標";
-        if (activeTargetType === "auto") {
-            typeText += " (自動)";
-        } else {
-            typeText += " (固定)";
-        }
-        todayTargetTypeEl.innerText = typeText;
-    }
-    
-    if (btnToggleTargetType) {
-        if (activeTargetType === "auto") {
-            btnToggleTargetType.innerText = "自動判定中";
-            btnToggleTargetType.style.background = "rgba(255,255,255,0.08)";
-        } else if (activeTargetType === "weekday") {
-            btnToggleTargetType.innerText = "平日固定中";
-            btnToggleTargetType.style.background = "rgba(94, 92, 230, 0.2)";
-        } else {
-            btnToggleTargetType.innerText = "金土固定中";
-            btnToggleTargetType.style.background = "rgba(237, 180, 24, 0.2)";
-        }
-    }
-    
-    if (todayTargetValEl) {
-        const targetValGross = Math.floor(targetVal * 1.1);
-        todayTargetValEl.innerHTML = `${Math.floor(targetVal).toLocaleString()} 円 <small style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(税込: ${targetValGross.toLocaleString()}円)</small>`;
-    }
-    
-    if (todayTargetDiffEl) {
-        const diff = todayNetSum - targetVal;
-        const diffGross = Math.floor(diff * 1.1);
-        if (diff >= 0) {
-            todayTargetDiffEl.innerHTML = `<span style="color:var(--success); font-weight:900;">+¥${Math.floor(diff).toLocaleString()} <small style="font-size:0.75rem; font-weight:normal;">(税込: +¥${Math.floor(diffGross).toLocaleString()}) 達成！</small></span>`;
-        } else {
-            todayTargetDiffEl.innerHTML = `<span style="color:#ff453a; font-weight:900;">-¥${Math.floor(Math.abs(diff)).toLocaleString()} <small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);">(税込: -¥${Math.floor(Math.abs(diffGross)).toLocaleString()})</small></span>`;
-        }
-    }
-
     if (isSave && finalTodayNorm <= 0 && !hasCelebratedToday && selectedDate === todayStr) { startCelebration(); hasCelebratedToday = true; }
     const normEl = document.getElementById('disp-norm'); 
     const normGrossEl = document.getElementById('disp-norm-gross');
@@ -876,13 +821,14 @@ function saveCalcSettings() {
     
     if (!isNaN(sy) && !isNaN(sm)) {
         const key = `${sy}-${String(sm).padStart(2, '0')}`;
-        if (!sets.monthly) sets.monthly = {};
         sets.monthly[key] = {
             goal: parseFloat(document.getElementById('set-goal').value) || CONFIG.DEFAULT_GOAL,
             days: parseFloat(document.getElementById('set-days').value) || CONFIG.DEFAULT_DAYS,
             weekdayGoal: parseFloat(document.getElementById('set-weekday-goal').value) || 40000,
-            weekendGoal: parseFloat(document.getElementById('set-weekend-goal').value) || 60000
+            weekendGoal: parseFloat(document.getElementById('set-weekend-goal').value) || 60000,
+            workDates: (sets.monthly[key] && sets.monthly[key].workDates) ? sets.monthly[key].workDates : []
         };
+        syncGoalWithMonthlyRates(sets, key);
     }
     
     sets.baseStartTime = document.getElementById('set-base-start-time').value || CONFIG.DEFAULT_START_TIME;
@@ -1347,6 +1293,9 @@ function toggleSettingsWorkDate(dateStr) {
     // 全出勤日数を同期
     sets.monthly[key].days = sets.monthly[key].workDates.length;
     
+    // 目標売上（税抜）を自動再計算して同期
+    syncGoalWithMonthlyRates(sets, key);
+    
     DB.save('taxi_v11_sets', sets);
     loadMonthlySettings();
     refreshCalc();
@@ -1406,18 +1355,23 @@ function isDayBeforeHolidayOrWeekend(dateStr) {
     return false;
 }
 
-function toggleTodayTargetType() {
-    const dateStr = getSelectedDateStr();
-    const stateObj = loadWorkState(dateStr);
+function syncGoalWithMonthlyRates(sets, key) {
+    const m = sets.monthly[key];
+    if (!m) return;
     
-    if (!stateObj.targetType || stateObj.targetType === "auto") {
-        stateObj.targetType = "weekday";
-    } else if (stateObj.targetType === "weekday") {
-        stateObj.targetType = "weekend";
-    } else {
-        stateObj.targetType = "auto";
+    let total = 0;
+    const workDates = m.workDates || [];
+    workDates.forEach(dateStr => {
+        if (isDayBeforeHolidayOrWeekend(dateStr)) {
+            total += m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+        } else {
+            total += m.weekdayGoal !== undefined ? m.weekdayGoal : 40000;
+        }
+    });
+    
+    m.goal = total;
+    const goalInput = document.getElementById('set-goal');
+    if (goalInput) {
+        goalInput.value = total;
     }
-    
-    saveWorkState(dateStr, stateObj);
-    refreshCalc();
 }

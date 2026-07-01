@@ -27,7 +27,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/01 12:02</div>
+                <div class="app-version">Ver: 07/01 12:05</div>
             </div>
         </div>
     </header>
@@ -159,27 +159,6 @@
                 <div style="font-size: 1.3rem; opacity: 0.9; margin-bottom: 8px; color: var(--success); font-weight: 800;">税込: <span id="disp-norm-gross">0</span> 円</div>
                 <div id="disp-progress" style="font-size: 0.8rem; opacity: 0.8;">---</div>
             </div>
-
-            <!-- 本日の曜日・特別目標と現在の達成差分（プラスマイナス表示） -->
-            <section class="card" style="padding: 14px; margin-bottom: 15px; background: rgba(255,255,255,0.02); border: 1px solid var(--border);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div>
-                        <span id="disp-today-target-type-label" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">本日の目標タイプ</span>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span id="disp-today-target-type" style="font-size: 1rem; font-weight: bold; color: var(--accent);">平日標準目標</span>
-                            <button id="btn-toggle-target-type" onclick="toggleTodayTargetType()" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--border); padding: 2px 8px; border-radius: 6px; font-size: 0.7rem; cursor: pointer; -webkit-tap-highlight-color: transparent;">変更</button>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px;">今日の目標額 (税抜)</span>
-                        <span id="disp-today-target-value" style="font-size: 1.1rem; font-weight: bold; color: #fff;">0 円</span>
-                    </div>
-                </div>
-                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.85rem; font-weight: bold; color: var(--text-main);">目標との差分</span>
-                    <span id="disp-today-target-diff" style="font-size: 1.2rem; font-weight: 900; color: #fff;">¥0</span>
-                </div>
-            </section>
 
             <!-- 売上追加カード (手動入力用) -->
             <section class="card" style="padding: 16px; margin-bottom: 15px;">
@@ -438,6 +417,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260701_1202"></script>
+    <script src="app.js?v=20260701_1205"></script>
 </body>
 </html>
