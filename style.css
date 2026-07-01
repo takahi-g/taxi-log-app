@@ -372,6 +372,12 @@ input:checked + .slider:before { transform: translateX(24px); }
     left: 50%; transform: translateX(-50%);
 }
 .cal-cell.is-today { border: 2px solid var(--accent); color: var(--accent); }
+.cal-cell.set-active {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(237, 180, 24, 0.4);
+}
 
 /* Accordion Styles */
 .day-group {

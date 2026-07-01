@@ -478,7 +478,13 @@ function refreshCalc(isSave = false) {
     const now = new Date(); const todayStr = now.toISOString().split('T')[0];
     const pastWorkedDates = workedDates.filter(d => d !== todayStr);
     const pastWorkedDaysCount = pastWorkedDates.length;
-    const remainDays = Math.max(1, curDays - pastWorkedDaysCount);
+    let remainDays = 1;
+    if (mSets.workDates && mSets.workDates.length > 0) {
+        const futureOrTodayWorkdates = mSets.workDates.filter(d => d >= todayStr);
+        remainDays = Math.max(1, futureOrTodayWorkdates.length);
+    } else {
+        remainDays = Math.max(1, curDays - pastWorkedDaysCount);
+    }
     const salesBeforeToday = monthlyData.filter(h => h.date !== todayStr).reduce((sum, h) => sum + h.net, 0);
     const dailyBaseNorm = Math.ceil(Math.max(0, curGoal - salesBeforeToday) / remainDays);
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
@@ -1251,11 +1257,13 @@ function getMonthlySettings(year, month) {
             goal: sets.goal !== undefined ? sets.goal : CONFIG.DEFAULT_GOAL,
             days: sets.days !== undefined ? sets.days : CONFIG.DEFAULT_DAYS,
             weekdayGoal: 40000,
-            weekendGoal: 60000
+            weekendGoal: 60000,
+            workDates: []
         };
     }
     if (sets.monthly[key].weekdayGoal === undefined) sets.monthly[key].weekdayGoal = 40000;
     if (sets.monthly[key].weekendGoal === undefined) sets.monthly[key].weekendGoal = 60000;
+    if (!sets.monthly[key].workDates) sets.monthly[key].workDates = [];
     return sets.monthly[key];
 }
 
@@ -1269,6 +1277,73 @@ function loadMonthlySettings() {
     if (UI.get('set-days')) UI.get('set-days').value = mSets.days;
     if (UI.get('set-weekday-goal')) UI.get('set-weekday-goal').value = mSets.weekdayGoal;
     if (UI.get('set-weekend-goal')) UI.get('set-weekend-goal').value = mSets.weekendGoal;
+    
+    // 設定カレンダーの描画
+    renderSettingsCalendar(sy, sm, mSets.workDates);
+}
+
+function renderSettingsCalendar(year, month, activeDates) {
+    const container = document.getElementById('settings-workdates-calendar');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const days = ['日','月','火','水','木','金','土'];
+    days.forEach(d => container.innerHTML += `<div class="cal-day-label" style="font-size:0.7rem; color:var(--text-muted); font-weight:bold; padding:2px 0;">${d}</div>`);
+    
+    const first = new Date(year, month - 1, 1).getDay();
+    const last = new Date(year, month, 0).getDate();
+    
+    for (let i = 0; i < first; i++) {
+        container.innerHTML += '<div></div>';
+    }
+    
+    for (let d = 1; d <= last; d++) {
+        const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isActive = activeDates.includes(dateStr);
+        container.innerHTML += `<div class="cal-cell ${isActive ? 'set-active' : ''}" style="aspect-ratio:1.2; font-size:0.8rem; border-radius:8px;" onclick="toggleSettingsWorkDate('${dateStr}')">${d}</div>`;
+    }
+    
+    const countEl = document.getElementById('disp-settings-workdates-count');
+    if (countEl) countEl.innerText = activeDates.length;
+}
+
+function toggleSettingsWorkDate(dateStr) {
+    const sets = DB.load('taxi_v11_sets', {
+        goal: CONFIG.DEFAULT_GOAL,
+        days: CONFIG.DEFAULT_DAYS,
+        baseStartTime: CONFIG.DEFAULT_START_TIME,
+        standardWorkHours: CONFIG.DEFAULT_STANDARD_WORK_HOURS,
+        standardWorkMinutes: CONFIG.DEFAULT_STANDARD_WORK_MINUTES
+    });
+    
+    const [y, m] = dateStr.split('-').map(Number);
+    const key = `${y}-${String(m).padStart(2, '0')}`;
+    
+    if (!sets.monthly) sets.monthly = {};
+    if (!sets.monthly[key]) {
+        sets.monthly[key] = {
+            goal: sets.goal !== undefined ? sets.goal : CONFIG.DEFAULT_GOAL,
+            days: sets.days !== undefined ? sets.days : CONFIG.DEFAULT_DAYS,
+            weekdayGoal: 40000,
+            weekendGoal: 60000,
+            workDates: []
+        };
+    }
+    if (!sets.monthly[key].workDates) sets.monthly[key].workDates = [];
+    
+    const idx = sets.monthly[key].workDates.indexOf(dateStr);
+    if (idx > -1) {
+        sets.monthly[key].workDates.splice(idx, 1);
+    } else {
+        sets.monthly[key].workDates.push(dateStr);
+    }
+    
+    // 全出勤日数を同期
+    sets.monthly[key].days = sets.monthly[key].workDates.length;
+    
+    DB.save('taxi_v11_sets', sets);
+    loadMonthlySettings();
+    refreshCalc();
 }
 
 // --- 11. HOLIDAY & TARGET TYPE TOGGLE FUNCTIONS ---

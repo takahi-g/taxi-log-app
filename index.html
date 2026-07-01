@@ -27,7 +27,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/01 11:48</div>
+                <div class="app-version">Ver: 07/01 11:55</div>
             </div>
         </div>
     </header>
@@ -300,6 +300,15 @@
                             <select id="set-month" onchange="loadMonthlySettings()" style="padding: 8px; border-radius: 8px; background: #1c1c1e; color: white; border: 1px solid var(--border); font-weight: bold;"></select>
                         </div>
                     </div>
+                    <!-- 出勤予定日カレンダー -->
+                    <div class="setting-item-col" style="padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem; display: block; margin-bottom: 8px;">出勤予定日の選択 (カレンダーから選択)</span>
+                        <div id="settings-workdates-calendar" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; background: rgba(0,0,0,0.15); padding: 10px; border-radius: 12px; margin-bottom: 8px;"></div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                            <span>※タップしてON/OFF（青＝出勤日）</span>
+                            <span>選択中: <strong id="disp-settings-workdates-count" style="color:var(--accent);">0</strong> 日</span>
+                        </div>
+                    </div>
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
                         <span style="font-weight: bold; font-size: 0.95rem;">目標売上 (税抜)</span>
                         <input type="number" id="set-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
@@ -429,6 +438,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260701_1148"></script>
+    <script src="app.js?v=20260701_1155"></script>
 </body>
 </html>
