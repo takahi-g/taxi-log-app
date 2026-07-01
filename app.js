@@ -946,6 +946,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (UI.get('set-goal')) UI.get('set-goal').value = mSetsInit.goal;
     if (UI.get('set-days')) UI.get('set-days').value = mSetsInit.days;
+    if (UI.get('set-weekday-goal')) UI.get('set-weekday-goal').value = mSetsInit.weekdayGoal !== undefined ? mSetsInit.weekdayGoal : 40000;
+    if (UI.get('set-weekend-goal')) UI.get('set-weekend-goal').value = mSetsInit.weekendGoal !== undefined ? mSetsInit.weekendGoal : 60000;
+    
+    // 初回読み込み時に設定画面のカレンダーを描画
+    loadMonthlySettings();
+
     if (UI.get('set-base-start-time')) UI.get('set-base-start-time').value = setsInit.baseStartTime || "08:00";
     if (UI.get('set-standard-work-hours')) UI.get('set-standard-work-hours').value = setsInit.standardWorkHours !== undefined ? setsInit.standardWorkHours : 19;
     if (UI.get('set-standard-work-minutes')) UI.get('set-standard-work-minutes').value = setsInit.standardWorkMinutes !== undefined ? setsInit.standardWorkMinutes : 40;
