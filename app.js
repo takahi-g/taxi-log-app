@@ -484,6 +484,62 @@ function refreshCalc(isSave = false) {
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
     const finalTodayNorm = Math.max(0, dailyBaseNorm - todayNetSum);
+    
+    // 今日の曜日・特別目標と現在の達成差分（プラスマイナス表示）の更新
+    const workStateObj = loadWorkState(selectedDate);
+    const todayTargetTypeEl = document.getElementById('disp-today-target-type');
+    const todayTargetValEl = document.getElementById('disp-today-target-value');
+    const todayTargetDiffEl = document.getElementById('disp-today-target-diff');
+    const btnToggleTargetType = document.getElementById('btn-toggle-target-type');
+    
+    let activeTargetType = workStateObj.targetType || "auto";
+    let isWeekendOrHoliday = isDayBeforeHolidayOrWeekend(selectedDate);
+    let resolvedTargetType = "weekday";
+    
+    if (activeTargetType === "weekend" || (activeTargetType === "auto" && isWeekendOrHoliday)) {
+        resolvedTargetType = "weekend";
+    }
+    
+    const targetVal = resolvedTargetType === "weekend" ? mSets.weekendGoal : mSets.weekdayGoal;
+    
+    if (todayTargetTypeEl) {
+        let typeText = resolvedTargetType === "weekend" ? "金土祝前目標" : "平日標準目標";
+        if (activeTargetType === "auto") {
+            typeText += " (自動)";
+        } else {
+            typeText += " (固定)";
+        }
+        todayTargetTypeEl.innerText = typeText;
+    }
+    
+    if (btnToggleTargetType) {
+        if (activeTargetType === "auto") {
+            btnToggleTargetType.innerText = "自動判定中";
+            btnToggleTargetType.style.background = "rgba(255,255,255,0.08)";
+        } else if (activeTargetType === "weekday") {
+            btnToggleTargetType.innerText = "平日固定中";
+            btnToggleTargetType.style.background = "rgba(94, 92, 230, 0.2)";
+        } else {
+            btnToggleTargetType.innerText = "金土固定中";
+            btnToggleTargetType.style.background = "rgba(237, 180, 24, 0.2)";
+        }
+    }
+    
+    if (todayTargetValEl) {
+        const targetValGross = Math.floor(targetVal * 1.1);
+        todayTargetValEl.innerHTML = `${Math.floor(targetVal).toLocaleString()} 円 <small style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(税込: ${targetValGross.toLocaleString()}円)</small>`;
+    }
+    
+    if (todayTargetDiffEl) {
+        const diff = todayNetSum - targetVal;
+        const diffGross = Math.floor(diff * 1.1);
+        if (diff >= 0) {
+            todayTargetDiffEl.innerHTML = `<span style="color:var(--success); font-weight:900;">+¥${Math.floor(diff).toLocaleString()} <small style="font-size:0.75rem; font-weight:normal;">(税込: +¥${Math.floor(diffGross).toLocaleString()}) 達成！</small></span>`;
+        } else {
+            todayTargetDiffEl.innerHTML = `<span style="color:#ff453a; font-weight:900;">-¥${Math.floor(Math.abs(diff)).toLocaleString()} <small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);">(税込: -¥${Math.floor(Math.abs(diffGross)).toLocaleString()})</small></span>`;
+        }
+    }
+
     if (isSave && finalTodayNorm <= 0 && !hasCelebratedToday && selectedDate === todayStr) { startCelebration(); hasCelebratedToday = true; }
     const normEl = document.getElementById('disp-norm'); 
     const normGrossEl = document.getElementById('disp-norm-gross');
@@ -817,7 +873,9 @@ function saveCalcSettings() {
         if (!sets.monthly) sets.monthly = {};
         sets.monthly[key] = {
             goal: parseFloat(document.getElementById('set-goal').value) || CONFIG.DEFAULT_GOAL,
-            days: parseFloat(document.getElementById('set-days').value) || CONFIG.DEFAULT_DAYS
+            days: parseFloat(document.getElementById('set-days').value) || CONFIG.DEFAULT_DAYS,
+            weekdayGoal: parseFloat(document.getElementById('set-weekday-goal').value) || 40000,
+            weekendGoal: parseFloat(document.getElementById('set-weekend-goal').value) || 60000
         };
     }
     
@@ -946,11 +1004,15 @@ function loadWorkState(dateStr) {
             endTime: null,
             breakMinutes: CONFIG.DEFAULT_BREAK_MINUTES,
             activeBreakStarted: null,
-            breaks: []
+            breaks: [],
+            targetType: "auto"
         };
     }
     if (!states[dateStr].breaks) {
         states[dateStr].breaks = [];
+    }
+    if (!states[dateStr].targetType) {
+        states[dateStr].targetType = "auto";
     }
     return states[dateStr];
 }
@@ -1187,9 +1249,13 @@ function getMonthlySettings(year, month) {
     if (!sets.monthly[key]) {
         sets.monthly[key] = {
             goal: sets.goal !== undefined ? sets.goal : CONFIG.DEFAULT_GOAL,
-            days: sets.days !== undefined ? sets.days : CONFIG.DEFAULT_DAYS
+            days: sets.days !== undefined ? sets.days : CONFIG.DEFAULT_DAYS,
+            weekdayGoal: 40000,
+            weekendGoal: 60000
         };
     }
+    if (sets.monthly[key].weekdayGoal === undefined) sets.monthly[key].weekdayGoal = 40000;
+    if (sets.monthly[key].weekendGoal === undefined) sets.monthly[key].weekendGoal = 60000;
     return sets.monthly[key];
 }
 
@@ -1201,4 +1267,76 @@ function loadMonthlySettings() {
     const mSets = getMonthlySettings(sy, sm);
     if (UI.get('set-goal')) UI.get('set-goal').value = mSets.goal;
     if (UI.get('set-days')) UI.get('set-days').value = mSets.days;
+    if (UI.get('set-weekday-goal')) UI.get('set-weekday-goal').value = mSets.weekdayGoal;
+    if (UI.get('set-weekend-goal')) UI.get('set-weekend-goal').value = mSets.weekendGoal;
+}
+
+// --- 11. HOLIDAY & TARGET TYPE TOGGLE FUNCTIONS ---
+function getJapaneseHolidayName(dateStr) {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return null;
+    const y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
+    const w = d.getDay(); // 0:日, 6:土
+    
+    const getVernalEquinox = (year) => Math.floor(20.8431 + 0.242194 * (year - 1980)) - Math.floor((year - 1980) / 4);
+    const getAutumnalEquinox = (year) => Math.floor(23.2488 + 0.242194 * (year - 1980)) - Math.floor((year - 1980) / 4);
+    
+    if (m === 1 && day === 1) return "元日";
+    if (m === 2 && day === 11) return "建国記念の日";
+    if (m === 2 && day === 23) return "天皇誕生日";
+    if (m === 3 && day === getVernalEquinox(y)) return "春分の日";
+    if (m === 4 && day === 29) return "昭和の日";
+    if (m === 5 && day === 3) return "憲法記念日";
+    if (m === 5 && day === 4) return "みどりの日";
+    if (m === 5 && day === 5) return "こどもの日";
+    if (m === 8 && day === 11) return "山の日";
+    if (m === 9 && day === getAutumnalEquinox(y)) return "秋分の日";
+    if (m === 11 && day === 3) return "文化の日";
+    if (m === 11 && day === 23) return "勤労感謝の日";
+    
+    if (m === 1 && w === 1 && day >= 8 && day <= 14) return "成人の日";
+    if (m === 7 && w === 1 && day >= 15 && day <= 21) return "海の日";
+    if (m === 9 && w === 1 && day >= 15 && day <= 21) return "敬老の日";
+    if (m === 10 && w === 1 && day >= 8 && day <= 14) return "スポーツの日";
+    
+    if (w === 1) {
+        const prevDate = new Date(d);
+        prevDate.setDate(day - 1);
+        const prevDateStr = `${prevDate.getFullYear()}-${String(prevDate.getMonth()+1).padStart(2,'0')}-${String(prevDate.getDate()).padStart(2,'0')}`;
+        if (getJapaneseHolidayName(prevDateStr)) return "振替休日";
+    }
+    return null;
+}
+
+function isDayBeforeHolidayOrWeekend(dateStr) {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return false;
+    
+    const w = d.getDay();
+    if (w === 5 || w === 6) return true; // 金曜・土曜
+    
+    const nextDate = new Date(d);
+    nextDate.setDate(d.getDate() + 1);
+    const nextDateStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}-${String(nextDate.getDate()).padStart(2,'0')}`;
+    
+    if (nextDate.getDay() === 0) return true; // 翌日が日曜日 ＝ 土曜日（すでに上で判定済だが念のため）
+    if (getJapaneseHolidayName(nextDateStr)) return true; // 翌日が祝日 ＝ 祝前日
+    
+    return false;
+}
+
+function toggleTodayTargetType() {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    
+    if (!stateObj.targetType || stateObj.targetType === "auto") {
+        stateObj.targetType = "weekday";
+    } else if (stateObj.targetType === "weekday") {
+        stateObj.targetType = "weekend";
+    } else {
+        stateObj.targetType = "auto";
+    }
+    
+    saveWorkState(dateStr, stateObj);
+    refreshCalc();
 }
