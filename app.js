@@ -476,20 +476,12 @@ function refreshCalc(isSave = false) {
     const workedDates = [...new Set(monthlyData.map(h => h.date))];
     const workedCount = workedDates.length;
     const now = new Date(); const todayStr = now.toISOString().split('T')[0];
-    const pastWorkedDates = workedDates.filter(d => d !== todayStr);
-    const pastWorkedDaysCount = pastWorkedDates.length;
-    let remainDays = 1;
-    if (mSets.workDates && mSets.workDates.length > 0) {
-        const futureOrTodayWorkdates = mSets.workDates.filter(d => d >= todayStr);
-        remainDays = Math.max(1, futureOrTodayWorkdates.length);
-    } else {
-        remainDays = Math.max(1, curDays - pastWorkedDaysCount);
-    }
-    const salesBeforeToday = monthlyData.filter(h => h.date !== todayStr).reduce((sum, h) => sum + h.net, 0);
-    const dailyBaseNorm = Math.ceil(Math.max(0, curGoal - salesBeforeToday) / remainDays);
+    const isWeekendOrHoliday = isDayBeforeHolidayOrWeekend(selectedDate);
+    const todayTargetNet = isWeekendOrHoliday ? mSets.weekendGoal : mSets.weekdayGoal;
+    
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
-    const finalTodayNorm = Math.max(0, dailyBaseNorm - todayNetSum);
+    const finalTodayNorm = Math.max(0, todayTargetNet - todayNetSum);
     
     if (isSave && finalTodayNorm <= 0 && !hasCelebratedToday && selectedDate === todayStr) { startCelebration(); hasCelebratedToday = true; }
     const normEl = document.getElementById('disp-norm'); 
@@ -502,7 +494,10 @@ function refreshCalc(isSave = false) {
         normGrossEl.innerText = Math.floor(Math.ceil(finalTodayNorm * 1.1)).toLocaleString();
     }
     const progressEl = document.getElementById('disp-progress');
-    if (progressEl) progressEl.innerText = `今月: ${workedCount} / ${curDays} 回出勤`;
+    if (progressEl) {
+        const weekdayText = isWeekendOrHoliday ? "金土祝前目標" : "平日標準目標";
+        progressEl.innerText = `今月: ${workedCount} / ${curDays} 回出勤 (本日目標: 税抜${todayTargetNet.toLocaleString()}円 [${weekdayText}])`;
+    }
     
     const todayGrossSum = todayRecords.reduce((s, h) => s + h.gross, 0);
     const todaySumEl = document.getElementById('disp-today-sum');
@@ -520,11 +515,6 @@ function refreshCalc(isSave = false) {
                 </div>
             </div>
         `;
-    }
-    const dailyQuotaEl = document.getElementById('disp-calc-quota-daily');
-    if (dailyQuotaEl && curDays > 0) {
-        const dailyQuota = Math.ceil((curGoal / curDays) * 1.1);
-        dailyQuotaEl.innerText = `¥${dailyQuota.toLocaleString()}`;
     }
 
     // --- 乗務・時間売上ステータス（時給計算）の更新 ---
