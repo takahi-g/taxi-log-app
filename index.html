@@ -24,7 +24,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/02 17:03</div>
+                <div class="app-version">Ver: 07/02 17:07</div>
             </div>
         </div>
     </header>
@@ -125,6 +125,33 @@
                     </div>
                 </div>
 
+                <!-- 実稼働時間表示 -->
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 12px;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px;">実稼働時間</span>
+                    <span id="disp-work-hours" style="font-size: 1.25rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">0.0 時間</span>
+                </div>
+
+                <!-- 時間売上 (税込・税抜の横並び) -->
+                <div style="margin-bottom: 12px;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">現在の時間売上 (時給)</span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div style="flex: 1; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 8px; border-radius: 12px; text-align: center;">
+                            <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px;">税抜</span>
+                            <span id="disp-hourly-net" style="font-size: 1.2rem; font-weight: 800; color: #FFD700; font-family: 'Outfit', sans-serif;">¥0 /h</span>
+                        </div>
+                        <div style="flex: 1; background: rgba(16,185,129,0.03); border: 1px solid rgba(16,185,129,0.15); padding: 8px; border-radius: 12px; text-align: center;">
+                            <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px;">税込</span>
+                            <span id="disp-hourly-gross" style="font-size: 1.35rem; font-weight: 900; color: var(--success); font-family: 'Outfit', sans-serif;">¥0 /h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 手取り時給 (歩合考慮) -->
+                <div id="disp-hourly-income-box" style="background: rgba(237, 180, 24, 0.04); border: 1px solid rgba(237, 180, 24, 0.2); padding: 12px; border-radius: 14px; text-align: center; box-sizing: border-box; margin-bottom: 15px;">
+                    <span id="disp-hourly-income-label" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600;">手取り時給 (暫定歩合: 0%)</span>
+                    <span id="disp-hourly-income" style="font-size: 1.5rem; font-weight: 900; color: var(--accent); font-family: 'Outfit', sans-serif;">¥0 /h</span>
+                </div>
+
                 <!-- 休憩開始ボタン -->
                 <div style="margin-bottom: 12px;">
                     <button id="btn-toggle-break" onclick="toggleBreak()" style="width: 100%; height: 46px; border-radius: 12px; border: none; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(94, 92, 230, 0.15); color: #5e5ce6;">
@@ -150,33 +177,6 @@
 
                 <!-- 休憩履歴リスト -->
                 <div id="break-history-list" style="margin-top: -5px; margin-bottom: 15px; font-size: 0.82rem; color: var(--text-muted); background: rgba(0,0,0,0.15); padding: 10px; border-radius: 12px; border: 1px solid var(--border); display: none; box-sizing: border-box;"></div>
-
-                <!-- 実稼働時間表示 -->
-                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 12px;">
-                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px;">実稼働時間</span>
-                    <span id="disp-work-hours" style="font-size: 1.25rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">0.0 時間</span>
-                </div>
-
-                <!-- 時間売上 (税込・税抜の横並び) -->
-                <div style="margin-bottom: 12px;">
-                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">現在の時間売上 (時給)</span>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <div style="flex: 1; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 8px; border-radius: 12px; text-align: center;">
-                            <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px;">税抜</span>
-                            <span id="disp-hourly-net" style="font-size: 1.2rem; font-weight: 800; color: #FFD700; font-family: 'Outfit', sans-serif;">¥0 /h</span>
-                        </div>
-                        <div style="flex: 1; background: rgba(16,185,129,0.03); border: 1px solid rgba(16,185,129,0.15); padding: 8px; border-radius: 12px; text-align: center;">
-                            <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px;">税込</span>
-                            <span id="disp-hourly-gross" style="font-size: 1.35rem; font-weight: 900; color: var(--success); font-family: 'Outfit', sans-serif;">¥0 /h</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 手取り時給 (歩合考慮) -->
-                <div id="disp-hourly-income-box" style="background: rgba(237, 180, 24, 0.04); border: 1px solid rgba(237, 180, 24, 0.2); padding: 12px; border-radius: 14px; text-align: center; box-sizing: border-box;">
-                    <span id="disp-hourly-income-label" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600;">手取り時給 (暫定歩合: 0%)</span>
-                    <span id="disp-hourly-income" style="font-size: 1.5rem; font-weight: 900; color: var(--accent); font-family: 'Outfit', sans-serif;">¥0 /h</span>
-                </div>
             </section>
 
 
@@ -366,6 +366,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260702_1703"></script>
+    <script src="app.js?v=20260702_1707"></script>
 </body>
 </html>
