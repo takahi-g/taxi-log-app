@@ -196,9 +196,10 @@ function refreshCalc(isSave = false) {
     // 休憩履歴リストの同期・描画
     const breakHistoryList = document.getElementById('break-history-list');
     if (breakHistoryList) {
+        breakHistoryList.style.display = 'block';
+        let listHtml = '';
         if (workState.breaks && workState.breaks.length > 0) {
-            breakHistoryList.style.display = 'block';
-            const listHtml = workState.breaks.map((b, i) => `
+            listHtml = workState.breaks.map((b, i) => `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.03); padding-bottom: 4px;">
                     <span>☕ 休憩${i+1}: ${b.start} 〜 ${b.end}</span>
                     <div style="display:flex; align-items:center; gap:8px;">
@@ -208,10 +209,15 @@ function refreshCalc(isSave = false) {
                     </div>
                 </div>
             `).join('');
-            breakHistoryList.innerHTML = `<div style="font-weight:bold; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px; color:var(--text-main); font-size:0.85rem;">⏱️ 休憩時間セッション履歴</div>` + listHtml;
-        } else {
-            breakHistoryList.style.display = 'none';
+            listHtml = `<div style="font-weight:bold; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px; color:var(--text-main); font-size:0.85rem;">⏱️ 休憩時間セッション履歴</div>` + listHtml;
         }
+        
+        const addBtnHtml = `
+            <div style="margin-top:10px; display:flex; justify-content:flex-end;">
+                <button onclick="addManualBreakSession()" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#fff; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:4px; -webkit-tap-highlight-color: transparent;">➕ 休憩を手動追加</button>
+            </div>
+        `;
+        breakHistoryList.innerHTML = listHtml + addBtnHtml;
     }
     
     if (endTimeInput && dispEndTimeStatus && btnActionEndTime) {
@@ -811,6 +817,41 @@ function updateBreakTimerDisplay() {
         btn.style.background = 'rgba(94, 92, 230, 0.15)';
         btn.style.color = '#5e5ce6';
     }
+}
+
+function addManualBreakSession() {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    
+    const startStr = prompt("休憩開始時刻を入力してください (例 12:00)：", "12:00");
+    if (!startStr) return;
+    
+    const endStr = prompt("休憩終了時刻を入力してください (例 13:00)：", "13:00");
+    if (!endStr) return;
+    
+    const timeReg = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeReg.test(startStr) || !timeReg.test(endStr)) {
+        alert("時刻の形式が正しくありません。HH:MM (例 12:00) で入力してください。");
+        return;
+    }
+    
+    const calculateDuration = (s, e) => {
+        const [sh, sm] = s.split(':').map(Number);
+        const [eh, em] = e.split(':').map(Number);
+        let diff = (eh * 60 + em) - (sh * 60 + sm);
+        if (diff < 0) diff += 24 * 60;
+        return diff;
+    };
+    
+    const duration = calculateDuration(startStr, endStr);
+    
+    if (!stateObj.breaks) stateObj.breaks = [];
+    stateObj.breaks.push({ start: startStr, end: endStr, duration: duration });
+    
+    stateObj.breakMinutes = stateObj.breakMinutes + duration;
+    
+    saveWorkState(dateStr, stateObj);
+    refreshCalc();
 }
 
 function editBreakSession(index) {
