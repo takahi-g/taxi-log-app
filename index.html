@@ -24,7 +24,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/02 16:49</div>
+                <div class="app-version">Ver: 07/02 16:53</div>
             </div>
         </div>
     </header>
@@ -206,20 +206,20 @@
                         </div>
                     </div>
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
-                        <span style="font-weight: bold; font-size: 0.95rem;">目標売上 (税抜)</span>
-                        <input type="number" id="set-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
-                    </div>
-                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
-                        <span style="font-weight: bold; font-size: 0.95rem;">全出勤日数</span>
-                        <input type="number" id="set-days" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
-                    </div>
-                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
                         <span style="font-weight: bold; font-size: 0.95rem;">平日標準目標 (税抜)</span>
                         <input type="number" id="set-weekday-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
                     </div>
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
                         <span style="font-weight: bold; font-size: 0.95rem;">金土祝前目標 (税抜)</span>
                         <input type="number" id="set-weekend-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); background: rgba(255, 215, 0, 0.02);">
+                        <span style="font-weight: bold; font-size: 0.95rem; color: var(--accent);">目標売上 (税抜・自動計算)</span>
+                        <input type="number" id="set-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:var(--accent); background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;" readonly>
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">全出勤日数</span>
+                        <input type="number" id="set-days" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;" readonly>
                     </div>
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
                         <span style="font-weight: bold; font-size: 0.95rem;">ベース出勤時刻</span>
@@ -279,6 +279,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260702_1649"></script>
+    <script src="app.js?v=20260702_1653"></script>
 </body>
 </html>
