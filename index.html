@@ -24,7 +24,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/02 16:40</div>
+                <div class="app-version">Ver: 07/02 16:49</div>
             </div>
         </div>
     </header>
@@ -260,6 +260,7 @@
                         <button onclick="copyBackup()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: #FFD700; border: 1px solid var(--border); cursor: pointer;">📋 データをバックアップ</button>
                         <button onclick="restoreBackup()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: var(--success); border: 1px solid var(--border); cursor: pointer;">📥 データを復元</button>
                     </div>
+                    <button onclick="exportCSV()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: #60a5fa; border: 1px solid var(--border); cursor: pointer; width: 100%;">📊 Excel用CSV書き出し</button>
                     <button onclick="clearData()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: var(--danger); border: 1px solid var(--border); cursor: pointer; width: 100%;">🗑 全データ・履歴の消去</button>
                 </div>
                 
@@ -278,6 +279,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260702_1640"></script>
+    <script src="app.js?v=20260702_1649"></script>
 </body>
 </html>

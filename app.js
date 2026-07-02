@@ -505,6 +505,61 @@ function restoreBackup() {
     }
 }
 
+function exportCSV() {
+    const hist = DB.load('taxi_v11_hist', []);
+    if (hist.length === 0) {
+        alert("書き出す売上データがありません。");
+        return;
+    }
+
+    // 日付順にソート (古い順)
+    hist.sort((a, b) => a.date.localeCompare(b.date));
+
+    const workStates = DB.load('taxi_v11_work_states', {});
+
+    // CSVヘッダー
+    let csvContent = "日付,曜日,売上金額(税抜),売上金額(税込),休憩時間(分),乗務開始時刻,乗務終了時刻\r\n";
+
+    const weekdayNames = ["日", "月", "火", "水", "木", "金", "土"];
+
+    hist.forEach(item => {
+        const dateStr = item.date;
+        const d = new Date(dateStr);
+        const dayOfWeek = weekdayNames[isNaN(d.getTime()) ? 0 : d.getDay()];
+        
+        const stateObj = workStates[dateStr] || {};
+        const startTime = stateObj.startTime || "";
+        const endTime = stateObj.endTime || "";
+        const breakMin = stateObj.breakMinutes !== undefined ? stateObj.breakMinutes : "";
+
+        const row = [
+            dateStr,
+            dayOfWeek,
+            item.net,
+            item.gross,
+            breakMin,
+            startTime,
+            endTime
+        ].map(val => `"${String(val).replace(/"/g, '""')}"`).join(",");
+
+        csvContent += row + "\r\n";
+    });
+
+    // Excelの文字化けを防ぐためにBOM（\uFEFF）を付与してUTF-8として出力
+    const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+    const blob = new Blob([bom, csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement("a");
+    const today = new Date().toISOString().split('T')[0].replace(/-/g, "");
+    a.href = url;
+    a.download = `taxi_sales_history_${today}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
     setupEventListeners();
