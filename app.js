@@ -62,6 +62,15 @@ function setupEventListeners() {
             if (tab === 'calc' || tab === 'history') refreshCalc();
         });
     });
+
+    // 使い方モーダルの背景クリックで閉じる処理
+    const handleHelpOutsideClick = (e) => {
+        if (e.target === UI.get('help-modal')) {
+            closeHelpModal();
+        }
+    };
+    UI.get('help-modal')?.addEventListener('click', handleHelpOutsideClick);
+    UI.get('help-modal')?.addEventListener('touchstart', handleHelpOutsideClick, { passive: true });
 }
 
 // --- 9. TAXI App (タク計) Integration Logic ---
@@ -558,6 +567,14 @@ function exportCSV() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+}
+
+function openHelpModal() {
+    UI.show('help-modal', true);
+}
+
+function closeHelpModal() {
+    UI.show('help-modal', false);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

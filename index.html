@@ -24,7 +24,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/02 16:53</div>
+                <div class="app-version">Ver: 07/02 16:56</div>
             </div>
         </div>
     </header>
@@ -184,6 +184,17 @@
 
         <!-- 4. 設定ビュー -->
         <div id="view-settings" class="view-content">
+            <!-- 📖 使い方ガイドボタン -->
+            <section class="card" style="padding: 15px; margin-bottom: 15px; background: rgba(94, 92, 230, 0.08); border: 1px solid rgba(94, 92, 230, 0.3); border-radius: 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: bold; color: #fff;">📖 アプリの使い方ガイド</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">初期設定や日々の売上・休憩の入力方法を確認できます</div>
+                    </div>
+                    <button onclick="openHelpModal()" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 10px; background: var(--ios-blue); font-weight: bold; border: none; color: white; cursor: pointer; white-space: nowrap; transition: transform 0.1s; -webkit-appearance: none;">開く</button>
+                </div>
+            </section>
+
             <section class="card settings-card">
                 <div class="card-header">
                     <h2>⚙️ 目標設定</h2>
@@ -271,6 +282,82 @@
 
 
 
+    <!-- 📖 使い方ガイド用モーダル -->
+    <div id="help-modal" class="modal-overlay" style="display: none; align-items: flex-start; padding-top: 40px; overflow-y: auto; z-index: 10000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center;">
+        <div class="modal-content card" style="background: var(--bg-surface); border: 1.5px solid var(--accent); max-width: 420px; width: 92%; margin: 20px auto; padding: 20px; border-radius: 20px; max-height: 80vh; overflow-y: auto; box-sizing: border-box; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <button onclick="closeHelpModal()" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.08); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;">×</button>
+            
+            <h2 style="margin: 0 0 15px 0; color: var(--accent); font-size: 1.25rem; text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px;">📖 TAXI Log Pro 使い方ガイド</h2>
+            
+            <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text-main); display: flex; flex-direction: column; gap: 20px;">
+                <!-- 1 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">📱 1. スマホのホーム画面に追加</h3>
+                    <p style="margin: 0; color: var(--text-muted);">アプリのようにワンタップで起動できるようにしましょう！</p>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li><strong>iPhone (Safari)</strong>: 下の「共有ボタン(□に↑)」➡「ホーム画面に追加」をタップ。</li>
+                        <li><strong>Android (Chrome)</strong>: 右上のメニュー「︙」➡「ホーム画面に追加」または「アプリをインストール」をタップ。</li>
+                    </ul>
+                </div>
+                
+                <!-- 2 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">📅 2. 月はじめの設定 (初期設定)</h3>
+                    <p style="margin: 0; color: var(--text-muted);">毎月1回、以下の設定をするだけで今月の目標売上が自動セットされます。</p>
+                    <ol style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li>「⚙️ 設定」タブで<strong>設定対象年月</strong>を選択。</li>
+                        <li><strong>出勤カレンダー</strong>で、今月の出勤シフトの日付をタップして<strong>黄色（出勤予定日）</strong>にします。</li>
+                        <li>自分の会社の「<strong>平日標準目標</strong>」と「<strong>金土祝前目標</strong>」を入力。</li>
+                        <li>自動的に月全体の「目標売上」と「出勤日数」が計算されて保存されます。</li>
+                    </ol>
+                </div>
+                
+                <!-- 3 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">💰 3. 毎日の売上追加</h3>
+                    <p style="margin: 0; color: var(--text-muted);">「💰 売上計算」タブでの毎日の操作です。</p>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li>降車時の税込売上（例: 4800, 12000など）をテンキーで入力して「<strong>売上を追加する</strong>」を押すだけ。</li>
+                        <li>今日の目標（設定した平日目標または金土目標）に自動で連動し、「<strong>今日の残りノルマ</strong>」がリアルタイムに減っていきます。</li>
+                    </ul>
+                </div>
+                
+                <!-- 4 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">☕ 4. 休憩時間の計測・編集</h3>
+                    <p style="margin: 0; color: var(--text-muted);">乗務中の休憩もしっかり記録・管理できます。</p>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li>休憩に入るときに「<strong>休憩に入る</strong>」を押し、終わったら「<strong>休憩終了</strong>」を押すだけで自動で分数がカウントされます。</li>
+                        <li>「何時〜何時まで休憩したか」の履歴は、履歴リストの「<strong>✏️（編集）</strong>」ボタンから後からいつでも開始・終了時刻を修正できます。</li>
+                    </ul>
+                </div>
+                
+                <!-- 5 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">📊 5. 履歴と手取り給与の確認</h3>
+                    <p style="margin: 0; color: var(--text-muted);">「📝 詳細履歴」タブで今月の全データが集計されます。</p>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li>カレンダーで日別の売上の有無を確認できます。</li>
+                        <li>月間売上から会社の歩合給テーブルに沿った「<strong>推定の歩合給</strong>」を自動計算します。</li>
+                        <li>さらに売上時給だけでなく、歩合率を考慮した「<strong>実際にもらえる手取り時給</strong>」も売上計算タブに大きく表示され、モチベーション維持に役立ちます。</li>
+                    </ul>
+                </div>
+                
+                <!-- 6 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">💾 6. 同僚への共有とバックアップ</h3>
+                    <p style="margin: 0; color: var(--text-muted);">設定した目標や出勤予定日のバックアップと引き継ぎができます。</p>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li><strong>データをバックアップ</strong>: タップすると暗号化された引き継ぎコードがコピーされます。LINEで同僚に送ったりメモ帳に保存できます。</li>
+                        <li><strong>データを復元</strong>: 同僚から貰ったコードや保存しておいたコードを貼り付けるだけで、一瞬で目標や履歴データが同期されます。</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button onclick="closeHelpModal()" class="btn-primary" style="background: var(--accent); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; width: 100%; margin-top: 20px; transition: transform 0.1s; -webkit-appearance: none;">閉じる</button>
+        </div>
+    </div>
+
     <footer class="main-footer">
         <nav class="tab-bar">
             <button id="tab-calc" class="tab-item active">💰 売上計算</button>
@@ -279,6 +366,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260702_1653"></script>
+    <script src="app.js?v=20260702_1656"></script>
 </body>
 </html>
