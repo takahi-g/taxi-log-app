@@ -583,6 +583,44 @@ function closeHelpModal() {
     UI.show('help-modal', false);
 }
 
+const APP_UPDATE_INFO = {
+    version: "20260702_1725",
+    date: "07/02 17:25",
+    title: "🎉 アップデートのお知らせ (Ver: 07/02 17:25)",
+    details: [
+        "☕ 休憩時間の手動追加に対応しました！(売上計算の履歴エリアから追加できます)",
+        "📊 Excelやスプレッドシート用CSV書き出しに対応しました！(設定から出力できます)",
+        "⚙️ 設定の目標入力の順序を整理し、平日・週末の目標を上に変更しました！",
+        "📖 アプリ内に『使い方ガイド』を新設しました！"
+    ]
+};
+
+function checkAndShowUpdateModal() {
+    const infoList = document.getElementById('update-info-list');
+    if (infoList) {
+        infoList.innerHTML = `
+            <div style="font-weight:bold; color:var(--text-main); margin-bottom:4px;">Ver: ${APP_UPDATE_INFO.date}</div>
+            ${APP_UPDATE_INFO.details.map(d => `<div style="display:flex; gap:6px; align-items:flex-start;"><span>•</span><span>${d}</span></div>`).join('')}
+        `;
+    }
+
+    const lastSeen = localStorage.getItem('taxi_last_seen_version');
+    if (lastSeen !== APP_UPDATE_INFO.version) {
+        const titleEl = document.getElementById('update-modal-title');
+        const detailsEl = document.getElementById('update-modal-details');
+        if (titleEl && detailsEl) {
+            titleEl.innerText = APP_UPDATE_INFO.title;
+            detailsEl.innerHTML = APP_UPDATE_INFO.details.map(d => `<div style="display:flex; gap:6px; align-items:flex-start;"><span>•</span><span>${d}</span></div>`).join('');
+            UI.show('update-modal', true);
+        }
+    }
+}
+
+function confirmUpdateViewed() {
+    localStorage.setItem('taxi_last_seen_version', APP_UPDATE_INFO.version);
+    UI.show('update-modal', false);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
     setupEventListeners();
@@ -625,6 +663,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 時給表示を最新化するためのタイマー（1分ごと）
     setInterval(refreshCalc, 60000);
+
+    // アップデート情報の確認・ポップアップ表示
+    checkAndShowUpdateModal();
 });
 
 function clearData() { if (confirm("すべての設定および履歴データを完全に消去しますか？")) { localStorage.clear(); location.reload(); } }
