@@ -8,9 +8,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Leaflet Map library -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body class="dark-theme">
     <div id="celebration-overlay">
@@ -27,82 +24,13 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/02 16:35</div>
+                <div class="app-version">Ver: 07/02 16:40</div>
             </div>
         </div>
     </header>
 
     <main class="container">
-        <!-- 1. ログ記録ビュー -->
-        <div id="view-log" class="view-content">
-            <!-- クイック乗車記録セクション -->
-            <section class="card record-card">
-                <div class="card-header">
-                    <h2>乗車記録</h2>
-                    <div class="status-badge" id="gps-status">GPS待機中</div>
-                </div>
-                
-                <div class="location-display" id="current-location">
-                    <span class="label">📍 現在地（住所）</span>
-                    <p id="address-text">取得するには「記録」を押してください</p>
-                </div>
 
-                <div class="input-grid duo">
-                    <div class="input-group">
-                        <label>男性</label>
-                        <div class="stepper">
-                            <button type="button" onclick="changeCount('men', -1)">−</button>
-                            <span id="men-count">0</span>
-                            <button type="button" onclick="changeCount('men', 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label>女性</label>
-                        <div class="stepper">
-                            <button type="button" onclick="changeCount('women', -1)">−</button>
-                            <span id="women-count">0</span>
-                            <button type="button" onclick="changeCount('women', 1)">+</button>
-                        </div>
-                    </div>
-                </div>
-
-            <!-- 売上入力（降車時のみ表示） -->
-            <div id="fare-container" class="fare-container" style="display: none;">
-                <label>売上金額 (円)</label>
-                <input type="number" id="fare-input" placeholder="0" inputmode="numeric">
-            </div>
-
-            <button id="main-log-btn" class="main-action-btn pickup">
-                <span id="btn-icon">🚖</span> <span id="btn-text">乗車（記録開始）</span>
-            </button>
-            </section>
-
-            <!-- 走行ログ設定 -->
-            <section class="card tracking-card">
-                <div class="flex-between">
-                    <div>
-                        <h3>自動走行ログ</h3>
-                        <p class="desc">移動経路を定期的に自動記録します</p>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="tracking-toggle">
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-            </section>
-
-            <!-- 最近の履歴 -->
-            <section class="history-section">
-                <div class="card-header">
-                    <h2>最近の履歴</h2>
-                    <button class="text-btn">すべて見る</button>
-                </div>
-                <div id="history-list" class="history-list">
-                    <!-- JavaScriptで履歴が追加されます -->
-                    <div class="empty-state">履歴はまだありません</div>
-                </div>
-            </section>
-        </div>
 
         <!-- 新設：詳細履歴ビュー -->
         <div id="view-history" class="view-content" style="padding: 10px; box-sizing: border-box;">
@@ -254,17 +182,6 @@
 
         </div>
 
-        <!-- 3. マップビュー -->
-        <div id="view-map" class="view-content">
-            <section class="card map-full-card">
-                <div class="card-header">
-                    <h2>📍 記録・走行マップ</h2>
-                </div>
-                <div id="log-map" class="log-map"></div>
-                <p class="map-hint">青い線が走行ルート、黄色のピンが乗車場所です</p>
-            </section>
-        </div>
-
         <!-- 4. 設定ビュー -->
         <div id="view-settings" class="view-content">
             <section class="card settings-card">
@@ -331,31 +248,17 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
-                    <div>
-                        <div style="font-size: 0.95rem; font-weight: bold;">高精度GPS</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted);">バッテリー消費が増えます</div>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="setting-highaccuracy">
-                        <span class="slider"></span>
-                    </label>
-                </div>
             </section>
 
             <!-- 💾 データ管理 & バックアップ -->
             <section class="card" style="padding: 15px; margin-bottom: 20px;">
                 <h2 style="font-size: 0.9rem; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">💾 データ管理 & バックアップ</h2>
-                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">売上計算データの引き継ぎや、走行ログの管理を行います。</p>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">売上計算データのバックアップと引き継ぎを行います。</p>
                 
                 <div style="display: flex; flex-direction: column; gap: 10px;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <button onclick="copyBackup()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: #FFD700; border: 1px solid var(--border); cursor: pointer;">📋 データをバックアップ</button>
                         <button onclick="restoreBackup()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: var(--success); border: 1px solid var(--border); cursor: pointer;">📥 データを復元</button>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <button onclick="exportData()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: #60a5fa; border: 1px solid var(--border); cursor: pointer;">📤 ログ書き出し</button>
-                        <button onclick="importData()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: #fff; border: 1px solid var(--border); cursor: pointer;">📥 ログ読み込み</button>
                     </div>
                     <button onclick="clearData()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: var(--danger); border: 1px solid var(--border); cursor: pointer; width: 100%;">🗑 全データ・履歴の消去</button>
                 </div>
@@ -365,51 +268,16 @@
         </div>
     </main>
 
-    <!-- 4. 編集用モーダル -->
-    <div id="edit-modal" class="modal-overlay" style="display: none; align-items: flex-start; padding-top: 60px;">
-        <div class="modal-content card" style="background: var(--bg-surface); border: 1.5px solid var(--accent); max-width: 380px; margin-top: 10px;">
-            <h3 style="margin-bottom: 20px; color: var(--accent); font-size: 1.3rem; text-align: center;">記録の修正</h3>
-            <div class="input-group" style="margin-bottom: 20px;">
-                <label style="font-size: 0.9rem; margin-bottom: 6px; display: block; color: var(--text-muted);">売上金額 (円・税込)</label>
-                <input type="number" id="edit-fare" inputmode="numeric" placeholder="0" onfocus="if(this.value==='0' || this.value==='') this.value=''" style="font-size: 1.3rem; padding: 12px; width: 100%; background: #1c1c1e; border: 1px solid var(--border); border-radius: 12px; color: white; outline: none;">
-            </div>
-            
-            <div class="edit-pax-grid" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px;">
-                <div class="input-group-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                    <label style="font-weight: bold; font-size: 0.95rem; color: var(--text-main);">男性人数</label>
-                    <div class="stepper" style="width: 140px; margin: 0;">
-                        <button type="button" onclick="changeEditCount('men', -1)">−</button>
-                        <span id="edit-men-count" style="font-size: 1.3rem; font-weight: 700; width: 40px; text-align: center;">0</span>
-                        <button type="button" onclick="changeEditCount('men', 1)">+</button>
-                    </div>
-                </div>
-                <div class="input-group-row" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                    <label style="font-weight: bold; font-size: 0.95rem; color: var(--text-main);">女性人数</label>
-                    <div class="stepper" style="width: 140px; margin: 0;">
-                        <button type="button" onclick="changeEditCount('women', -1)">−</button>
-                        <span id="edit-women-count" style="font-size: 1.3rem; font-weight: 700; width: 40px; text-align: center;">0</span>
-                        <button type="button" onclick="changeEditCount('women', 1)">+</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="modal-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <button class="btn-secondary" onclick="closeEditModal()" style="background: #2c2c2e; color: #fff; border: 1px solid #444; padding: 16px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: transform 0.1s; -webkit-appearance: none;">キャンセル</button>
-                <button class="btn-primary" onclick="saveEdit()" style="background: var(--success); color: #fff; border: none; padding: 16px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: transform 0.1s; -webkit-appearance: none;">保存する</button>
-            </div>
-        </div>
-    </div>
+
 
     <footer class="main-footer">
         <nav class="tab-bar">
             <button id="tab-calc" class="tab-item active">💰 売上計算</button>
             <button id="tab-history" class="tab-item">📝 詳細履歴</button>
-            <button id="tab-log" class="tab-item">📊 記録</button>
-            <button id="tab-map" class="tab-item">📍 マップ</button>
             <button id="tab-settings" class="tab-item">⚙️ 設定</button>
         </nav>
     </footer>
 
-    <script src="app.js?v=20260702_1635"></script>
+    <script src="app.js?v=20260702_1640"></script>
 </body>
 </html>
