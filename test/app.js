@@ -60,6 +60,7 @@ function setupEventListeners() {
             UI.active(`view-${tab}`);
             UI.active(`tab-${tab}`);
             if (tab === 'calc' || tab === 'history') refreshCalc();
+            window.scrollTo(0, 0);
         });
     });
 
