@@ -255,8 +255,10 @@ function refreshCalc(isSave = false) {
             endTimeInput.style.display = 'none';
             dispEndTimeStatus.style.display = 'block';
             btnActionEndTime.innerText = '退勤';
-            btnActionEndTime.style.background = 'rgba(255, 255, 255, 0.08)';
-            btnActionEndTime.style.color = 'white';
+            btnActionEndTime.style.background = 'var(--accent)';
+            btnActionEndTime.style.color = '#000';
+            btnActionEndTime.style.border = 'none';
+            btnActionEndTime.style.fontWeight = 'bold';
         }
     }
 
