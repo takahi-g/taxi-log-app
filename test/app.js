@@ -286,11 +286,20 @@ function refreshCalc(isSave = false) {
 
     const totalBreakMinutes = workState.breakMinutes + activeBreakMinutes;
     const actualWorkMinutes = Math.max(6, elapsedMinutes - totalBreakMinutes); // 最低6分（0.1時間）
-    const actualWorkHours = actualWorkMinutes / 60;
+    
+    let actualWorkHours = actualWorkMinutes / 60;
+    const isManual = workState.manualWorkHours !== null && workState.manualWorkHours !== undefined;
+    if (isManual) {
+        actualWorkHours = workState.manualWorkHours;
+    }
 
-    const dispWorkHoursSpan = document.getElementById('disp-work-hours');
-    if (dispWorkHoursSpan) {
-        dispWorkHoursSpan.innerText = `${actualWorkHours.toFixed(1)} 時間`;
+    const inputWorkHours = document.getElementById('input-work-hours');
+    const btnResetWorkHours = document.getElementById('btn-reset-work-hours');
+    if (inputWorkHours && document.activeElement !== inputWorkHours) {
+        inputWorkHours.value = actualWorkHours.toFixed(1);
+    }
+    if (btnResetWorkHours) {
+        btnResetWorkHours.style.display = isManual ? 'inline-block' : 'none';
     }
 
     // 時給の算出
@@ -714,7 +723,8 @@ function loadWorkState(dateStr) {
             breakMinutes: CONFIG.DEFAULT_BREAK_MINUTES,
             activeBreakStarted: null,
             breaks: [],
-            targetType: "auto"
+            targetType: "auto",
+            manualWorkHours: null
         };
     }
     if (!states[dateStr].breaks) {
@@ -722,6 +732,9 @@ function loadWorkState(dateStr) {
     }
     if (!states[dateStr].targetType) {
         states[dateStr].targetType = "auto";
+    }
+    if (states[dateStr].manualWorkHours === undefined) {
+        states[dateStr].manualWorkHours = null;
     }
     return states[dateStr];
 }
@@ -1160,4 +1173,26 @@ function syncGoalWithMonthlyRates(sets, key) {
     if (goalInput) {
         goalInput.value = total;
     }
+}
+function changeWorkHours() {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    const inputEl = document.getElementById('input-work-hours');
+    if (inputEl) {
+        const val = parseFloat(inputEl.value);
+        if (!isNaN(val) && val >= 0) {
+            stateObj.manualWorkHours = Math.round(val * 10) / 10;
+        } else {
+            stateObj.manualWorkHours = null;
+        }
+        saveWorkState(dateStr, stateObj);
+        refreshCalc();
+    }
+}
+function resetWorkHours() {
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    stateObj.manualWorkHours = null;
+    saveWorkState(dateStr, stateObj);
+    refreshCalc();
 }

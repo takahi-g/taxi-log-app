@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/07 16:36</div>
+                <div class="app-version">Ver: 07/07 16:39</div>
             </div>
         </div>
     </header>
@@ -127,10 +127,14 @@
                     </div>
                 </div>
 
-                <!-- 実稼働時間表示 -->
+                <!-- 実稼働時間表示・入力 -->
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 12px;">
-                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px;">実稼働時間</span>
-                    <span id="disp-work-hours" style="font-size: 1.25rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">0.0 時間</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">実稼働時間</span>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <input type="number" id="input-work-hours" step="0.1" min="0" onchange="changeWorkHours()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 1.25rem; font-weight: 800; font-family: 'Outfit', sans-serif; text-align: center; width: 90px; border-radius: 8px; padding: 4px 0; -webkit-appearance: none;">
+                        <span style="font-size: 1rem; color: #fff; font-weight: 600;">時間</span>
+                        <button id="btn-reset-work-hours" onclick="resetWorkHours()" style="display: none; background: rgba(255, 69, 58, 0.15); border: 1px solid rgba(255, 69, 58, 0.3); color: #ff453a; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;">自動に戻す</button>
+                    </div>
                 </div>
 
                 <!-- 時間売上 (税込・税抜の横並び) -->
@@ -387,6 +391,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260707_1636"></script>
+    <script src="app.js?v=20260707_1639"></script>
 </body>
 </html>
