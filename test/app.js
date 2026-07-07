@@ -71,6 +71,29 @@ function setupEventListeners() {
     };
     UI.get('help-modal')?.addEventListener('click', handleHelpOutsideClick);
     UI.get('help-modal')?.addEventListener('touchstart', handleHelpOutsideClick, { passive: true });
+    initTheme();
+}
+function initTheme() {
+    const darkmodeCheckbox = document.getElementById('setting-darkmode');
+    const isDark = DB.load('taxi_v11_dark_mode', true);
+    if (darkmodeCheckbox) {
+        darkmodeCheckbox.checked = isDark;
+        darkmodeCheckbox.addEventListener('change', (e) => {
+            const dark = e.target.checked;
+            DB.save('taxi_v11_dark_mode', dark);
+            applyTheme(dark);
+        });
+    }
+    applyTheme(isDark);
+}
+function applyTheme(isDark) {
+    if (isDark) {
+        document.body.classList.remove('light-theme');
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+        document.body.classList.add('light-theme');
+    }
 }
 
 // --- 9. TAXI App (タク計) Integration Logic ---
