@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TAXI Log Pro</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="dark-theme">
+    <div id="celebration-overlay">
+        <div id="celebration-text">TARGET<br>ACHIEVED!</div>
+    </div>
+    <header class="main-header">
+        <div class="logo">
+            <span class="logo-icon">🚖</span>
+            <h1>TAXI Log <span>Pro</span></h1>
+        </div>
+        <div class="header-right" style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;">
+            <button onclick="location.reload()" style="background: none; border: none; color: var(--text-muted); padding: 6px; display: inline-flex; align-items: center; justify-content: center; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; cursor: pointer; -webkit-tap-highlight-color: transparent;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5" onmousedown="this.style.transform='scale(0.85)'" onmouseup="this.style.transform='scale(1)'" title="再読み込み">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            </button>
+            <div style="text-align: right;">
+                <div id="live-clock" class="live-clock">--:--:--</div>
+                <div class="app-version">Ver: 07/02 17:25</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+
+
+        <!-- 新設：詳細履歴ビュー -->
+        <div id="view-history" class="view-content" style="padding: 10px; box-sizing: border-box;">
+            <!-- 選択された日の詳細 (カレンダーより上に表示) -->
+            <div id="selected-day-details-box" style="margin-bottom: 15px;"></div>
+
+            <!-- カレンダー表示 -->
+            <section class="card" style="margin-bottom: 15px;">
+                <div class="flex-between" style="margin-bottom: 15px; align-items: center;">
+                    <h2 style="margin: 0; font-size: 1.1rem;">📅 売上カレンダー</h2>
+                    <div class="select-group" style="display: flex; gap: 8px;">
+                        <select id="hist-year" onchange="refreshCalc()" style="padding: 6px 10px; border-radius: 8px; background: #2c2c2e; color: white; border: 1px solid #444; font-weight: bold;"></select>
+                        <select id="hist-month" onchange="refreshCalc()" style="padding: 6px 10px; border-radius: 8px; background: #2c2c2e; color: white; border: 1px solid #444; font-weight: bold;"></select>
+                    </div>
+                </div>
+                <div class="cal-grid" id="cal-container"></div>
+            </section>
+
+            <!-- 集計カード -->
+            <section class="card black-card" style="background: var(--dark-card); text-align: center; margin-bottom: 15px;">
+                <div id="hist-label" style="font-size: 1.1rem; font-weight: bold; margin-bottom: 15px;">集計</div>
+                <div style="font-size:0.9rem; opacity:0.8; margin-bottom: 5px;">期間総売上</div>
+                <div style="display: flex; gap: 20px; align-items: baseline; justify-content: center; flex-wrap: wrap; margin-bottom: 5px;">
+                    <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900;">
+                        <small style="font-size:0.8rem; color:#aaa; font-weight:normal; margin-right:2px;">税抜</small><span id="hist-total-sales">0</span><small style="font-size:1rem; color:#FFD700;">円</small>
+                    </div>
+                    <div style="color: var(--success); font-size: 1.8rem; font-weight: 900;">
+                        <small style="font-size:0.8rem; color:#aaa; font-weight:normal; margin-right:2px;">税込</small><span id="hist-total-sales-gross">0</span><small style="font-size:1rem; color:var(--success);">円</small>
+                    </div>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold; margin-bottom: 15px;">( 1日平均(税抜): <span id="hist-avg-sales">0</span>円 / 目標: <span id="hist-target-avg">0</span>円 )</div>
+                <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+                    <div class="badge" id="hist-rate" style="background: rgba(255,255,255,0.2); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 10px;">暫定歩合: 55%</div>
+                    <div style="font-size:0.85rem; opacity:0.8; margin-bottom: 5px;">推定歩合給</div>
+                    <div class="total-val" id="hist-total-income" style="font-size: 2.4rem; font-weight: 900; color: #FFD700;">0円</div>
+                </div>
+            </section>
+
+            <!-- アコーディオン式詳細履歴 -->
+            <section class="history-section">
+                <div class="card-header" style="margin-bottom: 12px;">
+                    <h2 style="font-size: 1.1rem;">📝 日別売上詳細</h2>
+                </div>
+                <div id="history-groups"></div>
+            </section>
+        </div>
+
+        <!-- 2. 売上計算ビュー (「タク計」機能) -->
+        <div id="view-calc" class="view-content active">
+            <!-- 今日の残りノルマヒーロー -->
+            <div class="target-hero">
+                <div style="font-size: 0.9rem; opacity: 0.8;">今日の残りノルマ</div>
+                <div class="val" style="color: #FFD700;"><span id="disp-norm">0</span> <small style="font-size: 1.3rem; color: #aaa; font-weight: normal; margin-left: 2px;">円 (税抜)</small></div>
+                <div style="font-size: 1.3rem; opacity: 0.9; margin-bottom: 8px; color: var(--success); font-weight: 800;">税込: <span id="disp-norm-gross">0</span> 円</div>
+                <div id="disp-progress" style="font-size: 0.8rem; opacity: 0.8;">---</div>
+            </div>
+
+            <!-- 売上追加カード (手動入力用) -->
+            <section class="card" style="padding: 16px; margin-bottom: 15px;">
+                <input type="date" id="work-date" onchange="refreshCalc()" class="input-date" style="border: 1px solid #444; border-radius: 12px; padding: 10px; font-size: 1rem; color: var(--ios-blue); font-weight: bold; width: 100%; margin-bottom:10px; background:#2c2c2e; -webkit-appearance: none; box-sizing: border-box;">
+                <div class="today-sum-box" style="background: #1c1c1e; color: white; padding: 12px 10px; border-radius: 14px; display: inline-block; margin-bottom: 12px; width: 100%; box-sizing: border-box;">
+                    <div id="disp-today-sum"></div>
+                </div>
+                
+                <div class="input-group">
+                    <label style="font-size: 0.85rem; margin-bottom: 4px; display: block; color: var(--text-muted);">売上金額を入力 (税込)</label>
+                    <div class="currency-input-wrapper" style="position: relative; width: 100%; margin: 5px auto 0;">
+                        <span class="currency-symbol" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1.6rem; font-weight: 800; color: var(--ios-blue);">¥</span>
+                        <input type="number" id="input-gross" pattern="\d*" placeholder="0" oninput="updateNormPreview()" class="huge-input" style="width: 100%; border: 2px solid #3a3a3c; border-radius: 14px; padding: 10px 15px 10px 40px; font-size: 2rem; text-align: right; font-weight: 800; outline: none; background: #2c2c2e; color: white; box-sizing: border-box; -webkit-appearance: none;">
+                    </div>
+                </div>
+                <button onclick="saveCalcData()" class="main-action-btn pickup" style="width: 100%; margin-top: 15px; height: 50px; font-size: 1.1rem; padding: 10px;">売上を追加</button>
+            </section>
+
+            <!-- ⏱️ 乗務・時間売上ステータス -->
+            <section class="card" style="padding: 16px; margin-bottom: 15px;">
+                <h2 style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px;">⏱️ 乗務・時間売上ステータス</h2>
+                
+                <!-- 出勤時刻 & 退勤時刻の入力とアクション -->
+                <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
+                    <div style="flex: 1; background: #1c1c1e; padding: 10px; border-radius: 12px; border: 1px solid var(--border);">
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">出勤時刻</span>
+                        <input type="time" id="work-start-time" value="08:00" onchange="changeWorkStartTime()" style="width: 100%; border: none; background: none; color: white; font-size: 1.15rem; font-weight: bold; outline: none; padding: 0;">
+                    </div>
+                    <div style="flex: 1; background: #1c1c1e; padding: 10px; border-radius: 12px; border: 1px solid var(--border); position: relative;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">退勤時刻</span>
+                        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                            <input type="time" id="work-end-time" onchange="changeWorkEndTime()" style="width: 100%; border: none; background: none; color: white; font-size: 1.15rem; font-weight: bold; outline: none; padding: 0; display: none;">
+                            <span id="disp-end-time-status" style="font-size: 1.05rem; font-weight: bold; color: var(--accent);">乗務中</span>
+                            <button id="btn-action-end-time" onclick="toggleWorkEnd()" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: background 0.1s; -webkit-tap-highlight-color: transparent;">退勤</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 実稼働時間表示 -->
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 12px;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px;">実稼働時間</span>
+                    <span id="disp-work-hours" style="font-size: 1.25rem; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif;">0.0 時間</span>
+                </div>
+
+                <!-- 時間売上 (税込・税抜の横並び) -->
+                <div style="margin-bottom: 12px;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">現在の時間売上 (時給)</span>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div style="flex: 1; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 8px; border-radius: 12px; text-align: center;">
+                            <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px;">税抜</span>
+                            <span id="disp-hourly-net" style="font-size: 1.2rem; font-weight: 800; color: #FFD700; font-family: 'Outfit', sans-serif;">¥0 /h</span>
+                        </div>
+                        <div style="flex: 1; background: rgba(16,185,129,0.03); border: 1px solid rgba(16,185,129,0.15); padding: 8px; border-radius: 12px; text-align: center;">
+                            <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px;">税込</span>
+                            <span id="disp-hourly-gross" style="font-size: 1.35rem; font-weight: 900; color: var(--success); font-family: 'Outfit', sans-serif;">¥0 /h</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 手取り時給 (歩合考慮) -->
+                <div id="disp-hourly-income-box" style="background: rgba(237, 180, 24, 0.04); border: 1px solid rgba(237, 180, 24, 0.2); padding: 12px; border-radius: 14px; text-align: center; box-sizing: border-box; margin-bottom: 15px;">
+                    <span id="disp-hourly-income-label" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; font-weight: 600;">手取り時給 (暫定歩合: 0%)</span>
+                    <span id="disp-hourly-income" style="font-size: 1.5rem; font-weight: 900; color: var(--accent); font-family: 'Outfit', sans-serif;">¥0 /h</span>
+                </div>
+
+                <!-- 休憩開始ボタン -->
+                <div style="margin-bottom: 12px;">
+                    <button id="btn-toggle-break" onclick="toggleBreak()" style="width: 100%; height: 46px; border-radius: 12px; border: none; font-weight: bold; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(94, 92, 230, 0.15); color: #5e5ce6;">
+                        <span>☕ 休憩に入る</span>
+                    </button>
+                </div>
+
+                <!-- 休憩時間調整 -->
+                <div style="background: #1c1c1e; padding: 12px 10px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">休憩時間の合計</span>
+                        <span id="disp-break-hours" style="font-size: 0.8rem; color: var(--text-muted);">0.0時間</span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                        <button onclick="adjustBreakTime(-15)" style="background: rgba(255,255,255,0.06); color: white; border: none; width: 60px; height: 38px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">-15分</button>
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1;">
+                            <input type="number" id="input-break-minutes" value="180" onchange="changeBreakMinutes()" style="width: 70px; text-align: center; border: 1px solid var(--border); background: #2c2c2e; color: white; font-size: 1.25rem; font-weight: bold; padding: 4px; border-radius: 8px; outline: none; -webkit-appearance: none;">
+                            <span style="font-size: 0.95rem; font-weight: bold;">分</span>
+                        </div>
+                        <button onclick="adjustBreakTime(15)" style="background: rgba(255,255,255,0.06); color: white; border: none; width: 60px; height: 38px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">+15分</button>
+                    </div>
+                </div>
+
+                <!-- 休憩履歴リスト -->
+                <div id="break-history-list" style="margin-top: -5px; margin-bottom: 15px; font-size: 0.82rem; color: var(--text-muted); background: rgba(0,0,0,0.15); padding: 10px; border-radius: 12px; border: 1px solid var(--border); display: none; box-sizing: border-box;"></div>
+            </section>
+
+
+        </div>
+
+        <!-- 4. 設定ビュー -->
+        <div id="view-settings" class="view-content">
+            <!-- 📖 使い方ガイドボタン -->
+            <section class="card" style="padding: 15px; margin-bottom: 15px; background: rgba(94, 92, 230, 0.08); border: 1px solid rgba(94, 92, 230, 0.3); border-radius: 18px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: bold; color: #fff;">📖 アプリの使い方ガイド</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">初期設定や日々の売上・休憩の入力方法を確認できます</div>
+                    </div>
+                    <button onclick="openHelpModal()" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 10px; background: var(--ios-blue); font-weight: bold; border: none; color: white; cursor: pointer; white-space: nowrap; transition: transform 0.1s; -webkit-appearance: none;">開く</button>
+                </div>
+            </section>
+
+            <!-- 📢 アップデート情報 -->
+            <section id="update-info-card" class="card" style="padding: 15px; margin-bottom: 15px; background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 18px;">
+                <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: var(--success); display: flex; align-items: center; gap: 6px; font-weight: 800;">📢 アップデート情報</h3>
+                <div id="update-info-list" style="font-size: 0.8rem; line-height: 1.6; color: var(--text-muted); display: flex; flex-direction: column; gap: 6px;"></div>
+            </section>
+
+            <section class="card settings-card">
+                <div class="card-header">
+                    <h2>⚙️ 目標設定</h2>
+                </div>
+                <div class="settings-list">
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">設定対象の年月</span>
+                        <div style="display: flex; gap: 8px;">
+                            <select id="set-year" onchange="loadMonthlySettings()" style="padding: 8px; border-radius: 8px; background: #1c1c1e; color: white; border: 1px solid var(--border); font-weight: bold;"></select>
+                            <select id="set-month" onchange="loadMonthlySettings()" style="padding: 8px; border-radius: 8px; background: #1c1c1e; color: white; border: 1px solid var(--border); font-weight: bold;"></select>
+                        </div>
+                    </div>
+                    <!-- 出勤予定日カレンダー -->
+                    <div class="setting-item-col" style="padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem; display: block; margin-bottom: 8px;">出勤予定日の選択 (カレンダーから選択)</span>
+                        <div id="settings-workdates-calendar" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; background: rgba(0,0,0,0.15); padding: 10px; border-radius: 12px; margin-bottom: 8px;"></div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                            <span>※タップしてON/OFF（黄＝出勤日）</span>
+                            <span>選択中: <strong id="disp-settings-workdates-count" style="color:var(--accent);">0</strong> 日</span>
+                        </div>
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">平日標準目標 (税抜)</span>
+                        <input type="number" id="set-weekday-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">金土祝前目標 (税抜)</span>
+                        <input type="number" id="set-weekend-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); background: rgba(255, 215, 0, 0.02);">
+                        <span style="font-weight: bold; font-size: 0.95rem; color: var(--accent);">目標売上 (税抜・自動計算)</span>
+                        <input type="number" id="set-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:var(--accent); background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;" readonly>
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">全出勤日数</span>
+                        <input type="number" id="set-days" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;" readonly>
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">ベース出勤時刻</span>
+                        <input type="time" id="set-base-start-time" onchange="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
+                        <span style="font-weight: bold; font-size: 0.95rem;">標準乗務時間 (終業)</span>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <input type="number" id="set-standard-work-hours" oninput="saveCalcSettings()" style="width:60px; text-align:center; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px; border-radius:10px;">
+                            <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted); margin-right:4px;">時間</span>
+                            <input type="number" id="set-standard-work-minutes" oninput="saveCalcSettings()" style="width:60px; text-align:center; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px; border-radius:10px;">
+                            <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted);">分</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card" style="padding: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                    <div>
+                        <div style="font-size: 0.95rem; font-weight: bold;">ダークモード</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">UIテーマの切り替え</div>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-darkmode" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </section>
+
+            <!-- 💾 データ管理 & バックアップ -->
+            <section class="card" style="padding: 15px; margin-bottom: 20px;">
+                <h2 style="font-size: 0.9rem; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; text-transform: uppercase; letter-spacing: 1px;">💾 データ管理 & バックアップ</h2>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 12px;">売上計算データのバックアップと引き継ぎを行います。</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button onclick="copyBackup()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: #FFD700; border: 1px solid var(--border); cursor: pointer;">📋 データをバックアップ</button>
+                        <button onclick="restoreBackup()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: var(--success); border: 1px solid var(--border); cursor: pointer;">📥 データを復元</button>
+                    </div>
+                    <button onclick="exportCSV()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: #60a5fa; border: 1px solid var(--border); cursor: pointer; width: 100%;">📊 Excel用CSV書き出し</button>
+                    <button onclick="clearData()" class="btn-secondary" style="padding: 12px; font-size: 0.85rem; border-radius: 10px; font-weight: bold; background: #1c1c1e; color: var(--danger); border: 1px solid var(--border); cursor: pointer; width: 100%;">🗑 全データ・履歴の消去</button>
+                </div>
+                
+                <p class="version" style="text-align: center; font-size: 0.75rem; color: #8e8e93; margin-top: 15px;">TAXI Log Pro v3.1.0</p>
+            </section>
+        </div>
+    </main>
+
+
+
+    <!-- 📖 使い方ガイド用モーダル -->
+    <div id="help-modal" class="modal-overlay" style="display: none; align-items: flex-start; padding-top: 40px; overflow-y: auto; z-index: 10000; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center;">
+        <div class="modal-content card" style="background: var(--bg-surface); border: 1.5px solid var(--accent); max-width: 420px; width: 92%; margin: 20px auto; padding: 20px; border-radius: 20px; max-height: 80vh; overflow-y: auto; box-sizing: border-box; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+            <button onclick="closeHelpModal()" style="position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.08); border: none; color: #fff; width: 32px; height: 32px; border-radius: 50%; font-size: 1.1rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: transparent;">×</button>
+            
+            <h2 style="margin: 0 0 15px 0; color: var(--accent); font-size: 1.25rem; text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 6px;">📖 TAXI Log Pro 使い方ガイド</h2>
+            
+            <div style="font-size: 0.85rem; line-height: 1.6; color: var(--text-main); display: flex; flex-direction: column; gap: 20px;">
+                <!-- 1 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">📱 1. スマホのホーム画面に追加</h3>
+                    <p style="margin: 0; color: var(--text-muted);">アプリのようにワンタップで起動できるようにしましょう！</p>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li><strong>iPhone (Safari)</strong>: 下の「共有ボタン(□に↑)」➡「ホーム画面に追加」をタップ。※追加する際に「Webアプリとして開く」というチェック項目がある場合は、チェックが入っていることを確認してください。</li>
+                        <li><strong>Android (Chrome)</strong>: 右上のメニュー「︙」➡「ホーム画面に追加」または「アプリをインストール」をタップ。</li>
+                    </ul>
+                </div>
+                
+                <!-- 2 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">📅 2. 月はじめの設定 (初期設定)</h3>
+                    <p style="margin: 0; color: var(--text-muted);">毎月1回、以下の設定をするだけで今月の目標売上が自動セットされます。</p>
+                    <ol style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li>「⚙️ 設定」タブで<strong>設定対象年月</strong>を選択。</li>
+                        <li><strong>出勤カレンダー</strong>で、今月の出勤シフトの日付をタップして<strong>黄色（出勤予定日）</strong>にします。</li>
+                        <li>「<strong>平日標準目標</strong>」と「<strong>金土祝前目標</strong>」を入力。</li>
+                        <li>自動的に月全体の「目標売上」と「出勤日数」が計算されて保存されます。</li>
+                    </ol>
+                </div>
+                
+                <!-- 3 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">💰 3. 毎日の売上追加</h3>
+                    <p style="margin: 0; color: var(--text-muted);">「💰 売上計算」タブでの毎日の操作です。</p>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li>降車時の税込売上（例: 4800, 12000など）をテンキーで入力して「<strong>売上を追加する</strong>」を押すだけ。</li>
+                        <li>今日の目標（設定した平日目標または金土目標）に自動で連動し、「<strong>今日の残りノルマ</strong>」がリアルタイムに減っていきます。</li>
+                    </ul>
+                </div>
+                
+                <!-- 4 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">☕ 4. 休憩時間の計測・編集</h3>
+                    <p style="margin: 0; color: var(--text-muted);">乗務中の休憩もしっかり記録・管理できます。</p>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li>休憩に入るときに「<strong>休憩に入る</strong>」を押し、終わったら「<strong>休憩終了</strong>」を押すだけで自動で分数がカウントされます。</li>
+                        <li>「何時〜何時まで休憩したか」の履歴は、履歴リストの「<strong>✏️（編集）</strong>」ボタンから後からいつでも開始・終了時刻を修正できます。</li>
+                    </ul>
+                </div>
+                
+                <!-- 5 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">📊 5. 履歴と手取り給与の確認</h3>
+                    <p style="margin: 0; color: var(--text-muted);">「📝 詳細履歴」タブで今月の全データが集計されます。</p>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li>カレンダーで日別の売上の有無を確認できます。</li>
+                        <li>月間売上から会社の歩合給テーブルに沿った「<strong>推定の歩合給</strong>」を自動計算します。</li>
+                        <li>さらに売上時給だけでなく、歩合率を考慮した「<strong>実際にもらえる手取り時給</strong>」も売上計算タブに大きく表示され、モチベーション維持に役立ちます。</li>
+                    </ul>
+                </div>
+                
+                <!-- 6 -->
+                <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 0.95rem; color: var(--accent); display: flex; align-items: center; gap: 6px;">💾 6. データのバックアップとExcel出力</h3>
+                    <p style="margin: 0; color: var(--text-muted);">万が一のデータ保存や、表計算ソフトで編集したい場合に使用します。</p>
+                    <ul style="margin: 6px 0 0 16px; padding: 0; color: var(--text-muted);">
+                        <li><strong>データをバックアップ</strong>: タップすると暗号化された引き継ぎコードがコピーされます。メモ帳などに貼り付けて保存してください。</li>
+                        <li><strong>データを復元</strong>: コピーしておいたコードを貼り付けるだけで、一瞬でこれまでのデータが元の状態に戻ります。</li>
+                        <li><strong>Excel用CSV書き出し</strong>: これまでの全売上履歴を、ExcelやGoogleスプレッドシートで文字化けせず直接綺麗に開ける表データ（CSVファイル）としてスマホやPCへ保存します。</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <button onclick="closeHelpModal()" class="btn-primary" style="background: var(--accent); color: #000; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; width: 100%; margin-top: 20px; transition: transform 0.1s; -webkit-appearance: none;">閉じる</button>
+        </div>
+    </div>
+
+    <!-- 📢 アップデートお知らせ用モーダル -->
+    <div id="update-modal" class="modal-overlay" style="display: none; align-items: flex-start; padding-top: 60px; overflow-y: auto; z-index: 10001; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center;">
+        <div class="modal-content card" style="background: var(--bg-surface); border: 1.5px solid var(--success); max-width: 380px; width: 90%; margin: 20px auto; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center; position: relative;">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
+            <h3 id="update-modal-title" style="margin: 0 0 15px 0; color: var(--success); font-size: 1.15rem; font-weight: bold;">アップデートのお知らせ</h3>
+            
+            <div id="update-modal-details" style="font-size: 0.85rem; text-align: left; line-height: 1.6; color: var(--text-main); margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; max-height: 220px; overflow-y: auto; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 12px; border: 1px solid var(--border);"></div>
+            
+            <button onclick="confirmUpdateViewed()" class="btn-primary" style="background: var(--success); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; width: 100%; transition: transform 0.1s; -webkit-appearance: none;">確認しました</button>
+        </div>
+    </div>
+
+    <footer class="main-footer">
+        <nav class="tab-bar">
+            <button id="tab-calc" class="tab-item active">💰 売上計算</button>
+            <button id="tab-history" class="tab-item">📝 詳細履歴</button>
+            <button id="tab-settings" class="tab-item">⚙️ 設定</button>
+        </nav>
+    </footer>
+
+    <script src="app.js?v=20260702_1725"></script>
+</body>
+</html>
