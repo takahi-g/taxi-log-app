@@ -71,6 +71,29 @@ function setupEventListeners() {
     };
     UI.get('help-modal')?.addEventListener('click', handleHelpOutsideClick);
     UI.get('help-modal')?.addEventListener('touchstart', handleHelpOutsideClick, { passive: true });
+    initTheme();
+}
+function initTheme() {
+    const darkmodeCheckbox = document.getElementById('setting-darkmode');
+    const isDark = DB.load('taxi_v11_dark_mode', true);
+    if (darkmodeCheckbox) {
+        darkmodeCheckbox.checked = isDark;
+        darkmodeCheckbox.addEventListener('change', (e) => {
+            const dark = e.target.checked;
+            DB.save('taxi_v11_dark_mode', dark);
+            applyTheme(dark);
+        });
+    }
+    applyTheme(isDark);
+}
+function applyTheme(isDark) {
+    if (isDark) {
+        document.body.classList.remove('light-theme');
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+        document.body.classList.add('light-theme');
+    }
 }
 
 // --- 9. TAXI App (タク計) Integration Logic ---
@@ -214,7 +237,7 @@ function refreshCalc(isSave = false) {
         
         const addBtnHtml = `
             <div style="margin-top:10px; display:flex; justify-content:flex-end;">
-                <button onclick="addManualBreakSession()" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#fff; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:4px; -webkit-tap-highlight-color: transparent;">➕ 休憩を手動追加</button>
+                <button onclick="addManualBreakSession()" style="background: var(--bg-main); border:1px solid var(--border); color: var(--text-main); padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:4px; -webkit-tap-highlight-color: transparent;">➕ 休憩を手動追加</button>
             </div>
         `;
         breakHistoryList.innerHTML = listHtml + addBtnHtml;
@@ -232,8 +255,10 @@ function refreshCalc(isSave = false) {
             endTimeInput.style.display = 'none';
             dispEndTimeStatus.style.display = 'block';
             btnActionEndTime.innerText = '退勤';
-            btnActionEndTime.style.background = 'rgba(255, 255, 255, 0.08)';
-            btnActionEndTime.style.color = 'white';
+            btnActionEndTime.style.background = 'var(--accent)';
+            btnActionEndTime.style.color = '#000';
+            btnActionEndTime.style.border = 'none';
+            btnActionEndTime.style.fontWeight = 'bold';
         }
     }
 
@@ -327,6 +352,7 @@ function refreshCalc(isSave = false) {
     }
 
     updateHistoryTab(history, sets);
+    updateAnalytics();
 }
 
 function updateHistoryTab(history, sets) {
@@ -364,7 +390,7 @@ function updateHistoryTab(history, sets) {
             const itemsHtml = selectedGroup.map((h, i) => `
                 <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <div>
-                        <div class="detail-label" style="font-size:0.75rem; color:var(--text-muted);">${i+1}件目</div>
+                        <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
                         <div class="detail-value" style="display: flex; gap: 10px; font-size: 0.95rem; align-items: baseline; margin-top: 2px;">
                             <span style="color: #FFD700; font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税抜</small>${h.net.toLocaleString()}円</span>
                             <span style="color: var(--success); font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税込</small>${h.gross.toLocaleString()}円</span>
@@ -408,7 +434,7 @@ function updateHistoryTab(history, sets) {
         const dayHtml = groups[date].map((h, i) => `
             <div class="detail-item">
                 <div>
-                    <div class="detail-label">${i+1}件目</div>
+                    <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
                     <div class="detail-value" style="display: flex; gap: 10px; font-size: 1rem; align-items: baseline; margin-top: 4px;">
                         <span style="color: #FFD700; font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税抜</small>${h.net.toLocaleString()}円</span>
                         <span style="color: var(--success); font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税込</small>${h.gross.toLocaleString()}円</span>
@@ -619,15 +645,23 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "20260707_1643",
-    date: "07/07 16:43",
-    title: "🎉 アップデートのお知らせ (Ver: 07/07 16:43)",
+    version: "20260708_0830",
+    date: "07/08 08:30",
+    title: "🎉 アップデートのお知らせ (Ver: 07/08 08:30)",
     details: [
-        "✍️ 実稼働時間の手動入力・編集に対応しました！(「自動に戻す」ボタンでリセットも可能)",
-        "✨ アプリアイコンのデザインを高級感あるゴールド仕様にリニューアルしました！",
-        "📦 バックアップ・復元処理で、休憩時間や乗務詳細も完璧に引き継げるよう機能を改善しました！"
+        "📊 新機能「曜日別営業分析」を追加しました！(設定タブから曜日ごとの平均売上や平均時給の傾向を確認できます)",
+        "🌓 ダークモード・ライトモードの切り替えに完全対応しました！(設定のON/OFFで表示が切り替わり、ライトモード時の視認性も大幅に改善しました)",
+        "📝 詳細履歴の「〇件目」の文字サイズや、アプリガイドの「閉じる(✕)」ボタンをより見やすく押しやすいデザインに調整しました！"
     ],
     history: [
+        {
+            date: "07/07 16:43",
+            details: [
+                "✍️ 実稼働時間の手動入力・編集に対応しました！(「自動に戻す」ボタンでリセットも可能)",
+                "✨ アプリアイコンのデザインを高級感あるゴールド仕様にリニューアルしました！",
+                "📦 バックアップ・復元処理で、休憩時間や乗務詳細も完璧に引き継げるよう機能を改善しました！"
+            ]
+        },
         {
             date: "07/02 17:25",
             details: [
@@ -1217,4 +1251,107 @@ function resetWorkHours() {
     stateObj.manualWorkHours = null;
     saveWorkState(dateStr, stateObj);
     refreshCalc();
+}
+function updateAnalytics() {
+    const el = document.getElementById('analytics-content');
+    if (!el) return;
+
+    const history = DB.load('taxi_v11_hist', []);
+    if (history.length === 0) {
+        el.innerHTML = '<div style="text-align: center; padding: 10px 0;">売上データがありません。分析を開始するには売上を記録してください。</div>';
+        return;
+    }
+
+    const workStates = DB.load('taxi_v11_work_states', {});
+    const sets = DB.load('taxi_v11_sets', { standardWorkHours: 19, standardWorkMinutes: 40 });
+    const stdHours = (sets.standardWorkHours !== undefined ? sets.standardWorkHours : 19) + (sets.standardWorkMinutes !== undefined ? sets.standardWorkMinutes : 40) / 60;
+
+    const daysData = {
+        0: { name: '日', color: '#ff453a', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        1: { name: '月', color: 'var(--text-main)', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        2: { name: '火', color: 'var(--text-main)', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        3: { name: '水', color: 'var(--text-main)', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        4: { name: '木', color: 'var(--text-main)', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        5: { name: '金', color: 'var(--text-main)', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        6: { name: '土', color: '#30d158', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 }
+    };
+
+    history.forEach(item => {
+        const d = new Date(item.date);
+        if (isNaN(d.getTime())) return;
+        const wday = d.getDay();
+
+        daysData[wday].netSum += item.net;
+        daysData[wday].grossSum += item.gross;
+        daysData[wday].workedDays.add(item.date);
+    });
+
+    Object.keys(daysData).forEach(wkey => {
+        const wday = parseInt(wkey);
+        const data = daysData[wday];
+        data.workedDays.forEach(dateStr => {
+            const state = workStates[dateStr];
+            let hours = stdHours;
+            if (state) {
+                if (state.manualWorkHours !== null && state.manualWorkHours !== undefined) {
+                    hours = state.manualWorkHours;
+                } else if (state.endTime) {
+                    const [sh, sm] = state.startTime.split(':').map(Number);
+                    const [eh, em] = state.endTime.split(':').map(Number);
+                    let start = new Date(dateStr);
+                    start.setHours(sh, sm, 0, 0);
+                    let end = new Date(dateStr);
+                    end.setHours(eh, em, 0, 0);
+                    if (end <= start) {
+                        end.setDate(end.getDate() + 1);
+                    }
+                    const diffMin = (end - start) / 60000;
+                    const breakMin = state.breakMinutes || 0;
+                    hours = Math.max(6, diffMin - breakMin) / 60;
+                }
+            }
+            data.totalHours += hours;
+        });
+    });
+
+    let rowsHtml = '';
+    const weekdays = [1, 2, 3, 4, 5, 6, 0];
+    weekdays.forEach(wday => {
+        const data = daysData[wday];
+        const daysCount = data.workedDays.size;
+        
+        const avgNet = daysCount > 0 ? Math.round(data.netSum / daysCount) : 0;
+        const avgGross = daysCount > 0 ? Math.round(data.grossSum / daysCount) : 0;
+        const hourlyNet = data.totalHours > 0 ? Math.round(data.netSum / data.totalHours) : 0;
+
+        rowsHtml += `
+            <tr style="border-bottom: 1px solid var(--border);">
+                <td style="padding: 10px 6px; font-weight: bold; color: ${data.color}; font-size: 0.9rem;">${data.name}</td>
+                <td style="padding: 10px 6px; text-align: center; color: var(--text-main); font-weight: 600;">${daysCount}回</td>
+                <td style="padding: 10px 6px; text-align: right; color: #FFE596; font-weight: 700;">¥${avgNet.toLocaleString()}</td>
+                <td style="padding: 10px 6px; text-align: right; color: var(--success); font-weight: 700;">¥${avgGross.toLocaleString()}</td>
+                <td style="padding: 10px 6px; text-align: right; color: #5e5ce6; font-weight: bold;">¥${hourlyNet.toLocaleString()}/h</td>
+            </tr>
+        `;
+    });
+
+    el.innerHTML = `
+        <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
+            ※ 過去の全売上履歴・勤務時間データを集計した、曜日別の平均値（手取り歩合除く）です。
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.75rem;">
+                    <th style="padding: 6px; text-align: left;">曜日</th>
+                    <th style="padding: 6px; text-align: center;">出勤</th>
+                    <th style="padding: 6px; text-align: right; color: #FFE596;">平均(税抜)</th>
+                    <th style="padding: 6px; text-align: right; color: var(--success);">平均(税込)</th>
+                    <th style="padding: 6px; text-align: right; color: #5e5ce6;">平均時給</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rowsHtml}
+            </tbody>
+        </table>
+    `;
 }
