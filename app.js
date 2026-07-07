@@ -505,7 +505,13 @@ function toggleCalcDay(dateStr) {
         }
     }
 }
-function copyBackup() { const h = localStorage.getItem('taxi_v11_hist') || '[]', s = localStorage.getItem('taxi_v11_sets') || '{}', b = btoa(unescape(encodeURIComponent(JSON.stringify({ h, s })))); navigator.clipboard.writeText(b).then(() => alert('バックアップコードをクリップボードにコピーしました！')); }
+function copyBackup() {
+    const h = localStorage.getItem('taxi_v11_hist') || '[]';
+    const s = localStorage.getItem('taxi_v11_sets') || '{}';
+    const w = localStorage.getItem('taxi_v11_work_states') || '{}';
+    const b = btoa(unescape(encodeURIComponent(JSON.stringify({ h, s, w }))));
+    navigator.clipboard.writeText(b).then(() => alert('バックアップコードをクリップボードにコピーしました！'));
+}
 function restoreBackup() {
     const s = prompt('復元するバックアップコードを貼り付けてください：');
     if (!s) return;
@@ -513,6 +519,9 @@ function restoreBackup() {
         const d = JSON.parse(decodeURIComponent(escape(atob(s))));
         DB.save('taxi_v11_hist', d.h);
         DB.save('taxi_v11_sets', d.s);
+        if (d.w) {
+            DB.save('taxi_v11_work_states', d.w);
+        }
         alert('データを正常に復元しました！');
         location.reload();
     } catch(e) {
