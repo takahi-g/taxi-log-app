@@ -237,7 +237,7 @@ function refreshCalc(isSave = false) {
         
         const addBtnHtml = `
             <div style="margin-top:10px; display:flex; justify-content:flex-end;">
-                <button onclick="addManualBreakSession()" style="background:rgba(255,255,255,0.08); border:1px solid var(--border); color:#fff; padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:4px; -webkit-tap-highlight-color: transparent;">➕ 休憩を手動追加</button>
+                <button onclick="addManualBreakSession()" style="background: var(--bg-main); border:1px solid var(--border); color: var(--text-main); padding:6px 12px; border-radius:8px; font-size:0.8rem; font-weight:bold; cursor:pointer; display:flex; align-items:center; gap:4px; -webkit-tap-highlight-color: transparent;">➕ 休憩を手動追加</button>
             </div>
         `;
         breakHistoryList.innerHTML = listHtml + addBtnHtml;
@@ -1258,11 +1258,11 @@ function updateAnalytics() {
 
     const daysData = {
         0: { name: '日', color: '#ff453a', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
-        1: { name: '月', color: '#ffffff', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
-        2: { name: '火', color: '#ffffff', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
-        3: { name: '水', color: '#ffffff', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
-        4: { name: '木', color: '#ffffff', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
-        5: { name: '金', color: '#ffffff', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        1: { name: '月', color: 'var(--text-main)', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        2: { name: '火', color: 'var(--text-main)', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        3: { name: '水', color: 'var(--text-main)', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        4: { name: '木', color: 'var(--text-main)', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
+        5: { name: '金', color: 'var(--text-main)', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
         6: { name: '土', color: '#30d158', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 }
     };
 
@@ -1315,7 +1315,7 @@ function updateAnalytics() {
         const hourlyNet = data.totalHours > 0 ? Math.round(data.netSum / data.totalHours) : 0;
 
         rowsHtml += `
-            <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <tr style="border-bottom: 1px solid var(--border);">
                 <td style="padding: 10px 6px; font-weight: bold; color: ${data.color}; font-size: 0.9rem;">${data.name}</td>
                 <td style="padding: 10px 6px; text-align: center; color: var(--text-main); font-weight: 600;">${daysCount}回</td>
                 <td style="padding: 10px 6px; text-align: right; color: #FFE596; font-weight: 700;">¥${avgNet.toLocaleString()}</td>
@@ -1331,7 +1331,7 @@ function updateAnalytics() {
         </div>
         <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
             <thead>
-                <tr style="border-bottom: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); font-size: 0.75rem;">
+                <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.75rem;">
                     <th style="padding: 6px; text-align: left;">曜日</th>
                     <th style="padding: 6px; text-align: center;">出勤</th>
                     <th style="padding: 6px; text-align: right; color: #FFE596;">平均(税抜)</th>
