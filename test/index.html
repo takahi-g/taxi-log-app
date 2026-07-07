@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/07 17:29</div>
+                <div class="app-version">Ver: 07/07 17:35</div>
             </div>
         </div>
     </header>
@@ -44,8 +44,8 @@
                 <div class="flex-between" style="margin-bottom: 15px; align-items: center;">
                     <h2 style="margin: 0; font-size: 1.1rem;">📅 売上カレンダー</h2>
                     <div class="select-group" style="display: flex; gap: 8px;">
-                        <select id="hist-year" onchange="refreshCalc()" style="padding: 6px 10px; border-radius: 8px; background: #2c2c2e; color: white; border: 1px solid #444; font-weight: bold;"></select>
-                        <select id="hist-month" onchange="refreshCalc()" style="padding: 6px 10px; border-radius: 8px; background: #2c2c2e; color: white; border: 1px solid #444; font-weight: bold;"></select>
+                        <select id="hist-year" onchange="refreshCalc()" style="padding: 6px 10px; border-radius: 8px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); font-weight: bold;"></select>
+                        <select id="hist-month" onchange="refreshCalc()" style="padding: 6px 10px; border-radius: 8px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); font-weight: bold;"></select>
                     </div>
                 </div>
                 <div class="cal-grid" id="cal-container"></div>
@@ -65,7 +65,7 @@
                 </div>
                 <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold; margin-bottom: 15px;">( 1日平均(税抜): <span id="hist-avg-sales">0</span>円 / 目標: <span id="hist-target-avg">0</span>円 )</div>
                 <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                    <div class="badge" id="hist-rate" style="background: rgba(255,255,255,0.2); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 10px;">暫定歩合: 55%</div>
+                    <div class="badge" id="hist-rate" style="background: rgba(128,128,128,0.2); color: var(--text-main); padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 10px;">暫定歩合: 55%</div>
                     <div style="font-size:0.85rem; opacity:0.8; margin-bottom: 5px;">推定歩合給</div>
                     <div class="total-val" id="hist-total-income" style="font-size: 2.4rem; font-weight: 900; color: #FFD700;">0円</div>
                 </div>
@@ -122,7 +122,7 @@
                         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
                             <input type="time" id="work-end-time" onchange="changeWorkEndTime()" style="width: 100%; border: none; background: none; color: var(--text-main); font-size: 1.15rem; font-weight: bold; outline: none; padding: 0; display: none;">
                             <span id="disp-end-time-status" style="font-size: 1.05rem; font-weight: bold; color: var(--accent);">乗務中</span>
-                            <button id="btn-action-end-time" onclick="toggleWorkEnd()" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: background 0.1s; -webkit-tap-highlight-color: transparent;">退勤</button>
+                            <button id="btn-action-end-time" onclick="toggleWorkEnd()" style="background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: background 0.1s; -webkit-tap-highlight-color: transparent;">退勤</button>
                         </div>
                     </div>
                 </div>
@@ -166,18 +166,18 @@
                 </div>
 
                 <!-- 休憩時間調整 -->
-                <div style="background: #1c1c1e; padding: 12px 10px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
+                <div style="background: var(--bg-surface); padding: 12px 10px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                         <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">休憩時間の合計</span>
                         <span id="disp-break-hours" style="font-size: 0.8rem; color: var(--text-muted);">0.0時間</span>
                     </div>
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-                        <button onclick="adjustBreakTime(-15)" style="background: rgba(255,255,255,0.06); color: white; border: none; width: 60px; height: 38px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">-15分</button>
+                        <button onclick="adjustBreakTime(-15)" style="background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); width: 60px; height: 38px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">-15分</button>
                         <div style="display: flex; align-items: center; justify-content: center; gap: 4px; flex: 1;">
-                            <input type="number" id="input-break-minutes" value="180" onchange="changeBreakMinutes()" style="width: 70px; text-align: center; border: 1px solid var(--border); background: #2c2c2e; color: white; font-size: 1.25rem; font-weight: bold; padding: 4px; border-radius: 8px; outline: none; -webkit-appearance: none;">
+                            <input type="number" id="input-break-minutes" value="180" onchange="changeBreakMinutes()" style="width: 70px; text-align: center; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-main); font-size: 1.25rem; font-weight: bold; padding: 4px; border-radius: 8px; outline: none; -webkit-appearance: none;">
                             <span style="font-size: 0.95rem; font-weight: bold;">分</span>
                         </div>
-                        <button onclick="adjustBreakTime(15)" style="background: rgba(255,255,255,0.06); color: white; border: none; width: 60px; height: 38px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">+15分</button>
+                        <button onclick="adjustBreakTime(15)" style="background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border); width: 60px; height: 38px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">+15分</button>
                     </div>
                 </div>
 
@@ -194,7 +194,7 @@
             <section class="card" style="padding: 15px; margin-bottom: 15px; background: rgba(94, 92, 230, 0.08); border: 1px solid rgba(94, 92, 230, 0.3); border-radius: 18px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                     <div>
-                        <div style="font-size: 0.95rem; font-weight: bold; color: #fff;">📖 アプリの使い方ガイド</div>
+                        <div style="font-size: 0.95rem; font-weight: bold; color: var(--text-main);">📖 アプリの使い方ガイド</div>
                         <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">初期設定や日々の売上・休憩の入力方法を確認できます</div>
                     </div>
                     <button onclick="openHelpModal()" class="btn-primary" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 10px; background: var(--ios-blue); font-weight: bold; border: none; color: white; cursor: pointer; white-space: nowrap; transition: transform 0.1s; -webkit-appearance: none;">開く</button>
@@ -223,8 +223,8 @@
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
                         <span style="font-weight: bold; font-size: 0.95rem;">設定対象の年月</span>
                         <div style="display: flex; gap: 8px;">
-                            <select id="set-year" onchange="loadMonthlySettings()" style="padding: 8px; border-radius: 8px; background: #1c1c1e; color: white; border: 1px solid var(--border); font-weight: bold;"></select>
-                            <select id="set-month" onchange="loadMonthlySettings()" style="padding: 8px; border-radius: 8px; background: #1c1c1e; color: white; border: 1px solid var(--border); font-weight: bold;"></select>
+                            <select id="set-year" onchange="loadMonthlySettings()" style="padding: 8px; border-radius: 8px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); font-weight: bold;"></select>
+                            <select id="set-month" onchange="loadMonthlySettings()" style="padding: 8px; border-radius: 8px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); font-weight: bold;"></select>
                         </div>
                     </div>
                     <!-- 出勤予定日カレンダー -->
@@ -399,6 +399,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260707_1729"></script>
+    <script src="app.js?v=20260707_1735"></script>
 </body>
 </html>
