@@ -619,14 +619,24 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "20260702_1725",
-    date: "07/02 17:25",
-    title: "🎉 アップデートのお知らせ (Ver: 07/02 17:25)",
+    version: "20260707_1643",
+    date: "07/07 16:43",
+    title: "🎉 アップデートのお知らせ (Ver: 07/07 16:43)",
     details: [
-        "☕ 休憩時間の手動追加に対応しました！(売上計算の履歴エリアから追加できます)",
-        "📊 Excelやスプレッドシート用CSV書き出しに対応しました！(設定から出力できます)",
-        "⚙️ 設定の目標入力の順序を整理し、平日・週末の目標を上に変更しました！",
-        "📖 アプリ内に『使い方ガイド』を新設しました！"
+        "✍️ 実稼働時間の手動入力・編集に対応しました！(「自動に戻す」ボタンでリセットも可能)",
+        "✨ 本番環境用・テスト環境用の専用アプリアイコンをリニューアルしました！",
+        "📦 バックアップ・復元処理にて休憩時間や乗務詳細データも完全に引き継げるよう改善しました！"
+    ],
+    history: [
+        {
+            date: "07/02 17:25",
+            details: [
+                "☕ 休憩時間の手動追加に対応しました！(売上計算の履歴エリアから追加できます)",
+                "📊 Excelやスプレッドシート用CSV書き出しに対応しました！(設定から出力できます)",
+                "⚙️ 設定の目標入力の順序を整理し、平日・週末の目標を上に変更しました！",
+                "📖 アプリ内に『使い方ガイド』を新設しました！"
+            ]
+        }
     ]
 };
 
@@ -634,8 +644,20 @@ function checkAndShowUpdateModal() {
     const infoList = document.getElementById('update-info-list');
     if (infoList) {
         infoList.innerHTML = `
-            <div style="font-weight:bold; color:var(--text-main); margin-bottom:4px;">Ver: ${APP_UPDATE_INFO.date}</div>
+            <div style="font-weight:bold; color:var(--text-main); margin-bottom:4px;">最新 Ver: ${APP_UPDATE_INFO.date}</div>
             ${APP_UPDATE_INFO.details.map(d => `<div style="display:flex; gap:6px; align-items:flex-start;"><span>•</span><span>${d}</span></div>`).join('')}
+            
+            <details style="margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 10px;">
+                <summary style="cursor: pointer; font-size: 0.75rem; color: var(--ios-blue); font-weight: bold; outline: none; -webkit-tap-highlight-color: transparent;">📜 過去のアップデート履歴を表示</summary>
+                <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px; padding-left: 4px;">
+                    ${APP_UPDATE_INFO.history.map(h => `
+                        <div style="border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 6px; margin-bottom: 4px;">
+                            <div style="font-weight: bold; color: var(--text-main); font-size: 0.75rem; margin-bottom: 2px;">Ver: ${h.date}</div>
+                            ${h.details.map(d => `<div style="display:flex; gap:6px; align-items:flex-start; font-size: 0.75rem;"><span>•</span><span>${d}</span></div>`).join('')}
+                        </div>
+                    `).join('')}
+                </div>
+            </details>
         `;
     }
 
