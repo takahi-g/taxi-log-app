@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/07 17:22</div>
+                <div class="app-version">Ver: 07/07 17:29</div>
             </div>
         </div>
     </header>
@@ -92,8 +92,8 @@
 
             <!-- 売上追加カード (手動入力用) -->
             <section class="card" style="padding: 16px; margin-bottom: 15px;">
-                <input type="date" id="work-date" onchange="refreshCalc()" class="input-date" style="border: 1px solid #444; border-radius: 12px; padding: 10px; font-size: 1rem; color: var(--ios-blue); font-weight: bold; width: 100%; margin-bottom:10px; background:#2c2c2e; -webkit-appearance: none; box-sizing: border-box;">
-                <div class="today-sum-box" style="background: #1c1c1e; color: white; padding: 12px 10px; border-radius: 14px; display: inline-block; margin-bottom: 12px; width: 100%; box-sizing: border-box;">
+                <input type="date" id="work-date" onchange="refreshCalc()" class="input-date" style="border: 1px solid var(--border); border-radius: 12px; padding: 10px; font-size: 1rem; color: var(--ios-blue); font-weight: bold; width: 100%; margin-bottom:10px; background: var(--bg-surface); -webkit-appearance: none; box-sizing: border-box;">
+                <div class="today-sum-box" style="background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-main); padding: 12px 10px; border-radius: 14px; display: inline-block; margin-bottom: 12px; width: 100%; box-sizing: border-box;">
                     <div id="disp-today-sum"></div>
                 </div>
                 
@@ -101,7 +101,7 @@
                     <label style="font-size: 0.85rem; margin-bottom: 4px; display: block; color: var(--text-muted);">売上金額を入力 (税込)</label>
                     <div class="currency-input-wrapper" style="position: relative; width: 100%; margin: 5px auto 0;">
                         <span class="currency-symbol" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1.6rem; font-weight: 800; color: var(--ios-blue);">¥</span>
-                        <input type="number" id="input-gross" pattern="\d*" placeholder="0" oninput="updateNormPreview()" class="huge-input" style="width: 100%; border: 2px solid #3a3a3c; border-radius: 14px; padding: 10px 15px 10px 40px; font-size: 2rem; text-align: right; font-weight: 800; outline: none; background: #2c2c2e; color: white; box-sizing: border-box; -webkit-appearance: none;">
+                        <input type="number" id="input-gross" pattern="\d*" placeholder="0" oninput="updateNormPreview()" class="huge-input" style="width: 100%; border: 2px solid var(--border); border-radius: 14px; padding: 10px 15px 10px 40px; font-size: 2rem; text-align: right; font-weight: 800; outline: none; background: var(--bg-surface); color: var(--text-main); box-sizing: border-box; -webkit-appearance: none;">
                     </div>
                 </div>
                 <button onclick="saveCalcData()" class="main-action-btn pickup" style="width: 100%; margin-top: 15px; height: 50px; font-size: 1.1rem; padding: 10px;">売上を追加</button>
@@ -113,14 +113,14 @@
                 
                 <!-- 出勤時刻 & 退勤時刻の入力とアクション -->
                 <div style="display: flex; gap: 10px; margin-bottom: 12px; align-items: center;">
-                    <div style="flex: 1; background: #1c1c1e; padding: 10px; border-radius: 12px; border: 1px solid var(--border);">
+                    <div style="flex: 1; background: var(--bg-surface); padding: 10px; border-radius: 12px; border: 1px solid var(--border);">
                         <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">出勤時刻</span>
-                        <input type="time" id="work-start-time" value="08:00" onchange="changeWorkStartTime()" style="width: 100%; border: none; background: none; color: white; font-size: 1.15rem; font-weight: bold; outline: none; padding: 0;">
+                        <input type="time" id="work-start-time" value="08:00" onchange="changeWorkStartTime()" style="width: 100%; border: none; background: none; color: var(--text-main); font-size: 1.15rem; font-weight: bold; outline: none; padding: 0;">
                     </div>
-                    <div style="flex: 1; background: #1c1c1e; padding: 10px; border-radius: 12px; border: 1px solid var(--border); position: relative;">
+                    <div style="flex: 1; background: var(--bg-surface); padding: 10px; border-radius: 12px; border: 1px solid var(--border); position: relative;">
                         <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px;">退勤時刻</span>
                         <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
-                            <input type="time" id="work-end-time" onchange="changeWorkEndTime()" style="width: 100%; border: none; background: none; color: white; font-size: 1.15rem; font-weight: bold; outline: none; padding: 0; display: none;">
+                            <input type="time" id="work-end-time" onchange="changeWorkEndTime()" style="width: 100%; border: none; background: none; color: var(--text-main); font-size: 1.15rem; font-weight: bold; outline: none; padding: 0; display: none;">
                             <span id="disp-end-time-status" style="font-size: 1.05rem; font-weight: bold; color: var(--accent);">乗務中</span>
                             <button id="btn-action-end-time" onclick="toggleWorkEnd()" style="background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--border); padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; transition: background 0.1s; -webkit-tap-highlight-color: transparent;">退勤</button>
                         </div>
@@ -131,8 +131,8 @@
                 <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 10px; border-radius: 12px; text-align: center; margin-bottom: 12px;">
                     <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px;">実稼働時間</span>
                     <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <input type="number" id="input-work-hours" step="0.1" min="0" onchange="changeWorkHours()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: #fff; font-size: 1.25rem; font-weight: 800; font-family: 'Outfit', sans-serif; text-align: center; width: 90px; border-radius: 8px; padding: 4px 0; -webkit-appearance: none;">
-                        <span style="font-size: 1rem; color: #fff; font-weight: 600;">時間</span>
+                        <input type="number" id="input-work-hours" step="0.1" min="0" onchange="changeWorkHours()" style="background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-main); font-size: 1.25rem; font-weight: 800; font-family: 'Outfit', sans-serif; text-align: center; width: 90px; border-radius: 8px; padding: 4px 0; -webkit-appearance: none;">
+                        <span style="font-size: 1rem; color: var(--text-main); font-weight: 600;">時間</span>
                         <button id="btn-reset-work-hours" onclick="resetWorkHours()" style="display: none; background: rgba(255, 69, 58, 0.15); border: 1px solid rgba(255, 69, 58, 0.3); color: #ff453a; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;">自動に戻す</button>
                     </div>
                 </div>
@@ -399,6 +399,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260707_1722"></script>
+    <script src="app.js?v=20260707_1729"></script>
 </body>
 </html>
