@@ -510,22 +510,39 @@ function copyBackup() {
     const s = localStorage.getItem('taxi_v11_sets') || '{}';
     const w = localStorage.getItem('taxi_v11_work_states') || '{}';
     const b = btoa(unescape(encodeURIComponent(JSON.stringify({ h, s, w }))));
-    navigator.clipboard.writeText(b).then(() => alert('バックアップコードをクリップボードにコピーしました！'));
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(b).then(() => {
+            alert('バックアップコードをクリップボードにコピーしました！そのまま貼り付けて復元してください。');
+        }).catch(err => {
+            prompt('コピーに失敗しました。お手数ですが以下のコードを全選択してコピーしてください：', b);
+        });
+    } else {
+        prompt('以下のバックアップコードを全選択してコピーしてください：', b);
+    }
 }
 function restoreBackup() {
     const s = prompt('復元するバックアップコードを貼り付けてください：');
     if (!s) return;
     try {
-        const d = JSON.parse(decodeURIComponent(escape(atob(s))));
-        DB.save('taxi_v11_hist', d.h);
-        DB.save('taxi_v11_sets', d.s);
-        if (d.w) {
-            DB.save('taxi_v11_work_states', d.w);
+        const decoded = atob(s.trim());
+        const parsed = JSON.parse(decodeURIComponent(escape(decoded)));
+        
+        const histData = typeof parsed.h === 'string' ? JSON.parse(parsed.h) : parsed.h;
+        const setsData = typeof parsed.s === 'string' ? JSON.parse(parsed.s) : parsed.s;
+        const workData = parsed.w ? (typeof parsed.w === 'string' ? JSON.parse(parsed.w) : parsed.w) : null;
+        
+        DB.save('taxi_v11_hist', histData);
+        DB.save('taxi_v11_sets', setsData);
+        if (workData) {
+            DB.save('taxi_v11_work_states', workData);
         }
-        alert('データを正常に復元しました！');
+        
+        const histCount = Array.isArray(histData) ? histData.length : 0;
+        alert(`データを正常に復元しました！\n(売上履歴: ${histCount}件を取り込みました)`);
         location.reload();
     } catch(e) {
-        alert('データの復元に失敗しました。正しいコードを入力してください。');
+        alert('データの復元に失敗しました。正しいコードを入力してください。\nエラー詳細: ' + e.message);
     }
 }
 
