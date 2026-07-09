@@ -751,7 +751,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/09 15:03", // テスト用の日付時間
+    test: "07/09 18:53", // テスト用の日付時間
     prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
