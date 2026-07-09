@@ -239,15 +239,11 @@
                             <span>選択中: <strong id="disp-settings-workdates-count" style="color:var(--accent);">0</strong> 日</span>
                         </div>
                     </div>
-                    <!-- ⚡ 一括目標設定 (簡単コピー) -->
+                    <!-- ⚡ 平日以外 一括目標設定 -->
                     <div style="background: rgba(255, 215, 0, 0.03); padding: 12px; border-radius: 14px; margin: 10px 0; border: 1px solid rgba(237, 180, 24, 0.25);">
-                        <span style="font-weight: 800; font-size: 0.85rem; display: block; margin-bottom: 8px; color: var(--accent);">⚡ 目標を一括コピー (簡単入力)</span>
-                        <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">平日 (月〜木) 一括</span>
-                            <input type="number" id="quick-weekday" placeholder="40000" style="width:110px; text-align:right; border:1px solid var(--border); font-size:0.95rem; font-weight:bold; padding:6px 10px; border-radius:8px; background:var(--bg-surface); color:white; outline:none;" oninput="applyQuickGoal('weekday')">
-                        </div>
+                        <span style="font-weight: 800; font-size: 0.85rem; display: block; margin-bottom: 8px; color: var(--accent);">⚡ 平日以外を一括コピー (簡単入力)</span>
                         <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between;">
-                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">平日以外 (金土日祝祝前) 一括</span>
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">金・土・日・祝・祝前 一括</span>
                             <input type="number" id="quick-other" placeholder="60000" style="width:110px; text-align:right; border:1px solid var(--border); font-size:0.95rem; font-weight:bold; padding:6px 10px; border-radius:8px; background:var(--bg-surface); color:white; outline:none;" oninput="applyQuickGoal('other')">
                         </div>
                     </div>

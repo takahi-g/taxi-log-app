@@ -558,13 +558,7 @@ function saveCalcSettings() {
 }
 
 function applyQuickGoal(type) {
-    if (type === 'weekday') {
-        const val = document.getElementById('quick-weekday').value;
-        if (val === '') return;
-        const target = document.getElementById('set-weekday-goal');
-        if (target) target.value = val;
-        saveCalcSettings();
-    } else if (type === 'other') {
+    if (type === 'other') {
         const val = document.getElementById('quick-other').value;
         if (val === '') return;
         ['set-fri-goal', 'set-sat-goal', 'set-sun-goal', 'set-holiday-goal', 'set-eve-goal'].forEach(id => {
