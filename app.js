@@ -161,14 +161,28 @@ function refreshCalc(isSave = false) {
     const workedDates = [...new Set(monthlyData.map(h => h.date))];
     const workedCount = workedDates.length;
     const now = new Date(); const todayStr = now.toISOString().split('T')[0];
-    const isWeekendOrHoliday = isDayBeforeHolidayOrWeekend(selectedDate);
-    const todayTargetNet = isWeekendOrHoliday ? mSets.weekendGoal : mSets.weekdayGoal;
+    const goalType = getDayGoalType(selectedDate);
+    let todayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
+    if (goalType === 'fri') todayTargetNet = mSets.friGoal !== undefined ? mSets.friGoal : 60000;
+    else if (goalType === 'sat') todayTargetNet = mSets.satGoal !== undefined ? mSets.satGoal : 60000;
+    else if (goalType === 'sun') todayTargetNet = mSets.sunGoal !== undefined ? mSets.sunGoal : 60000;
+    else if (goalType === 'holiday') todayTargetNet = mSets.holidayGoal !== undefined ? mSets.holidayGoal : 60000;
+    else if (goalType === 'eve') todayTargetNet = mSets.eveGoal !== undefined ? mSets.eveGoal : 60000;
     
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
     const finalTodayNorm = Math.max(0, todayTargetNet - todayNetSum);
     
-    if (isSave && finalTodayNorm <= 0 && !hasCelebratedToday && selectedDate === todayStr) { startCelebration(); hasCelebratedToday = true; }
+    const celebratedDates = DB.load('taxi_v11_celebrations', {});
+    const isCelebrated = celebratedDates[selectedDate] === true;
+    if (isSave && finalTodayNorm <= 0 && !isCelebrated && selectedDate === todayStr) {
+        startCelebration();
+        celebratedDates[selectedDate] = true;
+        DB.save('taxi_v11_celebrations', celebratedDates);
+    } else if (finalTodayNorm > 0 && isCelebrated) {
+        delete celebratedDates[selectedDate];
+        DB.save('taxi_v11_celebrations', celebratedDates);
+    }
     const normEl = document.getElementById('disp-norm'); 
     const normGrossEl = document.getElementById('disp-norm-gross');
     if (normEl) {
@@ -180,7 +194,13 @@ function refreshCalc(isSave = false) {
     }
     const progressEl = document.getElementById('disp-progress');
     if (progressEl) {
-        const weekdayText = isWeekendOrHoliday ? "金土祝前目標" : "平日標準目標";
+        let weekdayText = "平日目標";
+        if (goalType === 'fri') weekdayText = "金曜目標";
+        else if (goalType === 'sat') weekdayText = "土曜目標";
+        else if (goalType === 'sun') weekdayText = "日曜目標";
+        else if (goalType === 'holiday') weekdayText = "祝日目標";
+        else if (goalType === 'eve') weekdayText = "祝前日目標";
+        
         progressEl.innerText = `今月: ${workedCount} / ${curDays} 回出勤 (本日目標: 税抜${todayTargetNet.toLocaleString()}円 [${weekdayText}])`;
     }
     
@@ -392,9 +412,9 @@ function updateHistoryTab(history, sets) {
                 <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <div>
                         <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                        <div class="detail-value" style="display: flex; gap: 10px; font-size: 0.95rem; align-items: baseline; margin-top: 2px;">
-                            <span style="color: #FFD700; font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税抜</small>${h.net.toLocaleString()}円</span>
-                            <span style="color: var(--success); font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税込</small>${h.gross.toLocaleString()}円</span>
+                        <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 2px; flex-wrap: nowrap; white-space: nowrap;">
+                            <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
+                            <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
                         </div>
                     </div>
                     <div class="detail-actions">
@@ -408,8 +428,9 @@ function updateHistoryTab(history, sets) {
                 <section class="card" style="margin-bottom: 0; padding: 15px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px;">
                         <h3 style="margin: 0; font-size: 1rem; color: var(--accent);">📌 選択中の詳細 (${mPart}/${dPart})</h3>
-                        <div style="text-align: right;">
-                            <span style="font-size: 1.15rem; font-weight: 800; color: var(--success);">${Math.floor(sumGross).toLocaleString()}円 <small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);">(税込)</small></span>
+                        <div style="text-align: right; display: flex; flex-direction: column; gap: 2px; line-height: 1.2; flex-shrink: 0; white-space: nowrap;">
+                            <span style="font-size: 1.05rem; font-weight: 800; color: #FFD700; white-space: nowrap;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税抜</small>${Math.floor(sumNet).toLocaleString()}円</span>
+                            <span style="font-size: 1.15rem; font-weight: 900; color: var(--success); white-space: nowrap;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税込</small>${Math.floor(sumGross).toLocaleString()}円</span>
                         </div>
                     </div>
                     <div class="day-details" style="display: block;">
@@ -436,9 +457,9 @@ function updateHistoryTab(history, sets) {
             <div class="detail-item">
                 <div>
                     <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                    <div class="detail-value" style="display: flex; gap: 10px; font-size: 1rem; align-items: baseline; margin-top: 4px;">
-                        <span style="color: #FFD700; font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税抜</small>${h.net.toLocaleString()}円</span>
-                        <span style="color: var(--success); font-weight: 700;"><small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-right: 2px;">税込</small>${h.gross.toLocaleString()}円</span>
+                    <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 4px; flex-wrap: nowrap; white-space: nowrap;">
+                        <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
+                        <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
                     </div>
                 </div>
                 <div class="detail-actions">
@@ -518,7 +539,11 @@ function saveCalcSettings() {
             goal: parseFloat(document.getElementById('set-goal').value) || CONFIG.DEFAULT_GOAL,
             days: parseFloat(document.getElementById('set-days').value) || CONFIG.DEFAULT_DAYS,
             weekdayGoal: parseFloat(document.getElementById('set-weekday-goal').value) || 40000,
-            weekendGoal: parseFloat(document.getElementById('set-weekend-goal').value) || 60000,
+            friGoal: parseFloat(document.getElementById('set-fri-goal').value) || 60000,
+            satGoal: parseFloat(document.getElementById('set-sat-goal').value) || 60000,
+            sunGoal: parseFloat(document.getElementById('set-sun-goal').value) || 60000,
+            holidayGoal: parseFloat(document.getElementById('set-holiday-goal').value) || 60000,
+            eveGoal: parseFloat(document.getElementById('set-eve-goal').value) || 60000,
             workDates: (sets.monthly[key] && sets.monthly[key].workDates) ? sets.monthly[key].workDates : []
         };
         syncGoalWithMonthlyRates(sets, key);
@@ -530,6 +555,18 @@ function saveCalcSettings() {
     
     DB.save('taxi_v11_sets', sets);
     refreshCalc();
+}
+
+function applyQuickGoal(type) {
+    if (type === 'other') {
+        const val = document.getElementById('quick-other').value;
+        if (val === '') return;
+        ['set-fri-goal', 'set-sat-goal', 'set-sun-goal', 'set-holiday-goal', 'set-eve-goal'].forEach(id => {
+            const target = document.getElementById(id);
+            if (target) target.value = val;
+        });
+        saveCalcSettings();
+    }
 }
 function toggleCalcDay(dateStr) {
     const el = document.getElementById(`group-${dateStr}`);
@@ -646,13 +683,13 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "20260708_0830",
-    date: "07/08 08:30",
-    title: "🎉 アップデートのお知らせ (Ver: 07/08 08:30)",
+    version: "3.0.0",
+    date: "3.0.0",
+    title: "🎉 アップデートのお知らせ (Ver: 3.0.0)",
     details: [
-        "📊 新機能「曜日別営業分析」を追加しました！(設定タブから曜日ごとの平均売上や平均時給の傾向を確認できます)",
-        "🌓 ダークモード・ライトモードの切り替えに完全対応しました！(設定のON/OFFで表示が切り替わり、ライトモード時の視認性も大幅に改善しました)",
-        "📝 詳細履歴の「〇件目」の文字サイズや、アプリガイドの「閉じる(✕)」ボタンをより見やすく押しやすいデザインに調整しました！"
+        "📊 売上目標を曜日・祝日（平日/金/土/日/祝/祝前日）ごとに個別設定できるようになりました！",
+        "⚡ 金〜日や祝日などの『平日以外』の目標金額を、まとめて一括入力できるコピー機能を追加！",
+        "📱 画面全体の文字サイズを約15%大きくし、数字やテキストがより見やすくなりました！"
     ],
     history: [
         {
@@ -713,7 +750,40 @@ function confirmUpdateViewed() {
     UI.show('update-modal', false);
 }
 
+const APP_VERSION_INFO = {
+    test: "07/09 18:53", // テスト用の日付時間
+    prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
+};
+
+function applyEnvironmentBranding() {
+    const isTestEnv = window.location.pathname.includes('/test/');
+    const versionEl = document.querySelector('.app-version');
+    
+    if (isTestEnv) {
+        // ヘッダーロゴの書き換え
+        const logoTitle = document.querySelector('.logo h1');
+        if (logoTitle) {
+            logoTitle.innerHTML = 'TAXI Log <span>Pro (TEST)</span>';
+        }
+        // ブラウザのタブタイトル書き換え
+        document.title = "TAXI Log Pro (TEST)";
+        
+        // アプリケーションアイコンの動的書き換え
+        const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+        const favicon = document.querySelector('link[rel="icon"]');
+        if (appleIcon) appleIcon.href = "test-icon.png";
+        if (favicon) favicon.href = "test-icon.png";
+        
+        // バージョン表示をテスト時間にする
+        if (versionEl) versionEl.innerText = `Ver: ${APP_VERSION_INFO.test}`;
+    } else {
+        // 本番環境ではバージョン番号を表示する
+        if (versionEl) versionEl.innerText = `Ver: ${APP_VERSION_INFO.prod}`;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    applyEnvironmentBranding();
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
     setupEventListeners();
 
@@ -1071,6 +1141,14 @@ function getMonthlySettings(year, month) {
     }
     if (sets.monthly[key].weekdayGoal === undefined) sets.monthly[key].weekdayGoal = 40000;
     if (sets.monthly[key].weekendGoal === undefined) sets.monthly[key].weekendGoal = 60000;
+    
+    const m = sets.monthly[key];
+    if (m.friGoal === undefined) m.friGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+    if (m.satGoal === undefined) m.satGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+    if (m.sunGoal === undefined) m.sunGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+    if (m.holidayGoal === undefined) m.holidayGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+    if (m.eveGoal === undefined) m.eveGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+    
     if (!sets.monthly[key].workDates) sets.monthly[key].workDates = [];
     return sets.monthly[key];
 }
@@ -1084,7 +1162,15 @@ function loadMonthlySettings() {
     if (UI.get('set-goal')) UI.get('set-goal').value = mSets.goal;
     if (UI.get('set-days')) UI.get('set-days').value = mSets.days;
     if (UI.get('set-weekday-goal')) UI.get('set-weekday-goal').value = mSets.weekdayGoal;
-    if (UI.get('set-weekend-goal')) UI.get('set-weekend-goal').value = mSets.weekendGoal;
+    if (UI.get('set-fri-goal')) UI.get('set-fri-goal').value = mSets.friGoal;
+    if (UI.get('set-sat-goal')) UI.get('set-sat-goal').value = mSets.satGoal;
+    if (UI.get('set-sun-goal')) UI.get('set-sun-goal').value = mSets.sunGoal;
+    if (UI.get('set-holiday-goal')) UI.get('set-holiday-goal').value = mSets.holidayGoal;
+    if (UI.get('set-eve-goal')) UI.get('set-eve-goal').value = mSets.eveGoal;
+    
+    // 一括コピー用の入力フォームをリセット
+    if (UI.get('quick-weekday')) UI.get('quick-weekday').value = '';
+    if (UI.get('quick-other')) UI.get('quick-other').value = '';
     
     // 設定カレンダーの描画
     renderSettingsCalendar(sy, sm, mSets.workDates);
@@ -1194,21 +1280,32 @@ function getJapaneseHolidayName(dateStr) {
     return null;
 }
 
-function isDayBeforeHolidayOrWeekend(dateStr) {
+function getDayGoalType(dateStr) {
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return false;
+    if (isNaN(d.getTime())) return 'weekday';
+    
+    // 1. その日自身が祝日
+    if (getJapaneseHolidayName(dateStr)) return 'holiday';
     
     const w = d.getDay();
-    if (w === 5 || w === 6) return true; // 金曜・土曜
     
+    // 2. 日曜日
+    if (w === 0) return 'sun';
+    // 3. 土曜日
+    if (w === 6) return 'sat';
+    // 4. 金曜日
+    if (w === 5) return 'fri';
+    
+    // 5. 祝前日 (翌日が祝日の月〜木曜日)
     const nextDate = new Date(d);
     nextDate.setDate(d.getDate() + 1);
     const nextDateStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}-${String(nextDate.getDate()).padStart(2,'0')}`;
+    if (getJapaneseHolidayName(nextDateStr)) {
+        return 'eve';
+    }
     
-    if (nextDate.getDay() === 0) return true; // 翌日が日曜日 ＝ 土曜日（すでに上で判定済だが念のため）
-    if (getJapaneseHolidayName(nextDateStr)) return true; // 翌日が祝日 ＝ 祝前日
-    
-    return false;
+    // 6. 平日 (月〜木)
+    return 'weekday';
 }
 
 function syncGoalWithMonthlyRates(sets, key) {
@@ -1218,11 +1315,13 @@ function syncGoalWithMonthlyRates(sets, key) {
     let total = 0;
     const workDates = m.workDates || [];
     workDates.forEach(dateStr => {
-        if (isDayBeforeHolidayOrWeekend(dateStr)) {
-            total += m.weekendGoal !== undefined ? m.weekendGoal : 60000;
-        } else {
-            total += m.weekdayGoal !== undefined ? m.weekdayGoal : 40000;
-        }
+        const type = getDayGoalType(dateStr);
+        if (type === 'weekday') total += m.weekdayGoal !== undefined ? m.weekdayGoal : 40000;
+        else if (type === 'fri') total += m.friGoal !== undefined ? m.friGoal : 60000;
+        else if (type === 'sat') total += m.satGoal !== undefined ? m.satGoal : 60000;
+        else if (type === 'sun') total += m.sunGoal !== undefined ? m.sunGoal : 60000;
+        else if (type === 'holiday') total += m.holidayGoal !== undefined ? m.holidayGoal : 60000;
+        else if (type === 'eve') total += m.eveGoal !== undefined ? m.eveGoal : 60000;
     });
     
     m.goal = total;
@@ -1255,11 +1354,57 @@ function resetWorkHours() {
 }
 function updateAnalytics() {
     const el = document.getElementById('analytics-content');
+    const periodSelect = document.getElementById('analytics-period');
     if (!el) return;
 
     const history = DB.load('taxi_v11_hist', []);
     if (history.length === 0) {
         el.innerHTML = '<div style="text-align: center; padding: 10px 0;">売上データがありません。分析を開始するには売上を記録してください。</div>';
+        if (periodSelect) periodSelect.style.display = 'none';
+        return;
+    }
+    if (periodSelect) periodSelect.style.display = 'inline-block';
+
+    // 期間選択肢の動的生成
+    if (periodSelect) {
+        const dates = history.map(h => h.date).filter(Boolean);
+        const months = [...new Set(dates.map(d => d.substring(0, 7)))].sort().reverse();
+        const years = [...new Set(dates.map(d => d.substring(0, 4)))].sort().reverse();
+
+        let optionsHtml = '<option value="all">全期間</option>';
+        
+        // 年別グループ
+        optionsHtml += '<optgroup label="年別">';
+        years.forEach(y => {
+            optionsHtml += `<option value="${y}">${y}年 (年間)</option>`;
+        });
+        optionsHtml += '</optgroup>';
+
+        // 月別グループ
+        optionsHtml += '<optgroup label="月別">';
+        months.forEach(m => {
+            const [y, mm] = m.split('-');
+            optionsHtml += `<option value="${m}">${y}年${mm}月</option>`;
+        });
+        optionsHtml += '</optgroup>';
+
+        const prevVal = periodSelect.value;
+        periodSelect.innerHTML = optionsHtml;
+        if (prevVal && [...periodSelect.options].some(opt => opt.value === prevVal)) {
+            periodSelect.value = prevVal;
+        } else {
+            periodSelect.value = 'all';
+        }
+    }
+
+    const period = periodSelect ? periodSelect.value : 'all';
+    let filteredHistory = history;
+    if (period !== 'all') {
+        filteredHistory = history.filter(h => h.date.startsWith(period));
+    }
+
+    if (filteredHistory.length === 0) {
+        el.innerHTML = '<div style="text-align: center; padding: 10px 0;">指定期間の売上データがありません。</div>';
         return;
     }
 
@@ -1277,7 +1422,7 @@ function updateAnalytics() {
         6: { name: '土', color: '#30d158', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 }
     };
 
-    history.forEach(item => {
+    filteredHistory.forEach(item => {
         const d = new Date(item.date);
         if (isNaN(d.getTime())) return;
         const wday = d.getDay();
@@ -1338,7 +1483,7 @@ function updateAnalytics() {
 
     el.innerHTML = `
         <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
-            ※ 過去の全売上履歴・勤務時間データを集計した、曜日別の平均値（手取り歩合除く）です。
+            ※ 指定期間の売上履歴・勤務時間データを集計した、曜日別の平均値（手取り歩合除く）です。
         </div>
         <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
             <thead>
