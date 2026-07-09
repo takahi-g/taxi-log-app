@@ -715,7 +715,27 @@ function confirmUpdateViewed() {
     UI.show('update-modal', false);
 }
 
+function applyEnvironmentBranding() {
+    const isTestEnv = window.location.pathname.includes('/test/');
+    if (isTestEnv) {
+        // ヘッダーロゴの書き換え
+        const logoTitle = document.querySelector('.logo h1');
+        if (logoTitle) {
+            logoTitle.innerHTML = 'TAXI Log <span>Pro (TEST)</span>';
+        }
+        // ブラウザのタブタイトル書き換え
+        document.title = "TAXI Log Pro (TEST)";
+        
+        // アプリケーションアイコンの動的書き換え
+        const appleIcon = document.querySelector('link[rel="apple-touch-icon"]');
+        const favicon = document.querySelector('link[rel="icon"]');
+        if (appleIcon) appleIcon.href = "test-icon.png";
+        if (favicon) favicon.href = "test-icon.png";
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    applyEnvironmentBranding();
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
     setupEventListeners();
 
