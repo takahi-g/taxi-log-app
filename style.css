@@ -1,4 +1,8 @@
 /* TAXI Log Pro - Design System v2.5 */
+html {
+    font-size: 115%; /* 基準サイズを拡大して老眼でも見やすくします */
+}
+
 :root {
     --bg-main: #050510;
     --bg-card: rgba(255, 255, 255, 0.04);
@@ -34,7 +38,7 @@ body {
     font-family: 'Outfit', 'Noto Sans JP', sans-serif;
     letter-spacing: -0.01em;
     overflow-x: hidden;
-    padding-bottom: calc(105px + env(safe-area-inset-bottom, 16px));
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 16px));
 }
 
 .container {
