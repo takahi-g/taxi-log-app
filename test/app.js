@@ -1256,11 +1256,57 @@ function resetWorkHours() {
 }
 function updateAnalytics() {
     const el = document.getElementById('analytics-content');
+    const periodSelect = document.getElementById('analytics-period');
     if (!el) return;
 
     const history = DB.load('taxi_v11_hist', []);
     if (history.length === 0) {
         el.innerHTML = '<div style="text-align: center; padding: 10px 0;">売上データがありません。分析を開始するには売上を記録してください。</div>';
+        if (periodSelect) periodSelect.style.display = 'none';
+        return;
+    }
+    if (periodSelect) periodSelect.style.display = 'inline-block';
+
+    // 期間選択肢の動的生成
+    if (periodSelect) {
+        const dates = history.map(h => h.date).filter(Boolean);
+        const months = [...new Set(dates.map(d => d.substring(0, 7)))].sort().reverse();
+        const years = [...new Set(dates.map(d => d.substring(0, 4)))].sort().reverse();
+
+        let optionsHtml = '<option value="all">全期間</option>';
+        
+        // 年別グループ
+        optionsHtml += '<optgroup label="年別">';
+        years.forEach(y => {
+            optionsHtml += `<option value="${y}">${y}年 (年間)</option>`;
+        });
+        optionsHtml += '</optgroup>';
+
+        // 月別グループ
+        optionsHtml += '<optgroup label="月別">';
+        months.forEach(m => {
+            const [y, mm] = m.split('-');
+            optionsHtml += `<option value="${m}">${y}年${mm}月</option>`;
+        });
+        optionsHtml += '</optgroup>';
+
+        const prevVal = periodSelect.value;
+        periodSelect.innerHTML = optionsHtml;
+        if (prevVal && [...periodSelect.options].some(opt => opt.value === prevVal)) {
+            periodSelect.value = prevVal;
+        } else {
+            periodSelect.value = 'all';
+        }
+    }
+
+    const period = periodSelect ? periodSelect.value : 'all';
+    let filteredHistory = history;
+    if (period !== 'all') {
+        filteredHistory = history.filter(h => h.date.startsWith(period));
+    }
+
+    if (filteredHistory.length === 0) {
+        el.innerHTML = '<div style="text-align: center; padding: 10px 0;">指定期間の売上データがありません。</div>';
         return;
     }
 
@@ -1278,7 +1324,7 @@ function updateAnalytics() {
         6: { name: '土', color: '#30d158', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 }
     };
 
-    history.forEach(item => {
+    filteredHistory.forEach(item => {
         const d = new Date(item.date);
         if (isNaN(d.getTime())) return;
         const wday = d.getDay();
@@ -1339,7 +1385,7 @@ function updateAnalytics() {
 
     el.innerHTML = `
         <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
-            ※ 過去の全売上履歴・勤務時間データを集計した、曜日別の平均値（手取り歩合除く）です。
+            ※ 指定期間の売上履歴・勤務時間データを集計した、曜日別の平均値（手取り歩合除く）です。
         </div>
         <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
             <thead>

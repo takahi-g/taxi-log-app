@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/09 13:50</div>
+                <div class="app-version">Ver: 07/09 13:55</div>
             </div>
         </div>
     </header>
@@ -209,7 +209,10 @@
 
             <!-- 📊 曜日別営業分析 -->
             <section id="analytics-card" class="card" style="padding: 15px; margin-bottom: 15px; background: rgba(94, 92, 230, 0.05); border: 1px solid rgba(94, 92, 230, 0.25); border-radius: 18px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 0.95rem; color: #5e5ce6; display: flex; align-items: center; gap: 6px; font-weight: 800;">📊 曜日別営業分析</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                    <h3 style="margin: 0; font-size: 0.95rem; color: #5e5ce6; display: flex; align-items: center; gap: 6px; font-weight: 800;">📊 曜日別営業分析</h3>
+                    <select id="analytics-period" onchange="updateAnalytics()" style="padding: 6px 10px; border-radius: 8px; background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); font-weight: bold; font-size: 0.8rem; outline: none; -webkit-tap-highlight-color: transparent;"></select>
+                </div>
                 <div id="analytics-content" style="font-size: 0.8rem; color: var(--text-muted);">
                     <div style="text-align: center; padding: 10px 0;">分析データを読み込み中...</div>
                 </div>
@@ -400,6 +403,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260709_1350"></script>
+    <script src="app.js?v=20260709_1355"></script>
 </body>
 </html>
