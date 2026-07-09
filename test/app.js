@@ -417,9 +417,9 @@ function updateHistoryTab(history, sets) {
                 <section class="card" style="margin-bottom: 0; padding: 15px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
                     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px;">
                         <h3 style="margin: 0; font-size: 1rem; color: var(--accent);">📌 選択中の詳細 (${mPart}/${dPart})</h3>
-                        <div style="text-align: right; display: flex; flex-direction: column; gap: 2px; line-height: 1.2;">
-                            <span style="font-size: 1.05rem; font-weight: 800; color: #FFD700;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税抜</small>${Math.floor(sumNet).toLocaleString()}円</span>
-                            <span style="font-size: 1.15rem; font-weight: 900; color: var(--success);"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税込</small>${Math.floor(sumGross).toLocaleString()}円</span>
+                        <div style="text-align: right; display: flex; flex-direction: column; gap: 2px; line-height: 1.2; flex-shrink: 0; white-space: nowrap;">
+                            <span style="font-size: 1.05rem; font-weight: 800; color: #FFD700; white-space: nowrap;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税抜</small>${Math.floor(sumNet).toLocaleString()}円</span>
+                            <span style="font-size: 1.15rem; font-weight: 900; color: var(--success); white-space: nowrap;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税込</small>${Math.floor(sumGross).toLocaleString()}円</span>
                         </div>
                     </div>
                     <div class="day-details" style="display: block;">
