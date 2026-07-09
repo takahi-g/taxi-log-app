@@ -715,8 +715,15 @@ function confirmUpdateViewed() {
     UI.show('update-modal', false);
 }
 
+const APP_VERSION_INFO = {
+    test: "07/09 14:53", // テスト用の日付時間
+    prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
+};
+
 function applyEnvironmentBranding() {
     const isTestEnv = window.location.pathname.includes('/test/');
+    const versionEl = document.querySelector('.app-version');
+    
     if (isTestEnv) {
         // ヘッダーロゴの書き換え
         const logoTitle = document.querySelector('.logo h1');
@@ -731,6 +738,12 @@ function applyEnvironmentBranding() {
         const favicon = document.querySelector('link[rel="icon"]');
         if (appleIcon) appleIcon.href = "test-icon.png";
         if (favicon) favicon.href = "test-icon.png";
+        
+        // バージョン表示をテスト時間にする
+        if (versionEl) versionEl.innerText = `Ver: ${APP_VERSION_INFO.test}`;
+    } else {
+        // 本番環境ではバージョン番号を表示する
+        if (versionEl) versionEl.innerText = `Ver: ${APP_VERSION_INFO.prod}`;
     }
 }
 
