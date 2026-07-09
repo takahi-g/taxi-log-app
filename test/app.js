@@ -168,7 +168,16 @@ function refreshCalc(isSave = false) {
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
     const finalTodayNorm = Math.max(0, todayTargetNet - todayNetSum);
     
-    if (isSave && finalTodayNorm <= 0 && !hasCelebratedToday && selectedDate === todayStr) { startCelebration(); hasCelebratedToday = true; }
+    const celebratedDates = DB.load('taxi_v11_celebrations', {});
+    const isCelebrated = celebratedDates[selectedDate] === true;
+    if (isSave && finalTodayNorm <= 0 && !isCelebrated && selectedDate === todayStr) {
+        startCelebration();
+        celebratedDates[selectedDate] = true;
+        DB.save('taxi_v11_celebrations', celebratedDates);
+    } else if (finalTodayNorm > 0 && isCelebrated) {
+        delete celebratedDates[selectedDate];
+        DB.save('taxi_v11_celebrations', celebratedDates);
+    }
     const normEl = document.getElementById('disp-norm'); 
     const normGrossEl = document.getElementById('disp-norm-gross');
     if (normEl) {
