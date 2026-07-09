@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/09 14:53</div>
+                <div class="app-version">Ver: 07/09 15:03</div>
             </div>
         </div>
     </header>
@@ -239,13 +239,42 @@
                             <span>選択中: <strong id="disp-settings-workdates-count" style="color:var(--accent);">0</strong> 日</span>
                         </div>
                     </div>
+                    <!-- ⚡ 一括目標設定 (簡単コピー) -->
+                    <div style="background: rgba(255, 215, 0, 0.03); padding: 12px; border-radius: 14px; margin: 10px 0; border: 1px solid rgba(237, 180, 24, 0.25);">
+                        <span style="font-weight: 800; font-size: 0.85rem; display: block; margin-bottom: 8px; color: var(--accent);">⚡ 目標を一括コピー (簡単入力)</span>
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px; align-items: center; justify-content: space-between;">
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">平日 (月〜木) 一括</span>
+                            <input type="number" id="quick-weekday" placeholder="40000" style="width:110px; text-align:right; border:1px solid var(--border); font-size:0.95rem; font-weight:bold; padding:6px 10px; border-radius:8px; background:var(--bg-surface); color:white; outline:none;" oninput="applyQuickGoal('weekday')">
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center; justify-content: space-between;">
+                            <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: bold;">平日以外 (金土日祝祝前) 一括</span>
+                            <input type="number" id="quick-other" placeholder="60000" style="width:110px; text-align:right; border:1px solid var(--border); font-size:0.95rem; font-weight:bold; padding:6px 10px; border-radius:8px; background:var(--bg-surface); color:white; outline:none;" oninput="applyQuickGoal('other')">
+                        </div>
+                    </div>
+
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
-                        <span style="font-weight: bold; font-size: 0.95rem;">平日標準目標 (税抜)</span>
+                        <span style="font-weight: bold; font-size: 0.95rem;">平日目標 (月〜木・税抜)</span>
                         <input type="number" id="set-weekday-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
                     </div>
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
-                        <span style="font-weight: bold; font-size: 0.95rem;">金土祝前目標 (税抜)</span>
-                        <input type="number" id="set-weekend-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                        <span style="font-weight: bold; font-size: 0.95rem;">金曜目標 (税抜)</span>
+                        <input type="number" id="set-fri-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">土曜目標 (税抜)</span>
+                        <input type="number" id="set-sat-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">日曜目標 (税抜)</span>
+                        <input type="number" id="set-sun-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">祝日目標 (税抜)</span>
+                        <input type="number" id="set-holiday-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <span style="font-weight: bold; font-size: 0.95rem;">祝前日目標 (税抜)</span>
+                        <input type="number" id="set-eve-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
                     </div>
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); background: rgba(255, 215, 0, 0.02);">
                         <span style="font-weight: bold; font-size: 0.95rem; color: var(--accent);">目標売上 (税抜・自動計算)</span>
@@ -403,6 +432,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260709_1453"></script>
+    <script src="app.js?v=20260709_1503"></script>
 </body>
 </html>

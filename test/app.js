@@ -161,8 +161,13 @@ function refreshCalc(isSave = false) {
     const workedDates = [...new Set(monthlyData.map(h => h.date))];
     const workedCount = workedDates.length;
     const now = new Date(); const todayStr = now.toISOString().split('T')[0];
-    const isWeekendOrHoliday = isDayBeforeHolidayOrWeekend(selectedDate);
-    const todayTargetNet = isWeekendOrHoliday ? mSets.weekendGoal : mSets.weekdayGoal;
+    const goalType = getDayGoalType(selectedDate);
+    let todayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
+    if (goalType === 'fri') todayTargetNet = mSets.friGoal !== undefined ? mSets.friGoal : 60000;
+    else if (goalType === 'sat') todayTargetNet = mSets.satGoal !== undefined ? mSets.satGoal : 60000;
+    else if (goalType === 'sun') todayTargetNet = mSets.sunGoal !== undefined ? mSets.sunGoal : 60000;
+    else if (goalType === 'holiday') todayTargetNet = mSets.holidayGoal !== undefined ? mSets.holidayGoal : 60000;
+    else if (goalType === 'eve') todayTargetNet = mSets.eveGoal !== undefined ? mSets.eveGoal : 60000;
     
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
@@ -189,7 +194,13 @@ function refreshCalc(isSave = false) {
     }
     const progressEl = document.getElementById('disp-progress');
     if (progressEl) {
-        const weekdayText = isWeekendOrHoliday ? "金土祝前目標" : "平日標準目標";
+        let weekdayText = "平日目標";
+        if (goalType === 'fri') weekdayText = "金曜目標";
+        else if (goalType === 'sat') weekdayText = "土曜目標";
+        else if (goalType === 'sun') weekdayText = "日曜目標";
+        else if (goalType === 'holiday') weekdayText = "祝日目標";
+        else if (goalType === 'eve') weekdayText = "祝前日目標";
+        
         progressEl.innerText = `今月: ${workedCount} / ${curDays} 回出勤 (本日目標: 税抜${todayTargetNet.toLocaleString()}円 [${weekdayText}])`;
     }
     
@@ -528,7 +539,11 @@ function saveCalcSettings() {
             goal: parseFloat(document.getElementById('set-goal').value) || CONFIG.DEFAULT_GOAL,
             days: parseFloat(document.getElementById('set-days').value) || CONFIG.DEFAULT_DAYS,
             weekdayGoal: parseFloat(document.getElementById('set-weekday-goal').value) || 40000,
-            weekendGoal: parseFloat(document.getElementById('set-weekend-goal').value) || 60000,
+            friGoal: parseFloat(document.getElementById('set-fri-goal').value) || 60000,
+            satGoal: parseFloat(document.getElementById('set-sat-goal').value) || 60000,
+            sunGoal: parseFloat(document.getElementById('set-sun-goal').value) || 60000,
+            holidayGoal: parseFloat(document.getElementById('set-holiday-goal').value) || 60000,
+            eveGoal: parseFloat(document.getElementById('set-eve-goal').value) || 60000,
             workDates: (sets.monthly[key] && sets.monthly[key].workDates) ? sets.monthly[key].workDates : []
         };
         syncGoalWithMonthlyRates(sets, key);
@@ -540,6 +555,24 @@ function saveCalcSettings() {
     
     DB.save('taxi_v11_sets', sets);
     refreshCalc();
+}
+
+function applyQuickGoal(type) {
+    if (type === 'weekday') {
+        const val = document.getElementById('quick-weekday').value;
+        if (val === '') return;
+        const target = document.getElementById('set-weekday-goal');
+        if (target) target.value = val;
+        saveCalcSettings();
+    } else if (type === 'other') {
+        const val = document.getElementById('quick-other').value;
+        if (val === '') return;
+        ['set-fri-goal', 'set-sat-goal', 'set-sun-goal', 'set-holiday-goal', 'set-eve-goal'].forEach(id => {
+            const target = document.getElementById(id);
+            if (target) target.value = val;
+        });
+        saveCalcSettings();
+    }
 }
 function toggleCalcDay(dateStr) {
     const el = document.getElementById(`group-${dateStr}`);
@@ -716,7 +749,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/09 14:53", // テスト用の日付時間
+    test: "07/09 15:03", // テスト用の日付時間
     prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
@@ -1106,6 +1139,14 @@ function getMonthlySettings(year, month) {
     }
     if (sets.monthly[key].weekdayGoal === undefined) sets.monthly[key].weekdayGoal = 40000;
     if (sets.monthly[key].weekendGoal === undefined) sets.monthly[key].weekendGoal = 60000;
+    
+    const m = sets.monthly[key];
+    if (m.friGoal === undefined) m.friGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+    if (m.satGoal === undefined) m.satGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+    if (m.sunGoal === undefined) m.sunGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+    if (m.holidayGoal === undefined) m.holidayGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+    if (m.eveGoal === undefined) m.eveGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
+    
     if (!sets.monthly[key].workDates) sets.monthly[key].workDates = [];
     return sets.monthly[key];
 }
@@ -1119,7 +1160,15 @@ function loadMonthlySettings() {
     if (UI.get('set-goal')) UI.get('set-goal').value = mSets.goal;
     if (UI.get('set-days')) UI.get('set-days').value = mSets.days;
     if (UI.get('set-weekday-goal')) UI.get('set-weekday-goal').value = mSets.weekdayGoal;
-    if (UI.get('set-weekend-goal')) UI.get('set-weekend-goal').value = mSets.weekendGoal;
+    if (UI.get('set-fri-goal')) UI.get('set-fri-goal').value = mSets.friGoal;
+    if (UI.get('set-sat-goal')) UI.get('set-sat-goal').value = mSets.satGoal;
+    if (UI.get('set-sun-goal')) UI.get('set-sun-goal').value = mSets.sunGoal;
+    if (UI.get('set-holiday-goal')) UI.get('set-holiday-goal').value = mSets.holidayGoal;
+    if (UI.get('set-eve-goal')) UI.get('set-eve-goal').value = mSets.eveGoal;
+    
+    // 一括コピー用の入力フォームをリセット
+    if (UI.get('quick-weekday')) UI.get('quick-weekday').value = '';
+    if (UI.get('quick-other')) UI.get('quick-other').value = '';
     
     // 設定カレンダーの描画
     renderSettingsCalendar(sy, sm, mSets.workDates);
@@ -1229,21 +1278,32 @@ function getJapaneseHolidayName(dateStr) {
     return null;
 }
 
-function isDayBeforeHolidayOrWeekend(dateStr) {
+function getDayGoalType(dateStr) {
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return false;
+    if (isNaN(d.getTime())) return 'weekday';
+    
+    // 1. その日自身が祝日
+    if (getJapaneseHolidayName(dateStr)) return 'holiday';
     
     const w = d.getDay();
-    if (w === 5 || w === 6) return true; // 金曜・土曜
     
+    // 2. 日曜日
+    if (w === 0) return 'sun';
+    // 3. 土曜日
+    if (w === 6) return 'sat';
+    // 4. 金曜日
+    if (w === 5) return 'fri';
+    
+    // 5. 祝前日 (翌日が祝日の月〜木曜日)
     const nextDate = new Date(d);
     nextDate.setDate(d.getDate() + 1);
     const nextDateStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth()+1).padStart(2,'0')}-${String(nextDate.getDate()).padStart(2,'0')}`;
+    if (getJapaneseHolidayName(nextDateStr)) {
+        return 'eve';
+    }
     
-    if (nextDate.getDay() === 0) return true; // 翌日が日曜日 ＝ 土曜日（すでに上で判定済だが念のため）
-    if (getJapaneseHolidayName(nextDateStr)) return true; // 翌日が祝日 ＝ 祝前日
-    
-    return false;
+    // 6. 平日 (月〜木)
+    return 'weekday';
 }
 
 function syncGoalWithMonthlyRates(sets, key) {
@@ -1253,11 +1313,13 @@ function syncGoalWithMonthlyRates(sets, key) {
     let total = 0;
     const workDates = m.workDates || [];
     workDates.forEach(dateStr => {
-        if (isDayBeforeHolidayOrWeekend(dateStr)) {
-            total += m.weekendGoal !== undefined ? m.weekendGoal : 60000;
-        } else {
-            total += m.weekdayGoal !== undefined ? m.weekdayGoal : 40000;
-        }
+        const type = getDayGoalType(dateStr);
+        if (type === 'weekday') total += m.weekdayGoal !== undefined ? m.weekdayGoal : 40000;
+        else if (type === 'fri') total += m.friGoal !== undefined ? m.friGoal : 60000;
+        else if (type === 'sat') total += m.satGoal !== undefined ? m.satGoal : 60000;
+        else if (type === 'sun') total += m.sunGoal !== undefined ? m.sunGoal : 60000;
+        else if (type === 'holiday') total += m.holidayGoal !== undefined ? m.holidayGoal : 60000;
+        else if (type === 'eve') total += m.eveGoal !== undefined ? m.eveGoal : 60000;
     });
     
     m.goal = total;
