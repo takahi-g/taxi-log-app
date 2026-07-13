@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 3.0.0</div>
+                <div class="app-version">Ver: 3.1.0</div>
             </div>
         </div>
     </header>
@@ -63,7 +63,8 @@
                         <small style="font-size:0.8rem; color:#aaa; font-weight:normal; margin-right:2px;">税込</small><span id="hist-total-sales-gross">0</span><small style="font-size:1rem; color:var(--success);">円</small>
                     </div>
                 </div>
-                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold; margin-bottom: 15px;">( 1日平均(税抜): <span id="hist-avg-sales">0</span>円 / 目標: <span id="hist-target-avg">0</span>円 )</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted); font-weight: bold; margin-bottom: 10px;">( 1日平均(税抜): <span id="hist-avg-sales">0</span>円 / 目標: <span id="hist-target-avg">0</span>円 )</div>
+                <div id="hist-target-diff" style="font-size: 0.95rem; font-weight: 800; margin-bottom: 15px; display: inline-block; padding: 4px 12px; border-radius: 10px;"></div>
                 <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
                     <div class="badge" id="hist-rate" style="background: rgba(128,128,128,0.2); color: var(--text-main); padding: 4px 12px; border-radius: 12px; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 10px;">暫定歩合: 55%</div>
                     <div style="font-size:0.85rem; opacity:0.8; margin-bottom: 5px;">推定歩合給</div>
@@ -98,7 +99,7 @@
                 </div>
                 
                 <div class="input-group">
-                    <label style="font-size: 0.85rem; margin-bottom: 4px; display: block; color: var(--text-muted);">売上金額を入力 (税込)</label>
+                    <label style="font-size: 0.85rem; margin-bottom: 4px; display: block; color: var(--text-muted);">売上金額を入力 (税込)<span id="input-count-badge" style="color: var(--accent); font-weight: bold; margin-left: 6px;"></span></label>
                     <div class="currency-input-wrapper" style="position: relative; width: 100%; margin: 5px auto 0;">
                         <span class="currency-symbol" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1.6rem; font-weight: 800; color: var(--ios-blue);">¥</span>
                         <input type="number" id="input-gross" pattern="\d*" placeholder="0" oninput="updateNormPreview()" class="huge-input" style="width: 100%; border: 2px solid var(--border); border-radius: 14px; padding: 10px 15px 10px 40px; font-size: 2rem; text-align: right; font-weight: 800; outline: none; background: var(--bg-surface); color: var(--text-main); box-sizing: border-box; -webkit-appearance: none;">
@@ -428,6 +429,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=3.0.0"></script>
+    <script src="app.js?v=3.1.0"></script>
 </body>
 </html>

@@ -171,6 +171,11 @@ function refreshCalc(isSave = false) {
     
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
+    
+    const countBadge = document.getElementById('input-count-badge');
+    if (countBadge) {
+        countBadge.innerText = ` (${todayRecords.length + 1}件目)`;
+    }
     const finalTodayNorm = Math.max(0, todayTargetNet - todayNetSum);
     
     const celebratedDates = DB.load('taxi_v11_celebrations', {});
@@ -397,6 +402,39 @@ function updateHistoryTab(history, sets) {
     document.getElementById('hist-avg-sales').innerText = (days > 0 ? Math.floor(totalNet/days) : 0).toLocaleString();
     document.getElementById('hist-target-avg').innerText = Math.floor(mSets.goal/mSets.days).toLocaleString();
     document.getElementById('hist-total-income').innerText = Math.floor(totalNet * (rate/100)).toLocaleString() + "円";
+    
+    // 累積目標（出勤した日それぞれの目標の合計）の算出
+    const workedDates = [...new Set(fHist.map(h => h.date))];
+    let accumulatedTargetNet = 0;
+    workedDates.forEach(dateStr => {
+        const goalType = getDayGoalType(dateStr);
+        let dayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
+        if (goalType === 'fri') dayTargetNet = mSets.friGoal !== undefined ? mSets.friGoal : 60000;
+        else if (goalType === 'sat') dayTargetNet = mSets.satGoal !== undefined ? mSets.satGoal : 60000;
+        else if (goalType === 'sun') dayTargetNet = mSets.sunGoal !== undefined ? mSets.sunGoal : 60000;
+        else if (goalType === 'holiday') dayTargetNet = mSets.holidayGoal !== undefined ? mSets.holidayGoal : 60000;
+        else if (goalType === 'eve') dayTargetNet = mSets.eveGoal !== undefined ? mSets.eveGoal : 60000;
+        accumulatedTargetNet += dayTargetNet;
+    });
+
+    const diffNet = totalNet - accumulatedTargetNet;
+    const diffEl = document.getElementById('hist-target-diff');
+    if (diffEl) {
+        if (workedDates.length === 0) {
+            diffEl.style.display = 'none';
+        } else {
+            diffEl.style.display = 'inline-block';
+            if (diffNet >= 0) {
+                diffEl.style.background = 'rgba(52, 199, 89, 0.15)'; // 薄い緑
+                diffEl.style.color = '#34c759'; // iOSの緑
+                diffEl.innerText = `目標比: +${Math.floor(diffNet).toLocaleString()}円`;
+            } else {
+                diffEl.style.background = 'rgba(255, 69, 58, 0.15)'; // 薄い赤
+                diffEl.style.color = '#ff453a'; // iOSの赤
+                diffEl.innerText = `目標比: -${Math.floor(Math.abs(diffNet)).toLocaleString()}円`;
+            }
+        }
+    }
     const groups = {}; fHist.sort((a,b) => a.id - b.id).forEach(h => { if(!groups[h.date]) groups[h.date] = []; groups[h.date].push(h); });
     
     const selectedDate = getSelectedDateStr();
@@ -683,15 +721,22 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "3.0.0",
-    date: "3.0.0",
-    title: "🎉 アップデートのお知らせ (Ver: 3.0.0)",
+    version: "3.1.0",
+    date: "3.1.0",
+    title: "🎉 アップデートのお知らせ (Ver: 3.1.0)",
     details: [
-        "📊 売上目標を曜日・祝日（平日/金/土/日/祝/祝前日）ごとに個別設定できるようになりました！",
-        "⚡ 金〜日や祝日などの『平日以外』の目標金額を、まとめて一括入力できるコピー機能を追加！",
-        "📱 画面全体の文字サイズを約15%大きくし、数字やテキストがより見やすくなりました！"
+        "📝 売上入力の横に、現在何件目の入力かが一目でわかる『(◯件目)』バッジを追加しました！",
+        "📊 詳細履歴タブに、今現在の出勤日数に応じた目標との差額を示す『目標比 (＋ー金額)』の表示機能を追加しました！"
     ],
     history: [
+        {
+            date: "07/09 18:53",
+            details: [
+                "📊 売上目標を曜日・祝日（平日/金/土/日/祝/祝前日）ごとに個別設定できるようになりました！",
+                "⚡ 金〜日や祝日などの『平日以外』の目標金額を、まとめて一括入力できるコピー機能を追加！",
+                "📱 画面全体の文字サイズを約15%大きくし、数字やテキストがより見やすくなりました！"
+            ]
+        },
         {
             date: "07/07 16:43",
             details: [
@@ -751,8 +796,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/09 18:53", // テスト用の日付時間
-    prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
+    test: "07/13 12:08", // テスト用の日付時間
+    prod: "3.1.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
 function applyEnvironmentBranding() {
