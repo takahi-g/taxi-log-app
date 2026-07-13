@@ -98,7 +98,7 @@
                 </div>
                 
                 <div class="input-group">
-                    <label style="font-size: 0.85rem; margin-bottom: 4px; display: block; color: var(--text-muted);">売上金額を入力 (税込)</label>
+                    <label style="font-size: 0.85rem; margin-bottom: 4px; display: block; color: var(--text-muted);">売上金額を入力 (税込)<span id="input-count-badge" style="color: var(--accent); font-weight: bold; margin-left: 6px;"></span></label>
                     <div class="currency-input-wrapper" style="position: relative; width: 100%; margin: 5px auto 0;">
                         <span class="currency-symbol" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); font-size: 1.6rem; font-weight: 800; color: var(--ios-blue);">¥</span>
                         <input type="number" id="input-gross" pattern="\d*" placeholder="0" oninput="updateNormPreview()" class="huge-input" style="width: 100%; border: 2px solid var(--border); border-radius: 14px; padding: 10px 15px 10px 40px; font-size: 2rem; text-align: right; font-weight: 800; outline: none; background: var(--bg-surface); color: var(--text-main); box-sizing: border-box; -webkit-appearance: none;">

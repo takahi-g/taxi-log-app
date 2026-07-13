@@ -171,6 +171,11 @@ function refreshCalc(isSave = false) {
     
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
+    
+    const countBadge = document.getElementById('input-count-badge');
+    if (countBadge) {
+        countBadge.innerText = ` (${todayRecords.length + 1}件目)`;
+    }
     const finalTodayNorm = Math.max(0, todayTargetNet - todayNetSum);
     
     const celebratedDates = DB.load('taxi_v11_celebrations', {});
