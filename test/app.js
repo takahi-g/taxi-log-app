@@ -402,6 +402,39 @@ function updateHistoryTab(history, sets) {
     document.getElementById('hist-avg-sales').innerText = (days > 0 ? Math.floor(totalNet/days) : 0).toLocaleString();
     document.getElementById('hist-target-avg').innerText = Math.floor(mSets.goal/mSets.days).toLocaleString();
     document.getElementById('hist-total-income').innerText = Math.floor(totalNet * (rate/100)).toLocaleString() + "円";
+    
+    // 累積目標（出勤した日それぞれの目標の合計）の算出
+    const workedDates = [...new Set(fHist.map(h => h.date))];
+    let accumulatedTargetNet = 0;
+    workedDates.forEach(dateStr => {
+        const goalType = getDayGoalType(dateStr);
+        let dayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
+        if (goalType === 'fri') dayTargetNet = mSets.friGoal !== undefined ? mSets.friGoal : 60000;
+        else if (goalType === 'sat') dayTargetNet = mSets.satGoal !== undefined ? mSets.satGoal : 60000;
+        else if (goalType === 'sun') dayTargetNet = mSets.sunGoal !== undefined ? mSets.sunGoal : 60000;
+        else if (goalType === 'holiday') dayTargetNet = mSets.holidayGoal !== undefined ? mSets.holidayGoal : 60000;
+        else if (goalType === 'eve') dayTargetNet = mSets.eveGoal !== undefined ? mSets.eveGoal : 60000;
+        accumulatedTargetNet += dayTargetNet;
+    });
+
+    const diffNet = totalNet - accumulatedTargetNet;
+    const diffEl = document.getElementById('hist-target-diff');
+    if (diffEl) {
+        if (workedDates.length === 0) {
+            diffEl.style.display = 'none';
+        } else {
+            diffEl.style.display = 'inline-block';
+            if (diffNet >= 0) {
+                diffEl.style.background = 'rgba(52, 199, 89, 0.15)'; // 薄い緑
+                diffEl.style.color = '#34c759'; // iOSの緑
+                diffEl.innerText = `目標比: +${Math.floor(diffNet).toLocaleString()}円`;
+            } else {
+                diffEl.style.background = 'rgba(255, 69, 58, 0.15)'; // 薄い赤
+                diffEl.style.color = '#ff453a'; // iOSの赤
+                diffEl.innerText = `目標比: -${Math.floor(Math.abs(diffNet)).toLocaleString()}円`;
+            }
+        }
+    }
     const groups = {}; fHist.sort((a,b) => a.id - b.id).forEach(h => { if(!groups[h.date]) groups[h.date] = []; groups[h.date].push(h); });
     
     const selectedDate = getSelectedDateStr();
@@ -756,7 +789,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/13 11:32", // テスト用の日付時間
+    test: "07/13 12:08", // テスト用の日付時間
     prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
