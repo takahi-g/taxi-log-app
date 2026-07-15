@@ -451,7 +451,7 @@ function updateHistoryTab(history, sets) {
                     return `
                         <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); opacity: 0.8;">
                             <div>
-                                <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:#ff453a; margin-bottom: 2px; text-decoration: line-through;">${i+1}件目</div>
+                                <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
                                 <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                             </div>
                             <div class="detail-actions">
@@ -511,7 +511,7 @@ function updateHistoryTab(history, sets) {
                 return `
                     <div class="detail-item" style="opacity: 0.8;">
                         <div>
-                            <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:#ff453a; margin-bottom: 2px; text-decoration: line-through;">${i+1}件目</div>
+                            <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
                             <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                         </div>
                         <div class="detail-actions">
