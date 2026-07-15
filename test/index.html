@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/15 14:02</div>
+                <div class="app-version">Ver: 07/15 14:12</div>
             </div>
         </div>
     </header>
@@ -105,7 +105,10 @@
                         <input type="number" id="input-gross" pattern="\d*" placeholder="0" oninput="updateNormPreview()" class="huge-input" style="width: 100%; border: 2px solid var(--border); border-radius: 14px; padding: 10px 15px 10px 40px; font-size: 2rem; text-align: right; font-weight: 800; outline: none; background: var(--bg-surface); color: var(--text-main); box-sizing: border-box; -webkit-appearance: none;">
                     </div>
                 </div>
-                <button onclick="saveCalcData()" class="main-action-btn pickup" style="width: 100%; margin-top: 15px; height: 50px; font-size: 1.1rem; padding: 10px;">売上を追加</button>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button onclick="saveCalcData(false)" class="main-action-btn pickup" style="flex: 2; height: 50px; font-size: 1.1rem; padding: 10px; margin: 0;">売上を追加</button>
+                    <button onclick="saveCalcData(true)" style="flex: 1; height: 50px; font-size: 0.95rem; font-weight: bold; background: rgba(255, 69, 58, 0.15); border: 1.5px solid rgba(255, 69, 58, 0.3); color: #ff453a; border-radius: 14px; cursor: pointer; padding: 10px; -webkit-tap-highlight-color: transparent;">キャンセル</button>
+                </div>
             </section>
 
             <!-- ⏱️ 乗務・時間売上ステータス -->
@@ -479,6 +482,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260715_1402"></script>
+    <script src="app.js?v=20260715_1412"></script>
 </body>
 </html>

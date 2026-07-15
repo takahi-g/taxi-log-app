@@ -446,21 +446,37 @@ function updateHistoryTab(history, sets) {
         if (selectedGroup && selectedGroup.length > 0) {
             const sumNet = selectedGroup.reduce((s, h) => s + h.net, 0);
             const sumGross = selectedGroup.reduce((s, h) => s + h.gross, 0);
-            const itemsHtml = selectedGroup.map((h, i) => `
-                <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <div>
-                        <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                        <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 2px; flex-wrap: nowrap; white-space: nowrap;">
-                            <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
-                            <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
+            const itemsHtml = selectedGroup.map((h, i) => {
+                if (h.isCancel) {
+                    return `
+                        <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); opacity: 0.7;">
+                            <div>
+                                <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:#ff453a; margin-bottom: 2px;">${i+1}件目</div>
+                                <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #8e8e93; text-decoration: line-through;">キャンセル</div>
+                            </div>
+                            <div class="detail-actions">
+                                <span style="font-size: 0.8rem; background: rgba(255, 69, 58, 0.15); color: #ff453a; padding: 2px 8px; border-radius: 6px; font-weight: bold; margin-right: 10px;">キャンセル</span>
+                                <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <div>
+                            <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
+                            <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 2px; flex-wrap: nowrap; white-space: nowrap;">
+                                <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
+                                <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
+                            </div>
+                        </div>
+                        <div class="detail-actions">
+                            <button class="btn-pencil" onclick="editCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">✏️</button>
+                            <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
                         </div>
                     </div>
-                    <div class="detail-actions">
-                        <button class="btn-pencil" onclick="editCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">✏️</button>
-                        <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
-                    </div>
-                </div>
-            `).reverse().join('');
+                `;
+            }).reverse().join('');
             
             detailsBox.innerHTML = `
                 <section class="card" style="margin-bottom: 0; padding: 15px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
@@ -491,21 +507,37 @@ function updateHistoryTab(history, sets) {
     
     document.getElementById('history-groups').innerHTML = sortedDates.map(date => {
         const sum = groups[date].reduce((s, h) => s + h.net, 0);
-        const dayHtml = groups[date].map((h, i) => `
-            <div class="detail-item">
-                <div>
-                    <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                    <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 4px; flex-wrap: nowrap; white-space: nowrap;">
-                        <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
-                        <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
+        const dayHtml = groups[date].map((h, i) => {
+            if (h.isCancel) {
+                return `
+                    <div class="detail-item" style="opacity: 0.7;">
+                        <div>
+                            <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:#ff453a; margin-bottom: 2px;">${i+1}件目</div>
+                            <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #8e8e93; text-decoration: line-through;">キャンセル</div>
+                        </div>
+                        <div class="detail-actions">
+                            <span style="font-size: 0.8rem; background: rgba(255, 69, 58, 0.15); color: #ff453a; padding: 2px 6px; border-radius: 6px; font-weight: bold; margin-right: 5px; display: inline-block;">キャンセル</span>
+                            <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }
+            return `
+                <div class="detail-item">
+                    <div>
+                        <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
+                        <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 4px; flex-wrap: nowrap; white-space: nowrap;">
+                            <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
+                            <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
+                        </div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
+                        <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                     </div>
                 </div>
-                <div class="detail-actions">
-                    <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
-                    <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
-                </div>
-            </div>
-        `);
+            `;
+        });
         dayHtml.reverse();
         return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${dayHtml.join('')}</div></div>`;
     }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">過去のデータなし</div>';
@@ -552,10 +584,22 @@ function renderCalcCalendar(year, month, history) {
     }
 }
 
-function saveCalcData() { 
-    const date = document.getElementById('work-date').value, gross = parseFloat(document.getElementById('input-gross').value);
-    if (!gross) return; const h = DB.load('taxi_v11_hist', []); h.push({ id: Date.now(), date, gross, net: Math.floor(gross/1.1) });
-    DB.save('taxi_v11_hist', h); document.getElementById('input-gross').value = ''; refreshCalc(true);
+function saveCalcData(isCancel = false) { 
+    const date = document.getElementById('work-date').value;
+    const h = DB.load('taxi_v11_hist', []);
+    
+    if (isCancel) {
+        h.push({ id: Date.now(), date, gross: 0, net: 0, isCancel: true });
+        DB.save('taxi_v11_hist', h);
+        refreshCalc(true);
+    } else {
+        const gross = parseFloat(document.getElementById('input-gross').value);
+        if (!gross) return;
+        h.push({ id: Date.now(), date, gross, net: Math.floor(gross/1.1) });
+        DB.save('taxi_v11_hist', h);
+        document.getElementById('input-gross').value = '';
+        refreshCalc(true);
+    }
 }
 
 function deleteCalcData(id) { if(confirm('消去しますか？')) { const h = DB.load('taxi_v11_hist', []); DB.save('taxi_v11_hist', h.filter(x => x.id !== id)); refreshCalc(); } }
@@ -796,7 +840,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/15 14:02", // テスト用の日付時間
+    test: "07/15 14:12", // テスト用の日付時間
     prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
