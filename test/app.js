@@ -449,13 +449,12 @@ function updateHistoryTab(history, sets) {
             const itemsHtml = selectedGroup.map((h, i) => {
                 if (h.isCancel) {
                     return `
-                        <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); opacity: 0.7;">
+                        <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); opacity: 0.8;">
                             <div>
-                                <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:#ff453a; margin-bottom: 2px;">${i+1}件目</div>
-                                <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #8e8e93; text-decoration: line-through;">キャンセル</div>
+                                <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:#ff453a; margin-bottom: 2px; text-decoration: line-through;">${i+1}件目</div>
+                                <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                             </div>
                             <div class="detail-actions">
-                                <span style="font-size: 0.8rem; background: rgba(255, 69, 58, 0.15); color: #ff453a; padding: 2px 8px; border-radius: 6px; font-weight: bold; margin-right: 10px;">キャンセル</span>
                                 <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
                             </div>
                         </div>
@@ -510,13 +509,12 @@ function updateHistoryTab(history, sets) {
         const dayHtml = groups[date].map((h, i) => {
             if (h.isCancel) {
                 return `
-                    <div class="detail-item" style="opacity: 0.7;">
+                    <div class="detail-item" style="opacity: 0.8;">
                         <div>
-                            <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:#ff453a; margin-bottom: 2px;">${i+1}件目</div>
-                            <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #8e8e93; text-decoration: line-through;">キャンセル</div>
+                            <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:#ff453a; margin-bottom: 2px; text-decoration: line-through;">${i+1}件目</div>
+                            <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                         </div>
                         <div class="detail-actions">
-                            <span style="font-size: 0.8rem; background: rgba(255, 69, 58, 0.15); color: #ff453a; padding: 2px 6px; border-radius: 6px; font-weight: bold; margin-right: 5px; display: inline-block;">キャンセル</span>
                             <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
                     </div>
@@ -589,6 +587,13 @@ function saveCalcData(isCancel = false) {
     const h = DB.load('taxi_v11_hist', []);
     
     if (isCancel) {
+        // 現在の件数を取得して確認メッセージを表示
+        const todayRecords = h.filter(x => x.date === date);
+        const nextCount = todayRecords.length + 1;
+        if (!confirm(`${nextCount}件目をキャンセル扱いにしますか？`)) {
+            return;
+        }
+        
         h.push({ id: Date.now(), date, gross: 0, net: 0, isCancel: true });
         DB.save('taxi_v11_hist', h);
         refreshCalc(true);
@@ -840,7 +845,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/15 14:12", // テスト用の日付時間
+    test: "07/15 14:16", // テスト用の日付時間
     prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
