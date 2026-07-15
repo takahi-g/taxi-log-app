@@ -796,7 +796,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/13 12:08", // テスト用の日付時間
+    test: "07/15 14:02", // テスト用の日付時間
     prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
@@ -1071,39 +1071,72 @@ function updateBreakTimerDisplay() {
     }
 }
 
-function addManualBreakSession() {
-    const dateStr = getSelectedDateStr();
-    const stateObj = loadWorkState(dateStr);
-    
-    const startStr = prompt("休憩開始時刻を入力してください (例 12:00)：", "12:00");
-    if (!startStr) return;
-    
-    const endStr = prompt("休憩終了時刻を入力してください (例 13:00)：", "13:00");
-    if (!endStr) return;
-    
-    const timeReg = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (!timeReg.test(startStr) || !timeReg.test(endStr)) {
-        alert("時刻の形式が正しくありません。HH:MM (例 12:00) で入力してください。");
-        return;
+// --- 休憩時間モーダル制御用関数 ---
+function getRoundedTime(minutesOffset = 0) {
+    const now = new Date();
+    if (minutesOffset !== 0) {
+        now.setMinutes(now.getMinutes() + minutesOffset);
     }
+    const m = now.getMinutes();
+    const roundedM = Math.round(m / 5) * 5;
+    now.setMinutes(roundedM);
     
-    const calculateDuration = (s, e) => {
-        const [sh, sm] = s.split(':').map(Number);
-        const [eh, em] = e.split(':').map(Number);
-        let diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff < 0) diff += 24 * 60;
-        return diff;
-    };
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+}
+
+function adjustBreakModalTime(type, diffMinutes) {
+    const inputId = type === 'start' ? 'break-start-time' : 'break-end-time';
+    const input = document.getElementById(inputId);
+    if (!input || !input.value) return;
     
-    const duration = calculateDuration(startStr, endStr);
+    const [h, m] = input.value.split(':').map(Number);
+    const date = new Date();
+    date.setHours(h, m, 0, 0);
+    date.setMinutes(date.getMinutes() + diffMinutes);
     
-    if (!stateObj.breaks) stateObj.breaks = [];
-    stateObj.breaks.push({ start: startStr, end: endStr, duration: duration });
+    // 5分単位に丸める
+    const roundedM = Math.round(date.getMinutes() / 5) * 5;
+    date.setMinutes(roundedM);
     
-    stateObj.breakMinutes = stateObj.breakMinutes + duration;
+    const newH = String(date.getHours()).padStart(2, '0');
+    const newM = String(date.getMinutes()).padStart(2, '0');
+    input.value = `${newH}:${newM}`;
+}
+
+function setQuickBreakDuration(durationMinutes) {
+    const startInput = document.getElementById('break-start-time');
+    const endInput = document.getElementById('break-end-time');
+    if (!startInput || !startInput.value || !endInput) return;
     
-    saveWorkState(dateStr, stateObj);
-    refreshCalc();
+    const [h, m] = startInput.value.split(':').map(Number);
+    const date = new Date();
+    date.setHours(h, m, 0, 0);
+    date.setMinutes(date.getMinutes() + durationMinutes);
+    
+    // 5分単位に丸める
+    const roundedM = Math.round(date.getMinutes() / 5) * 5;
+    date.setMinutes(roundedM);
+    
+    const newH = String(date.getHours()).padStart(2, '0');
+    const newM = String(date.getMinutes()).padStart(2, '0');
+    endInput.value = `${newH}:${newM}`;
+}
+
+function addManualBreakSession() {
+    const modal = document.getElementById('break-modal');
+    if (!modal) return;
+    
+    document.getElementById('break-modal-title').innerText = "☕ 休憩時間の追加";
+    document.getElementById('break-edit-index').value = "-1";
+    document.getElementById('btn-save-break').innerText = "追加する";
+    
+    // デフォルト値: 終了は現在時刻の5分丸め、開始はその30分前
+    document.getElementById('break-end-time').value = getRoundedTime(0);
+    document.getElementById('break-start-time').value = getRoundedTime(-30);
+    
+    modal.style.display = 'flex';
 }
 
 function editBreakSession(index) {
@@ -1112,36 +1145,70 @@ function editBreakSession(index) {
     if (!stateObj.breaks || !stateObj.breaks[index]) return;
     
     const b = stateObj.breaks[index];
-    const newStart = prompt("開始時刻を修正 (例: 12:30)：", b.start);
-    if (newStart === null || newStart === "") return;
-    const newEnd = prompt("終了時刻を修正 (例: 13:30)：", b.end);
-    if (newEnd === null || newEnd === "") return;
+    const modal = document.getElementById('break-modal');
+    if (!modal) return;
     
-    const timeReg = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (!timeReg.test(newStart) || !timeReg.test(newEnd)) {
-        alert("時刻の形式が正しくありません。(例: 12:30)");
+    document.getElementById('break-modal-title').innerText = "☕ 休憩時間の編集";
+    document.getElementById('break-edit-index').value = index;
+    document.getElementById('btn-save-break').innerText = "保存する";
+    
+    document.getElementById('break-start-time').value = b.start;
+    document.getElementById('break-end-time').value = b.end;
+    
+    modal.style.display = 'flex';
+}
+
+function closeBreakModal() {
+    const modal = document.getElementById('break-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function saveManualBreak() {
+    const startStr = document.getElementById('break-start-time').value;
+    const endStr = document.getElementById('break-end-time').value;
+    const editIndex = parseInt(document.getElementById('break-edit-index').value);
+    
+    if (!startStr || !endStr) {
+        alert("開始時刻と終了時刻を入力してください。");
         return;
     }
     
-    const calculateDuration = (startStr, endStr) => {
-        const [sh, sm] = startStr.split(':').map(Number);
-        const [eh, em] = endStr.split(':').map(Number);
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    
+    const calculateDuration = (s, e) => {
+        const [sh, sm] = s.split(':').map(Number);
+        const [eh, em] = e.split(':').map(Number);
         let diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff < 0) diff += 24 * 60;
+        if (diff < 0) diff += 24 * 60; // 日またぎ対応
         return diff;
     };
     
-    const oldDuration = b.duration;
-    const newDuration = calculateDuration(newStart, newEnd);
+    const duration = calculateDuration(startStr, endStr);
     
-    b.start = newStart;
-    b.end = newEnd;
-    b.duration = newDuration;
+    if (duration === 0) {
+        alert("休憩時間が0分になっています。正しい時間を選択してください。");
+        return;
+    }
     
-    stateObj.breakMinutes = Math.max(0, stateObj.breakMinutes - oldDuration + newDuration);
+    if (!stateObj.breaks) stateObj.breaks = [];
+    
+    if (editIndex === -1) {
+        // 新規追加
+        stateObj.breaks.push({ start: startStr, end: endStr, duration: duration });
+    } else {
+        // 編集保存
+        if (stateObj.breaks[editIndex]) {
+            stateObj.breaks[editIndex] = { start: startStr, end: endStr, duration: duration };
+        }
+    }
+    
+    // 合計休憩時間の再計算
+    stateObj.breakMinutes = stateObj.breaks.reduce((sum, b) => sum + b.duration, 0);
     
     saveWorkState(dateStr, stateObj);
     refreshCalc();
+    closeBreakModal();
 }
 
 function deleteBreakSession(index) {
