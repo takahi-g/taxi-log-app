@@ -148,6 +148,13 @@ function refreshCalc(isSave = false) {
     if (!workDateEl) return;
     const selectedDate = workDateEl.value;
     if (!selectedDate) return;
+    
+    const dispDateTextEl = document.getElementById('disp-work-date-text');
+    if (dispDateTextEl) {
+        const [y, m, d] = selectedDate.split('-').map(Number);
+        const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(y, m - 1, d).getDay()];
+        dispDateTextEl.innerText = `${y}年${String(m).padStart(2, '0')}月${String(d).padStart(2, '0')}日(${dayOfWeek})`;
+    }
     const curMonth = selectedDate.substring(0, 7);
     
     // 選択された日付の年月をもとに月別目標を読み込む
@@ -582,6 +589,107 @@ function renderCalcCalendar(year, month, history) {
     }
 }
 
+// --- 📅 日付選択用カレンダーポップアップの制御 ---
+let datePickerYear = new Date().getFullYear();
+let datePickerMonth = new Date().getMonth() + 1;
+
+function openDatePickerModal() {
+    const curDate = document.getElementById('work-date').value || new Date().toISOString().split('T')[0];
+    const [y, m] = curDate.split('-').map(Number);
+    datePickerYear = y;
+    datePickerMonth = m;
+    
+    renderDatePickerCalendar(datePickerYear, datePickerMonth);
+    document.getElementById('date-picker-modal').style.display = 'flex';
+}
+
+function closeDatePickerModal() {
+    document.getElementById('date-picker-modal').style.display = 'none';
+}
+
+function changeDatePickerMonth(offset) {
+    datePickerMonth += offset;
+    if (datePickerMonth < 1) {
+        datePickerMonth = 12;
+        datePickerYear--;
+    } else if (datePickerMonth > 12) {
+        datePickerMonth = 1;
+        datePickerYear++;
+    }
+    renderDatePickerCalendar(datePickerYear, datePickerMonth);
+}
+
+function selectDatePickerDate(dateStr) {
+    document.getElementById('work-date').value = dateStr;
+    closeDatePickerModal();
+    refreshCalc();
+}
+
+function renderDatePickerCalendar(year, month) {
+    document.getElementById('date-picker-month-label').innerText = `${year}年${String(month).padStart(2, '0')}月`;
+    const container = document.getElementById('date-picker-calendar-container');
+    container.innerHTML = '';
+    
+    const days = ['日','月','火','水','木','金','土'];
+    days.forEach(d => {
+        container.innerHTML += `<div class="cal-day-label" style="font-size:0.85rem; font-weight:bold; color:var(--text-muted); padding:5px 0;">${d}</div>`;
+    });
+    
+    const first = new Date(year, month - 1, 1).getDay();
+    const last = new Date(year, month, 0).getDate();
+    
+    for (let i = 0; i < first; i++) {
+        container.innerHTML += '<div></div>';
+    }
+    
+    const history = DB.load('taxi_v11_hist', []);
+    const selectedDate = document.getElementById('work-date').value;
+    
+    for (let d = 1; d <= last; d++) {
+        const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const hasData = history.some(h => h.date === dateStr);
+        const isSelected = dateStr === selectedDate;
+        const isToday = dateStr === new Date().toISOString().split('T')[0];
+        
+        let cellStyle = `
+            position: relative;
+            padding: 8px 0;
+            font-size: 1.05rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-main);
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        `;
+        
+        if (isSelected) {
+            cellStyle += 'border: 2px solid var(--ios-blue); background: rgba(0, 122, 255, 0.1);';
+        } else if (isToday) {
+            cellStyle += 'background: rgba(255,255,255,0.08);';
+        }
+        
+        let dotHtml = '';
+        if (hasData) {
+            dotHtml = `<span style="position: absolute; bottom: 3px; width: 5px; height: 5px; background-color: var(--accent); border-radius: 50%;"></span>`;
+            cellStyle += 'color: var(--accent);';
+        }
+        
+        container.innerHTML += `
+            <div style="${cellStyle}" onclick="selectDatePickerDate('${dateStr}')">
+                ${d}
+                ${dotHtml}
+            </div>
+        `;
+    }
+}
+
 function saveCalcData(isCancel = false) { 
     const date = document.getElementById('work-date').value;
     const h = DB.load('taxi_v11_hist', []);
@@ -845,7 +953,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/15 14:22", // テスト用の日付時間
+    test: "07/15 14:32", // テスト用の日付時間
     prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
@@ -884,7 +992,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize TAXI App calculator inputs
     const workDateInput = UI.get('work-date');
     if (workDateInput) {
-        workDateInput.valueAsDate = new Date();
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        workDateInput.value = `${y}-${m}-${d}`;
     }
     const yr = UI.get('hist-year'), mt = UI.get('hist-month');
     if (yr && mt) {
