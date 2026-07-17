@@ -138,7 +138,7 @@ function updateNormPreview() {
     const finalNorm = Math.max(0, currentNorm - netInput);
     normEl.innerText = Math.floor(finalNorm).toLocaleString();
     if (normGrossEl) {
-        normGrossEl.innerText = Math.floor(Math.ceil(finalNorm * 1.1)).toLocaleString();
+        normGrossEl.innerText = Math.round(finalNorm * 1.1).toLocaleString();
     }
 }
 
@@ -148,6 +148,13 @@ function refreshCalc(isSave = false) {
     if (!workDateEl) return;
     const selectedDate = workDateEl.value;
     if (!selectedDate) return;
+    
+    const dispDateTextEl = document.getElementById('disp-work-date-text');
+    if (dispDateTextEl) {
+        const [y, m, d] = selectedDate.split('-').map(Number);
+        const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(y, m - 1, d).getDay()];
+        dispDateTextEl.innerText = `${y}年${String(m).padStart(2, '0')}月${String(d).padStart(2, '0')}日(${dayOfWeek})`;
+    }
     const curMonth = selectedDate.substring(0, 7);
     
     // 選択された日付の年月をもとに月別目標を読み込む
@@ -195,7 +202,7 @@ function refreshCalc(isSave = false) {
         normEl.setAttribute('data-base-norm', finalTodayNorm + (isSave ? 0 : todayNetSum));
     }
     if (normGrossEl) {
-        normGrossEl.innerText = Math.floor(Math.ceil(finalTodayNorm * 1.1)).toLocaleString();
+        normGrossEl.innerText = Math.round(finalTodayNorm * 1.1).toLocaleString();
     }
     const progressEl = document.getElementById('disp-progress');
     if (progressEl) {
@@ -446,21 +453,36 @@ function updateHistoryTab(history, sets) {
         if (selectedGroup && selectedGroup.length > 0) {
             const sumNet = selectedGroup.reduce((s, h) => s + h.net, 0);
             const sumGross = selectedGroup.reduce((s, h) => s + h.gross, 0);
-            const itemsHtml = selectedGroup.map((h, i) => `
-                <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <div>
-                        <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                        <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 2px; flex-wrap: nowrap; white-space: nowrap;">
-                            <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
-                            <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
+            const itemsHtml = selectedGroup.map((h, i) => {
+                if (h.isCancel) {
+                    return `
+                        <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); opacity: 0.8;">
+                            <div>
+                                <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
+                                <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
+                            </div>
+                            <div class="detail-actions">
+                                <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <div>
+                            <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
+                            <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 2px; flex-wrap: nowrap; white-space: nowrap;">
+                                <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
+                                <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
+                            </div>
+                        </div>
+                        <div class="detail-actions">
+                            <button class="btn-pencil" onclick="editCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">✏️</button>
+                            <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
                         </div>
                     </div>
-                    <div class="detail-actions">
-                        <button class="btn-pencil" onclick="editCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">✏️</button>
-                        <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
-                    </div>
-                </div>
-            `).reverse().join('');
+                `;
+            }).reverse().join('');
             
             detailsBox.innerHTML = `
                 <section class="card" style="margin-bottom: 0; padding: 15px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
@@ -491,21 +513,36 @@ function updateHistoryTab(history, sets) {
     
     document.getElementById('history-groups').innerHTML = sortedDates.map(date => {
         const sum = groups[date].reduce((s, h) => s + h.net, 0);
-        const dayHtml = groups[date].map((h, i) => `
-            <div class="detail-item">
-                <div>
-                    <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                    <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 4px; flex-wrap: nowrap; white-space: nowrap;">
-                        <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
-                        <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
+        const dayHtml = groups[date].map((h, i) => {
+            if (h.isCancel) {
+                return `
+                    <div class="detail-item" style="opacity: 0.8;">
+                        <div>
+                            <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
+                            <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
+                        </div>
+                        <div class="detail-actions">
+                            <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }
+            return `
+                <div class="detail-item">
+                    <div>
+                        <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
+                        <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 4px; flex-wrap: nowrap; white-space: nowrap;">
+                            <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
+                            <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
+                        </div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
+                        <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                     </div>
                 </div>
-                <div class="detail-actions">
-                    <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
-                    <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
-                </div>
-            </div>
-        `);
+            `;
+        });
         dayHtml.reverse();
         return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${dayHtml.join('')}</div></div>`;
     }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">過去のデータなし</div>';
@@ -552,10 +589,130 @@ function renderCalcCalendar(year, month, history) {
     }
 }
 
-function saveCalcData() { 
-    const date = document.getElementById('work-date').value, gross = parseFloat(document.getElementById('input-gross').value);
-    if (!gross) return; const h = DB.load('taxi_v11_hist', []); h.push({ id: Date.now(), date, gross, net: Math.floor(gross/1.1) });
-    DB.save('taxi_v11_hist', h); document.getElementById('input-gross').value = ''; refreshCalc(true);
+// --- 📅 日付選択用カレンダーポップアップの制御 ---
+let datePickerYear = new Date().getFullYear();
+let datePickerMonth = new Date().getMonth() + 1;
+
+function openDatePickerModal() {
+    const curDate = document.getElementById('work-date').value || new Date().toISOString().split('T')[0];
+    const [y, m] = curDate.split('-').map(Number);
+    datePickerYear = y;
+    datePickerMonth = m;
+    
+    renderDatePickerCalendar(datePickerYear, datePickerMonth);
+    document.getElementById('date-picker-modal').style.display = 'flex';
+}
+
+function closeDatePickerModal() {
+    document.getElementById('date-picker-modal').style.display = 'none';
+}
+
+function changeDatePickerMonth(offset) {
+    datePickerMonth += offset;
+    if (datePickerMonth < 1) {
+        datePickerMonth = 12;
+        datePickerYear--;
+    } else if (datePickerMonth > 12) {
+        datePickerMonth = 1;
+        datePickerYear++;
+    }
+    renderDatePickerCalendar(datePickerYear, datePickerMonth);
+}
+
+function selectDatePickerDate(dateStr) {
+    document.getElementById('work-date').value = dateStr;
+    closeDatePickerModal();
+    refreshCalc();
+}
+
+function renderDatePickerCalendar(year, month) {
+    document.getElementById('date-picker-month-label').innerText = `${year}年${String(month).padStart(2, '0')}月`;
+    const container = document.getElementById('date-picker-calendar-container');
+    container.innerHTML = '';
+    
+    const days = ['日','月','火','水','木','金','土'];
+    days.forEach(d => {
+        container.innerHTML += `<div class="cal-day-label" style="font-size:0.85rem; font-weight:bold; color:var(--text-muted); padding:5px 0;">${d}</div>`;
+    });
+    
+    const first = new Date(year, month - 1, 1).getDay();
+    const last = new Date(year, month, 0).getDate();
+    
+    for (let i = 0; i < first; i++) {
+        container.innerHTML += '<div></div>';
+    }
+    
+    const history = DB.load('taxi_v11_hist', []);
+    const selectedDate = document.getElementById('work-date').value;
+    
+    for (let d = 1; d <= last; d++) {
+        const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const hasData = history.some(h => h.date === dateStr);
+        const isSelected = dateStr === selectedDate;
+        const isToday = dateStr === new Date().toISOString().split('T')[0];
+        
+        let cellStyle = `
+            position: relative;
+            padding: 8px 0;
+            font-size: 1.05rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            color: var(--text-main);
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        `;
+        
+        if (isSelected) {
+            cellStyle += 'border: 2px solid var(--ios-blue); background: rgba(0, 122, 255, 0.1);';
+        } else if (isToday) {
+            cellStyle += 'background: rgba(255,255,255,0.08);';
+        }
+        
+        let dotHtml = '';
+        if (hasData) {
+            dotHtml = `<span style="position: absolute; bottom: 3px; width: 5px; height: 5px; background-color: var(--accent); border-radius: 50%;"></span>`;
+            cellStyle += 'color: var(--accent);';
+        }
+        
+        container.innerHTML += `
+            <div style="${cellStyle}" onclick="selectDatePickerDate('${dateStr}')">
+                ${d}
+                ${dotHtml}
+            </div>
+        `;
+    }
+}
+
+function saveCalcData(isCancel = false) { 
+    const date = document.getElementById('work-date').value;
+    const h = DB.load('taxi_v11_hist', []);
+    
+    if (isCancel) {
+        // 現在の件数を取得して確認メッセージを表示
+        const todayRecords = h.filter(x => x.date === date);
+        const nextCount = todayRecords.length + 1;
+        if (!confirm(`${nextCount}件目をキャンセル扱いにしますか？`)) {
+            return;
+        }
+        
+        h.push({ id: Date.now(), date, gross: 0, net: 0, isCancel: true });
+        DB.save('taxi_v11_hist', h);
+        refreshCalc(true);
+    } else {
+        const gross = parseFloat(document.getElementById('input-gross').value);
+        if (!gross) return;
+        h.push({ id: Date.now(), date, gross, net: Math.floor(gross/1.1) });
+        DB.save('taxi_v11_hist', h);
+        document.getElementById('input-gross').value = '';
+        refreshCalc(true);
+    }
 }
 
 function deleteCalcData(id) { if(confirm('消去しますか？')) { const h = DB.load('taxi_v11_hist', []); DB.save('taxi_v11_hist', h.filter(x => x.id !== id)); refreshCalc(); } }
@@ -721,14 +878,21 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "3.1.0",
-    date: "3.1.0",
-    title: "🎉 アップデートのお知らせ (Ver: 3.1.0)",
+    version: "3.2.0",
+    date: "07/17",
+    title: "🎉 アップデートのお知らせ (Ver: 3.2.0)",
     details: [
-        "📝 売上入力の横に、現在何件目の入力かが一目でわかる『(◯件目)』バッジを追加しました！",
-        "📊 詳細履歴タブに、今現在の出勤日数に応じた目標との差額を示す『目標比 (＋ー金額)』の表示機能を追加しました！"
+        "☕ 休憩時間の手動追加に、5分単位の微調整やクイック設定ができる専用モーダルを導入しました！",
+        "❌ 売上入力の横に『キャンセル』ボタンを配置しました！無線やGOアプリでキャンセルになった際、車内タブレットと件数表示を合わせるためのキャンセル登録に対応しました！"
     ],
     history: [
+        {
+            date: "07/13 12:08",
+            details: [
+                "📝 売上入力の横に、現在何件目の入力かが一目でわかる『(◯件目)』バッジを追加しました！",
+                "📊 詳細履歴タブに、今現在の出勤日数に応じた目標との差額を示す『目標比 (＋ー金額)』の表示機能を追加しました！"
+            ]
+        },
         {
             date: "07/09 18:53",
             details: [
@@ -796,8 +960,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/13 12:08", // テスト用の日付時間
-    prod: "3.1.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
+    test: "07/17 13:25", // テスト用の日付時間
+    prod: "3.2.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
 function applyEnvironmentBranding() {
@@ -835,7 +999,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize TAXI App calculator inputs
     const workDateInput = UI.get('work-date');
     if (workDateInput) {
-        workDateInput.valueAsDate = new Date();
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        workDateInput.value = `${y}-${m}-${d}`;
     }
     const yr = UI.get('hist-year'), mt = UI.get('hist-month');
     if (yr && mt) {
@@ -1071,39 +1239,72 @@ function updateBreakTimerDisplay() {
     }
 }
 
-function addManualBreakSession() {
-    const dateStr = getSelectedDateStr();
-    const stateObj = loadWorkState(dateStr);
-    
-    const startStr = prompt("休憩開始時刻を入力してください (例 12:00)：", "12:00");
-    if (!startStr) return;
-    
-    const endStr = prompt("休憩終了時刻を入力してください (例 13:00)：", "13:00");
-    if (!endStr) return;
-    
-    const timeReg = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (!timeReg.test(startStr) || !timeReg.test(endStr)) {
-        alert("時刻の形式が正しくありません。HH:MM (例 12:00) で入力してください。");
-        return;
+// --- 休憩時間モーダル制御用関数 ---
+function getRoundedTime(minutesOffset = 0) {
+    const now = new Date();
+    if (minutesOffset !== 0) {
+        now.setMinutes(now.getMinutes() + minutesOffset);
     }
+    const m = now.getMinutes();
+    const roundedM = Math.round(m / 5) * 5;
+    now.setMinutes(roundedM);
     
-    const calculateDuration = (s, e) => {
-        const [sh, sm] = s.split(':').map(Number);
-        const [eh, em] = e.split(':').map(Number);
-        let diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff < 0) diff += 24 * 60;
-        return diff;
-    };
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+}
+
+function adjustBreakModalTime(type, diffMinutes) {
+    const inputId = type === 'start' ? 'break-start-time' : 'break-end-time';
+    const input = document.getElementById(inputId);
+    if (!input || !input.value) return;
     
-    const duration = calculateDuration(startStr, endStr);
+    const [h, m] = input.value.split(':').map(Number);
+    const date = new Date();
+    date.setHours(h, m, 0, 0);
+    date.setMinutes(date.getMinutes() + diffMinutes);
     
-    if (!stateObj.breaks) stateObj.breaks = [];
-    stateObj.breaks.push({ start: startStr, end: endStr, duration: duration });
+    // 5分単位に丸める
+    const roundedM = Math.round(date.getMinutes() / 5) * 5;
+    date.setMinutes(roundedM);
     
-    stateObj.breakMinutes = stateObj.breakMinutes + duration;
+    const newH = String(date.getHours()).padStart(2, '0');
+    const newM = String(date.getMinutes()).padStart(2, '0');
+    input.value = `${newH}:${newM}`;
+}
+
+function setQuickBreakDuration(durationMinutes) {
+    const startInput = document.getElementById('break-start-time');
+    const endInput = document.getElementById('break-end-time');
+    if (!startInput || !startInput.value || !endInput) return;
     
-    saveWorkState(dateStr, stateObj);
-    refreshCalc();
+    const [h, m] = startInput.value.split(':').map(Number);
+    const date = new Date();
+    date.setHours(h, m, 0, 0);
+    date.setMinutes(date.getMinutes() + durationMinutes);
+    
+    // 5分単位に丸める
+    const roundedM = Math.round(date.getMinutes() / 5) * 5;
+    date.setMinutes(roundedM);
+    
+    const newH = String(date.getHours()).padStart(2, '0');
+    const newM = String(date.getMinutes()).padStart(2, '0');
+    endInput.value = `${newH}:${newM}`;
+}
+
+function addManualBreakSession() {
+    const modal = document.getElementById('break-modal');
+    if (!modal) return;
+    
+    document.getElementById('break-modal-title').innerText = "☕ 休憩時間の追加";
+    document.getElementById('break-edit-index').value = "-1";
+    document.getElementById('btn-save-break').innerText = "追加する";
+    
+    // デフォルト値: 終了は現在時刻の5分丸め、開始はその30分前
+    document.getElementById('break-end-time').value = getRoundedTime(0);
+    document.getElementById('break-start-time').value = getRoundedTime(-30);
+    
+    modal.style.display = 'flex';
 }
 
 function editBreakSession(index) {
@@ -1112,36 +1313,70 @@ function editBreakSession(index) {
     if (!stateObj.breaks || !stateObj.breaks[index]) return;
     
     const b = stateObj.breaks[index];
-    const newStart = prompt("開始時刻を修正 (例: 12:30)：", b.start);
-    if (newStart === null || newStart === "") return;
-    const newEnd = prompt("終了時刻を修正 (例: 13:30)：", b.end);
-    if (newEnd === null || newEnd === "") return;
+    const modal = document.getElementById('break-modal');
+    if (!modal) return;
     
-    const timeReg = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (!timeReg.test(newStart) || !timeReg.test(newEnd)) {
-        alert("時刻の形式が正しくありません。(例: 12:30)");
+    document.getElementById('break-modal-title').innerText = "☕ 休憩時間の編集";
+    document.getElementById('break-edit-index').value = index;
+    document.getElementById('btn-save-break').innerText = "保存する";
+    
+    document.getElementById('break-start-time').value = b.start;
+    document.getElementById('break-end-time').value = b.end;
+    
+    modal.style.display = 'flex';
+}
+
+function closeBreakModal() {
+    const modal = document.getElementById('break-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function saveManualBreak() {
+    const startStr = document.getElementById('break-start-time').value;
+    const endStr = document.getElementById('break-end-time').value;
+    const editIndex = parseInt(document.getElementById('break-edit-index').value);
+    
+    if (!startStr || !endStr) {
+        alert("開始時刻と終了時刻を入力してください。");
         return;
     }
     
-    const calculateDuration = (startStr, endStr) => {
-        const [sh, sm] = startStr.split(':').map(Number);
-        const [eh, em] = endStr.split(':').map(Number);
+    const dateStr = getSelectedDateStr();
+    const stateObj = loadWorkState(dateStr);
+    
+    const calculateDuration = (s, e) => {
+        const [sh, sm] = s.split(':').map(Number);
+        const [eh, em] = e.split(':').map(Number);
         let diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff < 0) diff += 24 * 60;
+        if (diff < 0) diff += 24 * 60; // 日またぎ対応
         return diff;
     };
     
-    const oldDuration = b.duration;
-    const newDuration = calculateDuration(newStart, newEnd);
+    const duration = calculateDuration(startStr, endStr);
     
-    b.start = newStart;
-    b.end = newEnd;
-    b.duration = newDuration;
+    if (duration === 0) {
+        alert("休憩時間が0分になっています。正しい時間を選択してください。");
+        return;
+    }
     
-    stateObj.breakMinutes = Math.max(0, stateObj.breakMinutes - oldDuration + newDuration);
+    if (!stateObj.breaks) stateObj.breaks = [];
+    
+    if (editIndex === -1) {
+        // 新規追加
+        stateObj.breaks.push({ start: startStr, end: endStr, duration: duration });
+    } else {
+        // 編集保存
+        if (stateObj.breaks[editIndex]) {
+            stateObj.breaks[editIndex] = { start: startStr, end: endStr, duration: duration };
+        }
+    }
+    
+    // 合計休憩時間の再計算
+    stateObj.breakMinutes = stateObj.breaks.reduce((sum, b) => sum + b.duration, 0);
     
     saveWorkState(dateStr, stateObj);
     refreshCalc();
+    closeBreakModal();
 }
 
 function deleteBreakSession(index) {
