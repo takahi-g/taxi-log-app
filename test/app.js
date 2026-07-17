@@ -138,7 +138,7 @@ function updateNormPreview() {
     const finalNorm = Math.max(0, currentNorm - netInput);
     normEl.innerText = Math.floor(finalNorm).toLocaleString();
     if (normGrossEl) {
-        normGrossEl.innerText = Math.floor(Math.ceil(finalNorm * 1.1)).toLocaleString();
+        normGrossEl.innerText = Math.round(finalNorm * 1.1).toLocaleString();
     }
 }
 
@@ -202,7 +202,7 @@ function refreshCalc(isSave = false) {
         normEl.setAttribute('data-base-norm', finalTodayNorm + (isSave ? 0 : todayNetSum));
     }
     if (normGrossEl) {
-        normGrossEl.innerText = Math.floor(Math.ceil(finalTodayNorm * 1.1)).toLocaleString();
+        normGrossEl.innerText = Math.round(finalTodayNorm * 1.1).toLocaleString();
     }
     const progressEl = document.getElementById('disp-progress');
     if (progressEl) {
@@ -878,9 +878,9 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "20260717_1322",
-    date: "07/17 13:22",
-    title: "🎉 アップデートのお知らせ (Ver: 07/17 13:22)",
+    version: "20260717_1325",
+    date: "07/17 13:25",
+    title: "🎉 アップデートのお知らせ (Ver: 07/17 13:25)",
     details: [
         "☕ 休憩時間の手動追加に、5分単位の微調整やクイック設定ができる専用モーダルを導入しました！",
         "❌ 売上入力の横に『キャンセル』ボタンを配置しました！無線やGOアプリでキャンセルになった際、車内タブレットと件数表示を合わせるためのキャンセル登録に対応しました！"
@@ -960,7 +960,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/17 13:22", // テスト用の日付時間
+    test: "07/17 13:25", // テスト用の日付時間
     prod: "3.0.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
