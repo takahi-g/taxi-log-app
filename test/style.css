@@ -410,12 +410,8 @@ input:checked + .slider:before { transform: translateX(24px); }
 .arrow { transition: 0.2s; color: var(--text-muted); font-size: 0.8rem; margin-left: 6px; display: inline-block; }
 
 .detail-item {
-    display: grid;
-    grid-template-columns: 52px 1fr 1fr auto;
-    align-items: center;
-    column-gap: 8px;
-    padding: 10px 0;
-    min-height: 52px;
+    display: block;
+    padding: 12px 0;
     border-bottom: 1px solid var(--border);
     box-sizing: border-box;
 }
