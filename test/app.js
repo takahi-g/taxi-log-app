@@ -457,11 +457,11 @@ function updateHistoryTab(history, sets) {
                 if (h.isCancel) {
                     return `
                         <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); opacity: 0.8;">
-                            <div>
+                            <div style="display: flex; flex-direction: column; justify-content: center;">
                                 <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
                                 <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                             </div>
-                            <div class="detail-actions" style="display: flex; gap: 8px; align-items: center;">
+                            <div class="detail-actions" style="display: flex; gap: 8px; align-items: center; align-self: center;">
                                 <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
                                 <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                             </div>
@@ -470,14 +470,14 @@ function updateHistoryTab(history, sets) {
                 }
                 return `
                     <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <div>
+                        <div style="display: flex; flex-direction: column; justify-content: center;">
                             <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
                             <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 2px; flex-wrap: nowrap; white-space: nowrap;">
                                 <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
                                 <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
                             </div>
                         </div>
-                        <div class="detail-actions" style="display: flex; gap: 8px; align-items: center;">
+                        <div class="detail-actions" style="display: flex; gap: 8px; align-items: center; align-self: center;">
                             <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
                             <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
                             <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
@@ -519,11 +519,11 @@ function updateHistoryTab(history, sets) {
             if (h.isCancel) {
                 return `
                     <div class="detail-item" style="opacity: 0.8;">
-                        <div>
+                        <div style="display: flex; flex-direction: column; justify-content: center;">
                             <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
                             <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                         </div>
-                        <div class="detail-actions">
+                        <div class="detail-actions" style="display: flex; gap: 8px; align-items: center; align-self: center;">
                             <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
                             <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
@@ -532,14 +532,14 @@ function updateHistoryTab(history, sets) {
             }
             return `
                 <div class="detail-item">
-                    <div>
+                    <div style="display: flex; flex-direction: column; justify-content: center;">
                         <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
                         <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 4px; flex-wrap: nowrap; white-space: nowrap;">
                             <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
                             <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
                         </div>
                     </div>
-                    <div class="detail-actions">
+                    <div class="detail-actions" style="display: flex; gap: 8px; align-items: center; align-self: center;">
                         <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
                         <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
                         <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
