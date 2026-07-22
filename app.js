@@ -224,7 +224,7 @@ function refreshCalc(isSave = false) {
                 <div style="font-size: 0.85rem; color: #aaa; font-weight: 600;">今日の合計売上</div>
                 <div style="display: flex; gap: 20px; align-items: baseline; justify-content: center; flex-wrap: wrap;">
                     <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900;">
-                        <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税抜</small>${Math.floor(todayNetSum).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
+                        <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税抜</small>${Math.round(todayGrossSum / 1.1).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
                     </div>
                     <div style="color: var(--success); font-size: 1.8rem; font-weight: 900;">
                         <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税込</small>${Math.floor(todayGrossSum).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
@@ -878,14 +878,20 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "3.2.0",
-    date: "07/17",
-    title: "🎉 アップデートのお知らせ (Ver: 3.2.0)",
+    version: "3.2.1",
+    date: "07/23",
+    title: "🎉 アップデートのお知らせ (Ver: 3.2.1)",
     details: [
-        "☕ 休憩時間の手動追加に、5分単位の微調整やクイック設定ができる専用モーダルを導入しました！",
-        "❌ 売上入力の横に『キャンセル』ボタンを配置しました！無線やGOアプリでキャンセルになった際、車内タブレットと件数表示を合わせるためのキャンセル登録に対応しました！"
+        "📊 今日の合計売上表示において、個別計算の端数累積による税抜と税込の金額ズレを解消しました！"
     ],
     history: [
+        {
+            date: "07/17",
+            details: [
+                "☕ 休憩時間の手動追加に、5分単位の微調整やクイック設定ができる専用モーダルを導入しました！",
+                "❌ 売上入力の横に『キャンセル』ボタンを配置しました！無線やGOアプリでキャンセルになった際、車内タブレットと件数表示を合わせるためのキャンセル登録に対応しました！"
+            ]
+        },
         {
             date: "07/13 12:08",
             details: [
@@ -960,8 +966,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/17 13:25", // テスト用の日付時間
-    prod: "3.2.0"       // 本番用のバージョン番号 (メジャー.新機能.修正)
+    test: "07/23 03:05", // テスト用の日付時間
+    prod: "3.2.1"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
 function applyEnvironmentBranding() {
