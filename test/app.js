@@ -462,7 +462,7 @@ function updateHistoryTab(history, sets) {
                                 <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                             </div>
                             <div class="detail-actions" style="display: flex; gap: 8px; align-items: center; align-self: center;">
-                                <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
+                                <button class="btn-insert" onclick="insertCalcData(${h.id})" style="font-weight: 900; font-size: 1.3rem; line-height: 1; padding: 0 0 3px 0;">+</button>
                                 <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                             </div>
                         </div>
@@ -478,7 +478,7 @@ function updateHistoryTab(history, sets) {
                             </div>
                         </div>
                         <div class="detail-actions" style="display: flex; gap: 8px; align-items: center; align-self: center;">
-                            <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
+                            <button class="btn-insert" onclick="insertCalcData(${h.id})" style="font-weight: 900; font-size: 1.3rem; line-height: 1; padding: 0 0 3px 0;">+</button>
                             <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
                             <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
@@ -524,7 +524,7 @@ function updateHistoryTab(history, sets) {
                             <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                         </div>
                         <div class="detail-actions" style="display: flex; gap: 8px; align-items: center; align-self: center;">
-                            <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
+                            <button class="btn-insert" onclick="insertCalcData(${h.id})" style="font-weight: 900; font-size: 1.3rem; line-height: 1; padding: 0 0 3px 0;">+</button>
                             <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
                     </div>
@@ -540,7 +540,7 @@ function updateHistoryTab(history, sets) {
                         </div>
                     </div>
                     <div class="detail-actions" style="display: flex; gap: 8px; align-items: center; align-self: center;">
-                        <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
+                        <button class="btn-insert" onclick="insertCalcData(${h.id})" style="font-weight: 900; font-size: 1.3rem; line-height: 1; padding: 0 0 3px 0;">+</button>
                         <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
                         <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                     </div>
@@ -1034,7 +1034,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/23 03:30", // テスト用の日付時間
+    test: "07/23 03:32", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
