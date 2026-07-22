@@ -456,29 +456,29 @@ function updateHistoryTab(history, sets) {
             const itemsHtml = selectedGroup.map((h, i) => {
                 if (h.isCancel) {
                     return `
-                        <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); opacity: 0.8;">
-                            <div>
-                                <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                                <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
-                            </div>
+                        <div class="detail-item" style="opacity: 0.8;">
+                            <div style="font-size: 0.88rem; color: var(--ios-blue); font-weight: 700; width: 40px; flex-shrink: 0;">${i+1}件目</div>
+                            <div style="font-size: 1rem; font-weight: 700; color: #ff453a; text-decoration: line-through; flex: 2; text-align: center;">キャンセル</div>
                             <div class="detail-actions">
-                                <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
+                                <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
+                                <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                             </div>
                         </div>
                     `;
                 }
                 return `
-                    <div class="detail-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <div>
-                            <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                            <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 2px; flex-wrap: nowrap; white-space: nowrap;">
-                                <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
-                                <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
-                            </div>
+                    <div class="detail-item">
+                        <div style="font-size: 0.88rem; color: var(--ios-blue); font-weight: 700; width: 40px; flex-shrink: 0;">${i+1}件目</div>
+                        <div style="color: #FFD700; font-weight: 700; font-size: 1.08rem; text-align: right; flex: 1; white-space: nowrap;">
+                            ${h.net.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
+                        </div>
+                        <div style="color: var(--success); font-weight: 700; font-size: 1.12rem; text-align: right; flex: 1.1; white-space: nowrap;">
+                            ${h.gross.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
                         </div>
                         <div class="detail-actions">
-                            <button class="btn-pencil" onclick="editCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">✏️</button>
-                            <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
+                            <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
+                            <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
+                            <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -494,6 +494,12 @@ function updateHistoryTab(history, sets) {
                         </div>
                     </div>
                     <div class="day-details" style="display: block;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;">
+                            <div style="width: 40px; flex-shrink: 0;">件数</div>
+                            <div style="color: #FFD700; font-weight: bold; flex: 1; text-align: right;">税抜 (金)</div>
+                            <div style="color: var(--success); font-weight: bold; flex: 1.1; text-align: right;">税込 (緑)</div>
+                            <div style="width: 112px; text-align: right; flex-shrink: 0;">操作</div>
+                        </div>
                         ${itemsHtml}
                     </div>
                 </section>
@@ -517,11 +523,10 @@ function updateHistoryTab(history, sets) {
             if (h.isCancel) {
                 return `
                     <div class="detail-item" style="opacity: 0.8;">
-                        <div>
-                            <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                            <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
-                        </div>
+                        <div style="font-size: 0.88rem; color: var(--ios-blue); font-weight: 700; width: 40px; flex-shrink: 0;">${i+1}件目</div>
+                        <div style="font-size: 1rem; font-weight: 700; color: #ff453a; text-decoration: line-through; flex: 2; text-align: center;">キャンセル</div>
                         <div class="detail-actions">
+                            <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
                             <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
                     </div>
@@ -529,14 +534,15 @@ function updateHistoryTab(history, sets) {
             }
             return `
                 <div class="detail-item">
-                    <div>
-                        <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                        <div class="detail-value" style="display: flex; gap: 10px; font-size: 1.15rem; align-items: baseline; margin-top: 4px; flex-wrap: nowrap; white-space: nowrap;">
-                            <span style="color: #FFD700; font-weight: 700; white-space: nowrap;">${h.net.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">抜</small></span>
-                            <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
-                        </div>
+                    <div style="font-size: 0.88rem; color: var(--ios-blue); font-weight: 700; width: 40px; flex-shrink: 0;">${i+1}件目</div>
+                    <div style="color: #FFD700; font-weight: 700; font-size: 1.08rem; text-align: right; flex: 1; white-space: nowrap;">
+                        ${h.net.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
+                    </div>
+                    <div style="color: var(--success); font-weight: 700; font-size: 1.12rem; text-align: right; flex: 1.1; white-space: nowrap;">
+                        ${h.gross.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
                     </div>
                     <div class="detail-actions">
+                        <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
                         <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
                         <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                     </div>
@@ -544,7 +550,8 @@ function updateHistoryTab(history, sets) {
             `;
         });
         dayHtml.reverse();
-        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${dayHtml.join('')}</div></div>`;
+        const legendHtml = `<div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;"><div style="width: 40px; flex-shrink: 0;">件数</div><div style="color: #FFD700; font-weight: bold; flex: 1; text-align: right;">税抜 (金)</div><div style="color: var(--success); font-weight: bold; flex: 1.1; text-align: right;">税込 (緑)</div><div style="width: 112px; text-align: right; flex-shrink: 0;">操作</div></div>`;
+        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${legendHtml}${dayHtml.join('')}</div></div>`;
     }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">過去のデータなし</div>';
 }
 
@@ -557,6 +564,76 @@ function editCalcData(id) {
             DB.save('taxi_v11_hist', h); refreshCalc();
         }
     }
+}
+
+function insertCalcData(targetId) {
+    const h = DB.load('taxi_v11_hist', []);
+    const targetItem = h.find(x => x.id === targetId);
+    if (!targetItem) return;
+    
+    const date = targetItem.date;
+    // この日の売上をID（件数）順に並べる
+    const dayItems = h.filter(x => x.date === date).sort((a, b) => a.id - b.id);
+    const targetIdx = dayItems.findIndex(x => x.id === targetId);
+    if (targetIdx === -1) return;
+    
+    // 中間のIDを算出する
+    const prevItem = targetIdx > 0 ? dayItems[targetIdx - 1] : null;
+    const nextItem = dayItems[targetIdx];
+    
+    const prevId = prevItem ? prevItem.id : null;
+    const nextId = nextItem.id;
+    
+    let newId;
+    if (prevId) {
+        newId = Math.floor((prevId + nextId) / 2);
+        // 万が一IDの衝突（差が1以下）が起きた場合は、元のID群を1000単位で再配置して隙間を作る
+        if (newId <= prevId || newId >= nextId) {
+            alert("IDスペースの枯渇により割り込みに失敗しました。時間をおいて再度お試しいただくか、一度レコードを削除して入れ替えてください。");
+            return;
+        }
+    } else {
+        newId = nextId - 1000;
+    }
+    
+    // プロンプトでの入力
+    const displayNum = targetIdx + 1;
+    const inputVal = prompt(`${displayNum}件目に売上を割り込み追加します。\n金額(税込)を入力、またはキャンセルにする場合は 'c' と入力してください:`);
+    
+    if (inputVal === null || inputVal.trim() === "") return;
+    
+    let gross = 0;
+    let net = 0;
+    let isCancel = false;
+    
+    if (inputVal.trim().toLowerCase() === 'c') {
+        if (!confirm(`${displayNum}件目をキャンセル扱いで割り込ませますか？`)) {
+            return;
+        }
+        isCancel = true;
+    } else {
+        gross = parseFloat(inputVal);
+        if (isNaN(gross) || gross <= 0) {
+            alert("有効な数値を入力してください。");
+            return;
+        }
+        if (!confirm(`${displayNum}件目に税込 ${gross.toLocaleString()}円 を割り込み追加しますか？`)) {
+            return;
+        }
+        net = Math.floor(gross / 1.1);
+    }
+    
+    // 新しいレコードを追加
+    h.push({
+        id: newId,
+        date: date,
+        gross: gross,
+        net: net,
+        isCancel: isCancel
+    });
+    
+    DB.save('taxi_v11_hist', h);
+    refreshCalc(true);
 }
 
 function scrollToCalcDate(dateStr) {
@@ -745,6 +822,8 @@ function saveCalcSettings() {
     }
     
     sets.baseStartTime = document.getElementById('set-base-start-time').value || CONFIG.DEFAULT_START_TIME;
+    const cutOffEl = document.getElementById('set-cutoff-time');
+    sets.dayCutOffTime = cutOffEl ? cutOffEl.value || "08:00" : "08:00";
     sets.standardWorkHours = parseFloat(document.getElementById('set-standard-work-hours').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-hours').value) : CONFIG.DEFAULT_STANDARD_WORK_HOURS;
     sets.standardWorkMinutes = parseFloat(document.getElementById('set-standard-work-minutes').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-minutes').value) : CONFIG.DEFAULT_STANDARD_WORK_MINUTES;
     
@@ -878,14 +957,20 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "3.2.0",
-    date: "07/17",
-    title: "🎉 アップデートのお知らせ (Ver: 3.2.0)",
+    version: "3.2.2",
+    date: "3.2.2",
+    title: "🎉 アップデートのお知らせ (Ver: 3.2.2)",
     details: [
-        "☕ 休憩時間の手動追加に、5分単位の微調整やクイック設定ができる専用モーダルを導入しました！",
-        "❌ 売上入力の横に『キャンセル』ボタンを配置しました！無線やGOアプリでキャンセルになった際、車内タブレットと件数表示を合わせるためのキャンセル登録に対応しました！"
+        "🌙 【締め時間機能】アプリを開いた際に、日をまたいだ深夜・早朝勤務でも日付が自動で翌日にならず、直前の勤務日(前日)として判定される『日付切替時刻』機能を搭載しました！(デフォルト: 朝8:00切り替え。設定画面で変更可能)"
     ],
     history: [
+        {
+            date: "07/17 13:22",
+            details: [
+                "☕ 休憩時間の手動追加に、5分単位の微調整やクイック設定ができる専用モーダルを導入しました！",
+                "❌ 売上入力の横に『キャンセル』ボタンを配置しました！無線やGOアプリでキャンセルになった際、車内タブレットと件数表示を合わせるためのキャンセル登録に対応しました！"
+            ]
+        },
         {
             date: "07/13 12:08",
             details: [
@@ -943,7 +1028,7 @@ function checkAndShowUpdateModal() {
     }
 
     const lastSeen = localStorage.getItem('taxi_last_seen_version');
-    if (lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "3.2.0") {
+    if (lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "20260717_1322" && lastSeen !== "20260717_1325") {
         const titleEl = document.getElementById('update-modal-title');
         const detailsEl = document.getElementById('update-modal-details');
         if (titleEl && detailsEl) {
@@ -960,8 +1045,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/23 03:05", // テスト用の日付時間
-    prod: "3.2.1"       // 本番用のバージョン番号 (メジャー.新機能.修正)
+    test: "07/23 04:35", // テスト用の日付時間
+    prod: "3.2.2"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {
@@ -991,19 +1076,34 @@ function applyEnvironmentBranding() {
     }
 }
 
+function getShiftWorkDate(d = new Date()) {
+    const sets = DB.load('taxi_v11_sets', { dayCutOffTime: "08:00" });
+    const cutOffTime = sets.dayCutOffTime || "08:00";
+    const [cutHour, cutMinute] = cutOffTime.split(':').map(Number);
+    
+    const currentMinutes = d.getHours() * 60 + d.getMinutes();
+    const cutOffMinutes = (isNaN(cutHour) ? 8 : cutHour) * 60 + (isNaN(cutMinute) ? 0 : cutMinute);
+    
+    let targetDate = new Date(d);
+    if (currentMinutes < cutOffMinutes) {
+        targetDate.setDate(targetDate.getDate() - 1);
+    }
+    
+    const y = targetDate.getFullYear();
+    const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const day = String(targetDate.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     applyEnvironmentBranding();
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
     setupEventListeners();
 
-    // Initialize TAXI App calculator inputs
+    // Initialize TAXI App calculator inputs (締め時間を考慮した勤務日を自動初期セット)
     const workDateInput = UI.get('work-date');
     if (workDateInput) {
-        const today = new Date();
-        const y = today.getFullYear();
-        const m = String(today.getMonth() + 1).padStart(2, '0');
-        const d = String(today.getDate()).padStart(2, '0');
-        workDateInput.value = `${y}-${m}-${d}`;
+        workDateInput.value = getShiftWorkDate();
     }
     const yr = UI.get('hist-year'), mt = UI.get('hist-month');
     if (yr && mt) {
@@ -1018,7 +1118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for(let m=1; m<=12; m++) { let o = document.createElement('option'); o.value=m; o.text=m+'月'; if(m === new Date().getMonth()+1) o.selected = true; sm.add(o); }
     }
     
-    const setsInit = DB.load('taxi_v11_sets', { goal: 550000, days: 12, baseStartTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
+    const setsInit = DB.load('taxi_v11_sets', { goal: 550000, days: 12, baseStartTime: "08:00", dayCutOffTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
     const initY = new Date().getFullYear();
     const initM = new Date().getMonth() + 1;
     const mSetsInit = getMonthlySettings(initY, initM);
@@ -1032,6 +1132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMonthlySettings();
 
     if (UI.get('set-base-start-time')) UI.get('set-base-start-time').value = setsInit.baseStartTime || "08:00";
+    if (UI.get('set-cutoff-time')) UI.get('set-cutoff-time').value = setsInit.dayCutOffTime || "08:00";
     if (UI.get('set-standard-work-hours')) UI.get('set-standard-work-hours').value = setsInit.standardWorkHours !== undefined ? setsInit.standardWorkHours : 19;
     if (UI.get('set-standard-work-minutes')) UI.get('set-standard-work-minutes').value = setsInit.standardWorkMinutes !== undefined ? setsInit.standardWorkMinutes : 40;
     refreshCalc();
