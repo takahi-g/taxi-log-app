@@ -457,42 +457,28 @@ function updateHistoryTab(history, sets) {
                 if (h.isCancel) {
                     return `
                         <div class="detail-item" style="opacity: 0.8;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                                <div class="detail-label" style="font-size: 0.9rem; color: var(--ios-blue); font-weight: 700;">${i+1}件目</div>
-                                <div class="detail-actions">
-                                    <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
-                                    <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
-                                </div>
-                            </div>
-                            <div style="background: rgba(255,69,58,0.08); padding: 8px 12px; border-radius: 8px; font-size: 1.05rem; font-weight: 700; color: #ff453a; text-decoration: line-through; text-align: center;">
-                                キャンセル
+                            <div style="font-size: 0.8rem; color: var(--ios-blue); font-weight: 700; width: 38px; flex-shrink: 0;">${i+1}件目</div>
+                            <div style="font-size: 0.95rem; font-weight: 700; color: #ff453a; text-decoration: line-through; flex: 2; text-align: center;">キャンセル</div>
+                            <div class="detail-actions">
+                                <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
+                                <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                             </div>
                         </div>
                     `;
                 }
                 return `
                     <div class="detail-item">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <div class="detail-label" style="font-size: 0.9rem; color: var(--ios-blue); font-weight: 700;">${i+1}件目</div>
-                            <div class="detail-actions">
-                                <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
-                                <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
-                                <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
-                            </div>
+                        <div style="font-size: 0.8rem; color: var(--ios-blue); font-weight: 700; width: 38px; flex-shrink: 0;">${i+1}件目</div>
+                        <div style="color: #FFD700; font-weight: 700; font-size: 0.98rem; text-align: right; flex: 1; white-space: nowrap;">
+                            ${h.net.toLocaleString()}<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
                         </div>
-                        <div style="background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 0.8rem; color: #8e8e93; font-weight: 600;">税抜</span>
-                                <span style="color: #FFD700; font-weight: 700; font-size: 1.1rem; white-space: nowrap;">
-                                    ${h.net.toLocaleString()} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
-                                </span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="font-size: 0.8rem; color: #8e8e93; font-weight: 600;">税込</span>
-                                <span style="color: var(--success); font-weight: 700; font-size: 1.15rem; white-space: nowrap;">
-                                    ${h.gross.toLocaleString()} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
-                                </span>
-                            </div>
+                        <div style="color: var(--success); font-weight: 700; font-size: 1.02rem; text-align: right; flex: 1.1; white-space: nowrap;">
+                            ${h.gross.toLocaleString()}<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
+                        </div>
+                        <div class="detail-actions">
+                            <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
+                            <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
+                            <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -508,6 +494,12 @@ function updateHistoryTab(history, sets) {
                         </div>
                     </div>
                     <div class="day-details" style="display: block;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;">
+                            <div style="width: 38px; flex-shrink: 0;">件数</div>
+                            <div style="color: #FFD700; font-weight: bold; flex: 1; text-align: right;">税抜 (金)</div>
+                            <div style="color: var(--success); font-weight: bold; flex: 1.1; text-align: right;">税込 (緑)</div>
+                            <div style="width: 104px; text-align: right; flex-shrink: 0;">操作</div>
+                        </div>
                         ${itemsHtml}
                     </div>
                 </section>
@@ -531,48 +523,35 @@ function updateHistoryTab(history, sets) {
             if (h.isCancel) {
                 return `
                     <div class="detail-item" style="opacity: 0.8;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <div class="detail-label" style="font-size: 0.9rem; color: var(--ios-blue); font-weight: 700;">${i+1}件目</div>
-                            <div class="detail-actions">
-                                <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
-                                <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
-                            </div>
-                        </div>
-                        <div style="background: rgba(255,69,58,0.08); padding: 8px 12px; border-radius: 8px; font-size: 1.05rem; font-weight: 700; color: #ff453a; text-decoration: line-through; text-align: center;">
-                            キャンセル
+                        <div style="font-size: 0.8rem; color: var(--ios-blue); font-weight: 700; width: 38px; flex-shrink: 0;">${i+1}件目</div>
+                        <div style="font-size: 0.95rem; font-weight: 700; color: #ff453a; text-decoration: line-through; flex: 2; text-align: center;">キャンセル</div>
+                        <div class="detail-actions">
+                            <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
+                            <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
                     </div>
                 `;
             }
             return `
                 <div class="detail-item">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                        <div class="detail-label" style="font-size: 0.9rem; color: var(--ios-blue); font-weight: 700;">${i+1}件目</div>
-                        <div class="detail-actions">
-                            <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
-                            <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
-                            <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
-                        </div>
+                    <div style="font-size: 0.8rem; color: var(--ios-blue); font-weight: 700; width: 38px; flex-shrink: 0;">${i+1}件目</div>
+                    <div style="color: #FFD700; font-weight: 700; font-size: 0.98rem; text-align: right; flex: 1; white-space: nowrap;">
+                        ${h.net.toLocaleString()}<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
                     </div>
-                    <div style="background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 4px; border: 1px solid rgba(255,255,255,0.05);">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.8rem; color: #8e8e93; font-weight: 600;">税抜</span>
-                            <span style="color: #FFD700; font-weight: 700; font-size: 1.1rem; white-space: nowrap;">
-                                ${h.net.toLocaleString()} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
-                            </span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.8rem; color: #8e8e93; font-weight: 600;">税込</span>
-                            <span style="color: var(--success); font-weight: 700; font-size: 1.15rem; white-space: nowrap;">
-                                ${h.gross.toLocaleString()} <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
-                            </span>
-                        </div>
+                    <div style="color: var(--success); font-weight: 700; font-size: 1.02rem; text-align: right; flex: 1.1; white-space: nowrap;">
+                        ${h.gross.toLocaleString()}<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
+                        <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
+                        <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                     </div>
                 </div>
             `;
         });
         dayHtml.reverse();
-        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${dayHtml.join('')}</div></div>`;
+        const legendHtml = `<div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;"><div style="width: 38px; flex-shrink: 0;">件数</div><div style="color: #FFD700; font-weight: bold; flex: 1; text-align: right;">税抜 (金)</div><div style="color: var(--success); font-weight: bold; flex: 1.1; text-align: right;">税込 (緑)</div><div style="width: 104px; text-align: right; flex-shrink: 0;">操作</div></div>`;
+        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${legendHtml}${dayHtml.join('')}</div></div>`;
     }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">過去のデータなし</div>';
 }
 
@@ -1058,7 +1037,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/23 04:10", // テスト用の日付時間
+    test: "07/23 04:15", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
