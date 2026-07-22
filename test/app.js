@@ -472,17 +472,9 @@ function updateHistoryTab(history, sets) {
                     <div class="detail-item">
                         <div style="display: flex; flex-direction: column; justify-content: center;">
                             <div class="detail-label" style="font-size:0.95rem; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                            <div class="detail-value" style="display: flex; gap: 12px; align-items: baseline; margin-top: 4px; flex-wrap: nowrap; white-space: nowrap; line-height: 1;">
-                                <span style="color: #FFD700; font-weight: 700; display: inline-flex; align-items: baseline; line-height: 1;">
-                                    <span style="font-size: 1.15rem; line-height: 1;">${h.net.toLocaleString()}</span>
-                                    <span style="font-size: 0.8rem; margin-left: 1px; line-height: 1; vertical-align: baseline;">円</span>
-                                    <span style="font-size: 0.7rem; color: #8e8e93; font-weight: normal; margin-left: 2px; line-height: 1; vertical-align: baseline;">抜</span>
-                                </span>
-                                <span style="color: var(--success); font-weight: 700; display: inline-flex; align-items: baseline; line-height: 1;">
-                                    <span style="font-size: 1.15rem; line-height: 1;">${h.gross.toLocaleString()}</span>
-                                    <span style="font-size: 0.8rem; margin-left: 1px; line-height: 1; vertical-align: baseline;">円</span>
-                                    <span style="font-size: 0.7rem; color: #8e8e93; font-weight: normal; margin-left: 2px; line-height: 1; vertical-align: baseline;">込</span>
-                                </span>
+                            <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; margin-top: 4px; display: flex; gap: 15px;">
+                                <span style="color: #FFD700;">${h.net.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; margin-left: 1px;">円<small style="color: #8e8e93; margin-left: 2px;">抜</small></span></span>
+                                <span style="color: var(--success);">${h.gross.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; margin-left: 1px;">円<small style="color: #8e8e93; margin-left: 2px;">込</small></span></span>
                             </div>
                         </div>
                         <div class="detail-actions">
@@ -542,17 +534,9 @@ function updateHistoryTab(history, sets) {
                 <div class="detail-item">
                     <div style="display: flex; flex-direction: column; justify-content: center;">
                         <div class="detail-label" style="font-size:0.95rem; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
-                        <div class="detail-value" style="display: flex; gap: 12px; align-items: baseline; margin-top: 4px; flex-wrap: nowrap; white-space: nowrap; line-height: 1;">
-                            <span style="color: #FFD700; font-weight: 700; display: inline-flex; align-items: baseline; line-height: 1;">
-                                <span style="font-size: 1.15rem; line-height: 1;">${h.net.toLocaleString()}</span>
-                                <span style="font-size: 0.8rem; margin-left: 1px; line-height: 1; vertical-align: baseline;">円</span>
-                                <span style="font-size: 0.7rem; color: #8e8e93; font-weight: normal; margin-left: 2px; line-height: 1; vertical-align: baseline;">抜</span>
-                            </span>
-                            <span style="color: var(--success); font-weight: 700; display: inline-flex; align-items: baseline; line-height: 1;">
-                                <span style="font-size: 1.15rem; line-height: 1;">${h.gross.toLocaleString()}</span>
-                                <span style="font-size: 0.8rem; margin-left: 1px; line-height: 1; vertical-align: baseline;">円</span>
-                                <span style="font-size: 0.7rem; color: #8e8e93; font-weight: normal; margin-left: 2px; line-height: 1; vertical-align: baseline;">込</span>
-                            </span>
+                        <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; margin-top: 4px; display: flex; gap: 15px;">
+                            <span style="color: #FFD700;">${h.net.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; margin-left: 1px;">円<small style="color: #8e8e93; margin-left: 2px;">抜</small></span></span>
+                            <span style="color: var(--success);">${h.gross.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; margin-left: 1px;">円<small style="color: #8e8e93; margin-left: 2px;">込</small></span></span>
                         </div>
                     </div>
                     <div class="detail-actions">
@@ -1050,7 +1034,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/23 03:53", // テスト用の日付時間
+    test: "07/23 03:55", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
