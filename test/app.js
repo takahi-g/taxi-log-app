@@ -1034,7 +1034,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/23 03:21", // テスト用の日付時間
+    test: "07/23 03:30", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
