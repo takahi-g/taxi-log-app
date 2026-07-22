@@ -461,9 +461,9 @@ function updateHistoryTab(history, sets) {
                                 <div class="detail-label" style="font-size:0.95rem; font-weight:700; color:var(--ios-blue); margin-bottom: 2px;">${i+1}件目</div>
                                 <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                             </div>
-                            <div class="detail-actions">
-                                <button onclick="insertCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px; margin-right:4px;">➕</button>
-                                <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
+                            <div class="detail-actions" style="display: flex; gap: 8px; align-items: center;">
+                                <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
+                                <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                             </div>
                         </div>
                     `;
@@ -477,10 +477,10 @@ function updateHistoryTab(history, sets) {
                                 <span style="color: var(--success); font-weight: 700; white-space: nowrap;">${h.gross.toLocaleString()}円<small style="font-size: 0.75rem; color: #8e8e93; font-weight: normal; margin-left: 2px;">込</small></span>
                             </div>
                         </div>
-                        <div class="detail-actions">
-                            <button onclick="insertCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px; margin-right:4px;">➕</button>
-                            <button class="btn-pencil" onclick="editCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">✏️</button>
-                            <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
+                        <div class="detail-actions" style="display: flex; gap: 8px; align-items: center;">
+                            <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
+                            <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
+                            <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
                     </div>
                 `;
@@ -524,7 +524,7 @@ function updateHistoryTab(history, sets) {
                             <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                         </div>
                         <div class="detail-actions">
-                            <button onclick="insertCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px; margin-right:4px;">➕</button>
+                            <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
                             <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
                     </div>
@@ -540,7 +540,7 @@ function updateHistoryTab(history, sets) {
                         </div>
                     </div>
                     <div class="detail-actions">
-                        <button onclick="insertCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px; margin-right:4px;">➕</button>
+                        <button class="btn-insert" onclick="insertCalcData(${h.id})">➕</button>
                         <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
                         <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                     </div>
@@ -1034,8 +1034,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/23 03:16", // テスト用の日付時間
-    prod: "3.2.1"       // 本番用のバージョン番号 (メジャー.新機能.修正)
+    test: "07/23 03:21", // テスト用の日付時間
+    prod: "3.2.1"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {
