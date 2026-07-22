@@ -943,7 +943,7 @@ function checkAndShowUpdateModal() {
     }
 
     const lastSeen = localStorage.getItem('taxi_last_seen_version');
-    if (lastSeen !== APP_UPDATE_INFO.version) {
+    if (lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "20260717_1322" && lastSeen !== "20260717_1325") {
         const titleEl = document.getElementById('update-modal-title');
         const detailsEl = document.getElementById('update-modal-details');
         if (titleEl && detailsEl) {
