@@ -822,6 +822,8 @@ function saveCalcSettings() {
     }
     
     sets.baseStartTime = document.getElementById('set-base-start-time').value || CONFIG.DEFAULT_START_TIME;
+    const cutOffEl = document.getElementById('set-cutoff-time');
+    sets.dayCutOffTime = cutOffEl ? cutOffEl.value || "08:00" : "08:00";
     sets.standardWorkHours = parseFloat(document.getElementById('set-standard-work-hours').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-hours').value) : CONFIG.DEFAULT_STANDARD_WORK_HOURS;
     sets.standardWorkMinutes = parseFloat(document.getElementById('set-standard-work-minutes').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-minutes').value) : CONFIG.DEFAULT_STANDARD_WORK_MINUTES;
     
@@ -1037,7 +1039,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/23 04:20", // テスト用の日付時間
+    test: "07/23 04:25", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -1068,19 +1070,34 @@ function applyEnvironmentBranding() {
     }
 }
 
+function getShiftWorkDate(d = new Date()) {
+    const sets = DB.load('taxi_v11_sets', { dayCutOffTime: "08:00" });
+    const cutOffTime = sets.dayCutOffTime || "08:00";
+    const [cutHour, cutMinute] = cutOffTime.split(':').map(Number);
+    
+    const currentMinutes = d.getHours() * 60 + d.getMinutes();
+    const cutOffMinutes = (isNaN(cutHour) ? 8 : cutHour) * 60 + (isNaN(cutMinute) ? 0 : cutMinute);
+    
+    let targetDate = new Date(d);
+    if (currentMinutes < cutOffMinutes) {
+        targetDate.setDate(targetDate.getDate() - 1);
+    }
+    
+    const y = targetDate.getFullYear();
+    const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const day = String(targetDate.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     applyEnvironmentBranding();
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
     setupEventListeners();
 
-    // Initialize TAXI App calculator inputs
+    // Initialize TAXI App calculator inputs (締め時間を考慮した勤務日を自動初期セット)
     const workDateInput = UI.get('work-date');
     if (workDateInput) {
-        const today = new Date();
-        const y = today.getFullYear();
-        const m = String(today.getMonth() + 1).padStart(2, '0');
-        const d = String(today.getDate()).padStart(2, '0');
-        workDateInput.value = `${y}-${m}-${d}`;
+        workDateInput.value = getShiftWorkDate();
     }
     const yr = UI.get('hist-year'), mt = UI.get('hist-month');
     if (yr && mt) {
@@ -1095,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
         for(let m=1; m<=12; m++) { let o = document.createElement('option'); o.value=m; o.text=m+'月'; if(m === new Date().getMonth()+1) o.selected = true; sm.add(o); }
     }
     
-    const setsInit = DB.load('taxi_v11_sets', { goal: 550000, days: 12, baseStartTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
+    const setsInit = DB.load('taxi_v11_sets', { goal: 550000, days: 12, baseStartTime: "08:00", dayCutOffTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
     const initY = new Date().getFullYear();
     const initM = new Date().getMonth() + 1;
     const mSetsInit = getMonthlySettings(initY, initM);
@@ -1109,6 +1126,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMonthlySettings();
 
     if (UI.get('set-base-start-time')) UI.get('set-base-start-time').value = setsInit.baseStartTime || "08:00";
+    if (UI.get('set-cutoff-time')) UI.get('set-cutoff-time').value = setsInit.dayCutOffTime || "08:00";
     if (UI.get('set-standard-work-hours')) UI.get('set-standard-work-hours').value = setsInit.standardWorkHours !== undefined ? setsInit.standardWorkHours : 19;
     if (UI.get('set-standard-work-minutes')) UI.get('set-standard-work-minutes').value = setsInit.standardWorkMinutes !== undefined ? setsInit.standardWorkMinutes : 40;
     refreshCalc();

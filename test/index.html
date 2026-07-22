@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TAXI Log Pro</title>
-    <link rel="stylesheet" href="style.css?v=20260723_0420">
+    <link rel="stylesheet" href="style.css?v=20260723_0425">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 07/23 04:20</div>
+                <div class="app-version">Ver: 07/23 04:25</div>
             </div>
         </div>
     </header>
@@ -291,6 +291,13 @@
                         <span style="font-weight: bold; font-size: 0.95rem;">ベース出勤時刻</span>
                         <input type="time" id="set-base-start-time" onchange="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
                     </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="font-weight: bold; font-size: 0.95rem;">日付切替時刻 (締め時間)</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">この時間より前は前日として自動判定</div>
+                        </div>
+                        <input type="time" id="set-cutoff-time" onchange="saveCalcSettings()" style="width:130px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                    </div>
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
                         <span style="font-weight: bold; font-size: 0.95rem;">標準乗務時間 (終業)</span>
                         <div style="display: flex; align-items: center; gap: 4px;">
@@ -504,6 +511,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260723_0420"></script>
+    <script src="app.js?v=20260723_0425"></script>
 </body>
 </html>
