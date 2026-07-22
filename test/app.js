@@ -462,6 +462,7 @@ function updateHistoryTab(history, sets) {
                                 <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                             </div>
                             <div class="detail-actions">
+                                <button onclick="insertCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px; margin-right:4px;">➕</button>
                                 <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
                             </div>
                         </div>
@@ -477,6 +478,7 @@ function updateHistoryTab(history, sets) {
                             </div>
                         </div>
                         <div class="detail-actions">
+                            <button onclick="insertCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px; margin-right:4px;">➕</button>
                             <button class="btn-pencil" onclick="editCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">✏️</button>
                             <button class="btn-trash" onclick="deleteCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px;">🗑️</button>
                         </div>
@@ -522,6 +524,7 @@ function updateHistoryTab(history, sets) {
                             <div class="detail-value" style="font-size: 1.15rem; font-weight: 700; color: #ff453a; text-decoration: line-through;">キャンセル</div>
                         </div>
                         <div class="detail-actions">
+                            <button onclick="insertCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px; margin-right:4px;">➕</button>
                             <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                         </div>
                     </div>
@@ -537,6 +540,7 @@ function updateHistoryTab(history, sets) {
                         </div>
                     </div>
                     <div class="detail-actions">
+                        <button onclick="insertCalcData(${h.id})" style="background:none; border:none; font-size:1.1rem; cursor:pointer; padding:5px; margin-right:4px;">➕</button>
                         <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
                         <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
                     </div>
@@ -557,6 +561,76 @@ function editCalcData(id) {
             DB.save('taxi_v11_hist', h); refreshCalc();
         }
     }
+}
+
+function insertCalcData(targetId) {
+    const h = DB.load('taxi_v11_hist', []);
+    const targetItem = h.find(x => x.id === targetId);
+    if (!targetItem) return;
+    
+    const date = targetItem.date;
+    // この日の売上をID（件数）順に並べる
+    const dayItems = h.filter(x => x.date === date).sort((a, b) => a.id - b.id);
+    const targetIdx = dayItems.findIndex(x => x.id === targetId);
+    if (targetIdx === -1) return;
+    
+    // 中間のIDを算出する
+    const prevItem = targetIdx > 0 ? dayItems[targetIdx - 1] : null;
+    const nextItem = dayItems[targetIdx];
+    
+    const prevId = prevItem ? prevItem.id : null;
+    const nextId = nextItem.id;
+    
+    let newId;
+    if (prevId) {
+        newId = Math.floor((prevId + nextId) / 2);
+        // 万が一IDの衝突（差が1以下）が起きた場合は、元のID群を1000単位で再配置して隙間を作る
+        if (newId <= prevId || newId >= nextId) {
+            alert("IDスペースの枯渇により割り込みに失敗しました。時間をおいて再度お試しいただくか、一度レコードを削除して入れ替えてください。");
+            return;
+        }
+    } else {
+        newId = nextId - 1000;
+    }
+    
+    // プロンプトでの入力
+    const displayNum = targetIdx + 1;
+    const inputVal = prompt(`${displayNum}件目に売上を割り込み追加します。\n金額(税込)を入力、またはキャンセルにする場合は 'c' と入力してください:`);
+    
+    if (inputVal === null || inputVal.trim() === "") return;
+    
+    let gross = 0;
+    let net = 0;
+    let isCancel = false;
+    
+    if (inputVal.trim().toLowerCase() === 'c') {
+        if (!confirm(`${displayNum}件目をキャンセル扱いで割り込ませますか？`)) {
+            return;
+        }
+        isCancel = true;
+    } else {
+        gross = parseFloat(inputVal);
+        if (isNaN(gross) || gross <= 0) {
+            alert("有効な数値を入力してください。");
+            return;
+        }
+        if (!confirm(`${displayNum}件目に税込 ${gross.toLocaleString()}円 を割り込み追加しますか？`)) {
+            return;
+        }
+        net = Math.floor(gross / 1.1);
+    }
+    
+    // 新しいレコードを追加
+    h.push({
+        id: newId,
+        date: date,
+        gross: gross,
+        net: net,
+        isCancel: isCancel
+    });
+    
+    DB.save('taxi_v11_hist', h);
+    refreshCalc(true);
 }
 
 function scrollToCalcDate(dateStr) {
@@ -960,7 +1034,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/23 03:05", // テスト用の日付時間
+    test: "07/23 03:16", // テスト用の日付時間
     prod: "3.2.1"       // 本番用のバージョン番号 (メジャー.新機能.修正)
 };
 
