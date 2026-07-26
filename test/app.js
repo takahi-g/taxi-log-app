@@ -217,11 +217,15 @@ function refreshCalc(isSave = false) {
     }
     
     const todayGrossSum = todayRecords.reduce((s, h) => s + h.gross, 0);
+    const todayCount = todayRecords.filter(h => !h.isCancel).length;
     const todaySumEl = document.getElementById('disp-today-sum');
     if (todaySumEl) {
         todaySumEl.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; width: 100%; padding: 5px 0;">
-                <div style="font-size: 0.85rem; color: #aaa; font-weight: 600;">今日の合計売上</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 0.85rem; color: #aaa; font-weight: 600;">今日の合計売上</div>
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--ios-blue); background: rgba(10,132,255,0.15); border: 1px solid rgba(10,132,255,0.3); border-radius: 20px; padding: 2px 10px; white-space: nowrap;">${todayCount}件</div>
+                </div>
                 <div style="display: flex; gap: 20px; align-items: baseline; justify-content: center; flex-wrap: wrap;">
                     <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900;">
                         <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税抜</small>${Math.round(todayGrossSum / 1.1).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
@@ -1045,7 +1049,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/23 04:35", // テスト用の日付時間
+    test: "07/27 08:10", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
