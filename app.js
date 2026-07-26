@@ -217,11 +217,15 @@ function refreshCalc(isSave = false) {
     }
     
     const todayGrossSum = todayRecords.reduce((s, h) => s + h.gross, 0);
+    const todayCount = todayRecords.filter(h => !h.isCancel).length;
     const todaySumEl = document.getElementById('disp-today-sum');
     if (todaySumEl) {
         todaySumEl.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 8px; align-items: center; justify-content: center; width: 100%; padding: 5px 0;">
-                <div style="font-size: 0.85rem; color: #aaa; font-weight: 600;">今日の合計売上</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="font-size: 0.85rem; color: #aaa; font-weight: 600;">今日の合計売上</div>
+                    <div style="font-size: 0.8rem; font-weight: 700; color: var(--ios-blue); background: rgba(10,132,255,0.15); border: 1px solid rgba(10,132,255,0.3); border-radius: 20px; padding: 2px 10px; white-space: nowrap;">${todayCount}件</div>
+                </div>
                 <div style="display: flex; gap: 20px; align-items: baseline; justify-content: center; flex-wrap: wrap;">
                     <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900;">
                         <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税抜</small>${Math.round(todayGrossSum / 1.1).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
@@ -957,11 +961,11 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "3.2.2",
-    date: "3.2.2",
-    title: "🎉 アップデートのお知らせ (Ver: 3.2.2)",
+    version: "3.2.3",
+    date: "3.2.3",
+    title: "🎉 アップデートのお知らせ (Ver: 3.2.3)",
     details: [
-        "🌙 【締め時間機能】アプリを開いた際に、日をまたいだ深夜・早朝勤務でも日付が自動で翌日にならず、直前の勤務日(前日)として判定される『日付切替時刻』機能を搭載しました！(デフォルト: 朝8:00切り替え。設定画面で変更可能)"
+        "📊 【件数表示】今日の合計売上の横に、その日の乗務件数をバッジで表示する機能を追加しました！"
     ],
     history: [
         {
@@ -1045,8 +1049,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/23 04:35", // テスト用の日付時間
-    prod: "3.2.2"       // Formally updated prod version
+    test: "07/27 08:10", // テスト用の日付時間
+    prod: "3.2.3"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {
