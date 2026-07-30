@@ -1056,7 +1056,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/31 07:05", // テスト用の日付時間
+    test: "07/31 07:08", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -1921,6 +1921,8 @@ function updateAnalytics() {
 // 🎯 目標売上編集モーダル用関数群
 function openGoalEditModal() {
     const selectedDate = document.getElementById('work-date').value;
+    const dateParts = selectedDate.split('-');
+    const mSets = getMonthlySettings(parseInt(dateParts[0]), parseInt(dateParts[1]));
     const goalType = getDayGoalType(selectedDate);
     
     // 現在の目標売上（税抜）を決定
@@ -1951,6 +1953,8 @@ function closeGoalEditModal() {
 
 function saveGoalEditModal() {
     const selectedDate = document.getElementById('work-date').value;
+    const dateParts = selectedDate.split('-');
+    const mSets = getMonthlySettings(parseInt(dateParts[0]), parseInt(dateParts[1]));
     const inputNet = document.getElementById('input-goal-net');
     const val = parseFloat(inputNet.value);
     
@@ -1967,7 +1971,6 @@ function saveGoalEditModal() {
     
     // taxi_v11_sets を更新して保存
     const sets = DB.load('taxi_v11_sets', {});
-    const dateParts = selectedDate.split('-');
     const key = `${dateParts[0]}-${dateParts[1]}`;
     if (sets.monthly && sets.monthly[key]) {
         sets.monthly[key].customGoals = mSets.customGoals;
@@ -1982,12 +1985,13 @@ function saveGoalEditModal() {
 
 function resetTodayGoal() {
     const selectedDate = document.getElementById('work-date').value;
+    const dateParts = selectedDate.split('-');
+    const mSets = getMonthlySettings(parseInt(dateParts[0]), parseInt(dateParts[1]));
     if (mSets.customGoals && mSets.customGoals[selectedDate] !== undefined) {
         delete mSets.customGoals[selectedDate];
         
         // 保存
         const sets = DB.load('taxi_v11_sets', {});
-        const dateParts = selectedDate.split('-');
         const key = `${dateParts[0]}-${dateParts[1]}`;
         if (sets.monthly && sets.monthly[key]) {
             sets.monthly[key].customGoals = mSets.customGoals;
