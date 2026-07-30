@@ -169,12 +169,18 @@ function refreshCalc(isSave = false) {
     const workedCount = workedDates.length;
     const now = new Date(); const todayStr = now.toISOString().split('T')[0];
     const goalType = getDayGoalType(selectedDate);
+    
     let todayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
     if (goalType === 'fri') todayTargetNet = mSets.friGoal !== undefined ? mSets.friGoal : 60000;
     else if (goalType === 'sat') todayTargetNet = mSets.satGoal !== undefined ? mSets.satGoal : 60000;
     else if (goalType === 'sun') todayTargetNet = mSets.sunGoal !== undefined ? mSets.sunGoal : 60000;
     else if (goalType === 'holiday') todayTargetNet = mSets.holidayGoal !== undefined ? mSets.holidayGoal : 60000;
     else if (goalType === 'eve') todayTargetNet = mSets.eveGoal !== undefined ? mSets.eveGoal : 60000;
+    
+    const isCustomGoal = mSets.customGoals && mSets.customGoals[selectedDate] !== undefined;
+    if (isCustomGoal) {
+        todayTargetNet = mSets.customGoals[selectedDate];
+    }
     
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
@@ -213,7 +219,8 @@ function refreshCalc(isSave = false) {
         else if (goalType === 'holiday') weekdayText = "祝日目標";
         else if (goalType === 'eve') weekdayText = "祝前日目標";
         
-        progressEl.innerText = `今月: ${workedCount} / ${curDays} 回出勤 (本日目標: 税抜${todayTargetNet.toLocaleString()}円 [${weekdayText}])`;
+        const suffix = isCustomGoal ? " <span style='color: var(--accent); font-weight: bold;'>(個別変更分反映済み)</span>" : "";
+        progressEl.innerHTML = `今月: ${workedCount} / ${curDays} 回出勤 (本日目標: 税抜${todayTargetNet.toLocaleString()}円 [${weekdayText}])${suffix}`;
     }
     
     const todayGrossSum = todayRecords.reduce((s, h) => s + h.gross, 0);
@@ -1049,7 +1056,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/31 06:50", // テスト用の日付時間
+    test: "07/31 07:05", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -1103,6 +1110,28 @@ document.addEventListener('DOMContentLoaded', () => {
     applyEnvironmentBranding();
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
     setupEventListeners();
+
+    // 目標売上モーダル用の入力同期リスナー
+    const inputGoalNet = document.getElementById('input-goal-net');
+    const inputGoalGross = document.getElementById('input-goal-gross');
+    if (inputGoalNet && inputGoalGross) {
+        inputGoalNet.addEventListener('input', () => {
+            const netVal = parseFloat(inputGoalNet.value);
+            if (!isNaN(netVal)) {
+                inputGoalGross.value = Math.round(netVal * 1.1);
+            } else {
+                inputGoalGross.value = '';
+            }
+        });
+        inputGoalGross.addEventListener('input', () => {
+            const grossVal = parseFloat(inputGoalGross.value);
+            if (!isNaN(grossVal)) {
+                inputGoalNet.value = Math.round(grossVal / 1.1);
+            } else {
+                inputGoalNet.value = '';
+            }
+        });
+    }
 
     // Initialize TAXI App calculator inputs (締め時間を考慮した勤務日を自動初期セット)
     const workDateInput = UI.get('work-date');
@@ -1521,11 +1550,13 @@ function getMonthlySettings(year, month) {
             days: sets.days !== undefined ? sets.days : CONFIG.DEFAULT_DAYS,
             weekdayGoal: 40000,
             weekendGoal: 60000,
-            workDates: []
+            workDates: [],
+            customGoals: {}
         };
     }
     if (sets.monthly[key].weekdayGoal === undefined) sets.monthly[key].weekdayGoal = 40000;
     if (sets.monthly[key].weekendGoal === undefined) sets.monthly[key].weekendGoal = 60000;
+    if (sets.monthly[key].customGoals === undefined) sets.monthly[key].customGoals = {};
     
     const m = sets.monthly[key];
     if (m.friGoal === undefined) m.friGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
@@ -1885,4 +1916,87 @@ function updateAnalytics() {
             </tbody>
         </table>
     `;
+}
+
+// 🎯 目標売上編集モーダル用関数群
+function openGoalEditModal() {
+    const selectedDate = document.getElementById('work-date').value;
+    const goalType = getDayGoalType(selectedDate);
+    
+    // 現在の目標売上（税抜）を決定
+    let todayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
+    if (goalType === 'fri') todayTargetNet = mSets.friGoal !== undefined ? mSets.friGoal : 60000;
+    else if (goalType === 'sat') todayTargetNet = mSets.satGoal !== undefined ? mSets.satGoal : 60000;
+    else if (goalType === 'sun') todayTargetNet = mSets.sunGoal !== undefined ? mSets.sunGoal : 60000;
+    else if (goalType === 'holiday') todayTargetNet = mSets.holidayGoal !== undefined ? mSets.holidayGoal : 60000;
+    else if (goalType === 'eve') todayTargetNet = mSets.eveGoal !== undefined ? mSets.eveGoal : 60000;
+    
+    if (mSets.customGoals && mSets.customGoals[selectedDate] !== undefined) {
+        todayTargetNet = mSets.customGoals[selectedDate];
+    }
+    
+    const inputNet = document.getElementById('input-goal-net');
+    const inputGross = document.getElementById('input-goal-gross');
+    if (inputNet && inputGross) {
+        inputNet.value = todayTargetNet;
+        inputGross.value = Math.round(todayTargetNet * 1.1);
+    }
+    
+    UI.show('goal-edit-modal', true);
+}
+
+function closeGoalEditModal() {
+    UI.show('goal-edit-modal', false);
+}
+
+function saveGoalEditModal() {
+    const selectedDate = document.getElementById('work-date').value;
+    const inputNet = document.getElementById('input-goal-net');
+    const val = parseFloat(inputNet.value);
+    
+    if (isNaN(val) || val < 0) {
+        alert('正しい数値（0以上）を入力してください。');
+        return;
+    }
+    
+    if (!mSets.customGoals) {
+        mSets.customGoals = {};
+    }
+    
+    mSets.customGoals[selectedDate] = val;
+    
+    // taxi_v11_sets を更新して保存
+    const sets = DB.load('taxi_v11_sets', {});
+    const dateParts = selectedDate.split('-');
+    const key = `${dateParts[0]}-${dateParts[1]}`;
+    if (sets.monthly && sets.monthly[key]) {
+        sets.monthly[key].customGoals = mSets.customGoals;
+        DB.save('taxi_v11_sets', sets);
+    }
+    
+    // 表示の更新
+    updateSummary();
+    loadMonthlySettings(); // 設定画面とも同期
+    closeGoalEditModal();
+}
+
+function resetTodayGoal() {
+    const selectedDate = document.getElementById('work-date').value;
+    if (mSets.customGoals && mSets.customGoals[selectedDate] !== undefined) {
+        delete mSets.customGoals[selectedDate];
+        
+        // 保存
+        const sets = DB.load('taxi_v11_sets', {});
+        const dateParts = selectedDate.split('-');
+        const key = `${dateParts[0]}-${dateParts[1]}`;
+        if (sets.monthly && sets.monthly[key]) {
+            sets.monthly[key].customGoals = mSets.customGoals;
+            DB.save('taxi_v11_sets', sets);
+        }
+    }
+    
+    // 表示の更新
+    updateSummary();
+    loadMonthlySettings();
+    closeGoalEditModal();
 }
