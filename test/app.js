@@ -226,13 +226,13 @@ function refreshCalc(isSave = false) {
                     <div style="font-size: 0.85rem; color: #aaa; font-weight: 600;">今日の合計売上</div>
                     <div style="font-size: 0.8rem; font-weight: 700; color: var(--ios-blue); background: rgba(10,132,255,0.15); border: 1px solid rgba(10,132,255,0.3); border-radius: 20px; padding: 2px 10px; white-space: nowrap;">${todayCount}件</div>
                 </div>
-                <div style="display: flex; gap: 20px; align-items: baseline; justify-content: center; flex-wrap: wrap;">
-                    <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900;">
-                        <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税抜</small>${Math.round(todayGrossSum / 1.1).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
-                    </div>
-                    <div style="color: var(--success); font-size: 1.8rem; font-weight: 900;">
-                        <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税込</small>${Math.floor(todayGrossSum).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
-                    </div>
+                <div style="display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 6px 8px; width: 100%; max-width: 320px;">
+                    <div style="font-size: 0.8rem; color: #aaa; font-weight: 600; white-space: nowrap;">税抜</div>
+                    <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900; text-align: right; font-variant-numeric: tabular-nums;">${Math.round(todayGrossSum / 1.1).toLocaleString()}</div>
+                    <div style="font-size: 0.9rem; color: #FFD700; font-weight: 700; white-space: nowrap;">円</div>
+                    <div style="font-size: 0.8rem; color: #aaa; font-weight: 600; white-space: nowrap;">税込</div>
+                    <div style="color: var(--success); font-size: 1.8rem; font-weight: 900; text-align: right; font-variant-numeric: tabular-nums;">${Math.floor(todayGrossSum).toLocaleString()}</div>
+                    <div style="font-size: 0.9rem; color: var(--success); font-weight: 700; white-space: nowrap;">円</div>
                 </div>
             </div>
         `;
