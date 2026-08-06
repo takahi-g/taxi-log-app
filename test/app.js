@@ -1056,7 +1056,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "08/06 12:55", // テスト用の日付時間
+    test: "08/06 13:00", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -2010,7 +2010,7 @@ function saveGoalEditModal() {
         
         // 表示の更新
         try {
-            updateSummary();
+            refreshCalc();
         } catch (sumErr) {
             alert('画面更新中にエラーが発生しました: ' + sumErr.message);
         }
@@ -2044,7 +2044,7 @@ function resetTodayGoal() {
         
         // 表示の更新
         try {
-            updateSummary();
+            refreshCalc();
         } catch (sumErr) {
             alert('画面更新中にエラーが発生しました: ' + sumErr.message);
         }
