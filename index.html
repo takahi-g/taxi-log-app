@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TAXI Log Pro</title>
-    <link rel="stylesheet" href="style.css?v=3.2.3">
+    <link rel="stylesheet" href="style.css?v=3.2.4">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 3.2.3</div>
+                <div class="app-version">Ver: 3.2.4</div>
             </div>
         </div>
     </header>
@@ -84,8 +84,8 @@
         <!-- 2. 売上計算ビュー (「タク計」機能) -->
         <div id="view-calc" class="view-content active">
             <!-- 今日の残りノルマヒーロー -->
-            <div class="target-hero">
-                <div style="font-size: 0.9rem; opacity: 0.8;">今日の残りノルマ</div>
+            <div class="target-hero" onclick="openGoalEditModal()" style="cursor: pointer; transition: transform 0.2s, background-color 0.2s; -webkit-tap-highlight-color: transparent;" onmouseover="this.style.backgroundColor='rgba(255,255,255,0.05)'" onmouseout="this.style.backgroundColor=''" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform='scale(1)'">
+                <div style="font-size: 0.9rem; opacity: 0.8; display: flex; align-items: center; justify-content: center; gap: 4px;">今日の残りノルマ <span style="font-size: 0.75rem; color: var(--ios-blue); border: 1px solid var(--ios-blue); padding: 1px 4px; border-radius: 4px;">変更</span></div>
                 <div class="val" style="color: #FFD700;"><span id="disp-norm">0</span> <small style="font-size: 1.3rem; color: #aaa; font-weight: normal; margin-left: 2px;">円 (税抜)</small></div>
                 <div style="font-size: 1.3rem; opacity: 0.9; margin-bottom: 8px; color: var(--success); font-weight: 800;"><span id="disp-norm-gross">0</span> <small style="font-size: 0.85rem; color: #aaa; font-weight: normal; margin-left: 2px;">円 (税込)</small></div>
                 <div id="disp-progress" style="font-size: 0.8rem; opacity: 0.8;">---</div>
@@ -279,9 +279,19 @@
                         <span style="font-weight: bold; font-size: 0.95rem;">祝前日目標 (税抜)</span>
                         <input type="number" id="set-eve-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
                     </div>
+
+                    <!-- 🎯 個別変更分反映済みの目標売上リスト -->
+                    <div id="set-custom-goals-container" style="margin: 12px 0; display: none; background: rgba(10, 132, 255, 0.06); padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(10, 132, 255, 0.25);">
+                        <span style="font-weight: 800; font-size: 0.85rem; display: block; margin-bottom: 8px; color: var(--ios-blue);">🎯 個別変更済みの目標売上</span>
+                        <div id="set-custom-goals-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto;"></div>
+                    </div>
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); background: rgba(255, 215, 0, 0.02);">
                         <span style="font-weight: bold; font-size: 0.95rem; color: var(--accent);">目標売上 (税抜・自動計算)</span>
                         <input type="number" id="set-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:var(--accent); background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;" readonly>
+                    </div>
+                    <div id="row-custom-goal-total" class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); background: rgba(10, 132, 255, 0.03);">
+                        <span style="font-weight: bold; font-size: 0.95rem; color: var(--ios-blue);">個別変更反映後の目標売上</span>
+                        <input type="number" id="set-custom-goal-total" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:var(--ios-blue); background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;" readonly>
                     </div>
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
                         <span style="font-weight: bold; font-size: 0.95rem;">全出勤日数</span>
@@ -503,6 +513,30 @@
         </div>
     </div>
 
+    <!-- 🎯 目標売上編集モーダル -->
+    <div id="goal-edit-modal" class="modal-overlay" style="display: none; align-items: flex-start; padding-top: 60px; overflow-y: auto; z-index: 10004; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center;">
+        <div class="modal-content card" style="background: var(--bg-surface); border: 1.5px solid var(--ios-blue); max-width: 380px; width: 90%; margin: 20px auto; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: left; position: relative;">
+            <h3 style="margin: 0 0 15px 0; color: var(--ios-blue); font-size: 1.15rem; font-weight: bold; text-align: center;">🎯 本日の目標売上を変更</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 15px; text-align: center;">抜き・込みどちらを入力しても自動的に同期されます。</p>
+            
+            <div class="input-group" style="margin-bottom: 12px;">
+                <label style="font-size: 0.85rem; margin-bottom: 4px; display: block; color: #FFD700; font-weight: bold;">税抜目標 (円)</label>
+                <input type="number" id="input-goal-net" placeholder="例: 40000" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); font-size: 1.1rem; font-weight: bold; box-sizing: border-box; outline: none; -webkit-appearance: none;">
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 20px;">
+                <label style="font-size: 0.85rem; margin-bottom: 4px; display: block; color: var(--success); font-weight: bold;">税込目標 (円)</label>
+                <input type="number" id="input-goal-gross" placeholder="例: 44000" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); font-size: 1.1rem; font-weight: bold; box-sizing: border-box; outline: none; -webkit-appearance: none;">
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="closeGoalEditModal()" style="flex: 1; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.95rem; text-align: center; -webkit-tap-highlight-color: transparent;">キャンセル</button>
+                <button onclick="resetTodayGoal()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.95rem; text-align: center; -webkit-tap-highlight-color: transparent;">戻す</button>
+                <button onclick="saveGoalEditModal()" style="flex: 1; background: var(--ios-blue); border: none; color: #fff; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.95rem; text-align: center; -webkit-tap-highlight-color: transparent;">保存</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="main-footer">
         <nav class="tab-bar">
             <button id="tab-calc" class="tab-item active">💰 売上計算</button>
@@ -511,6 +545,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=3.2.3"></script>
+    <script src="app.js?v=3.2.4"></script>
 </body>
 </html>

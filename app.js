@@ -169,12 +169,18 @@ function refreshCalc(isSave = false) {
     const workedCount = workedDates.length;
     const now = new Date(); const todayStr = now.toISOString().split('T')[0];
     const goalType = getDayGoalType(selectedDate);
+    
     let todayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
     if (goalType === 'fri') todayTargetNet = mSets.friGoal !== undefined ? mSets.friGoal : 60000;
     else if (goalType === 'sat') todayTargetNet = mSets.satGoal !== undefined ? mSets.satGoal : 60000;
     else if (goalType === 'sun') todayTargetNet = mSets.sunGoal !== undefined ? mSets.sunGoal : 60000;
     else if (goalType === 'holiday') todayTargetNet = mSets.holidayGoal !== undefined ? mSets.holidayGoal : 60000;
     else if (goalType === 'eve') todayTargetNet = mSets.eveGoal !== undefined ? mSets.eveGoal : 60000;
+    
+    const isCustomGoal = mSets.customGoals && mSets.customGoals[selectedDate] !== undefined;
+    if (isCustomGoal) {
+        todayTargetNet = mSets.customGoals[selectedDate];
+    }
     
     const todayRecords = monthlyData.filter(h => h.date === selectedDate);
     const todayNetSum = todayRecords.reduce((sum, h) => sum + h.net, 0);
@@ -213,7 +219,8 @@ function refreshCalc(isSave = false) {
         else if (goalType === 'holiday') weekdayText = "祝日目標";
         else if (goalType === 'eve') weekdayText = "祝前日目標";
         
-        progressEl.innerText = `今月: ${workedCount} / ${curDays} 回出勤 (本日目標: 税抜${todayTargetNet.toLocaleString()}円 [${weekdayText}])`;
+        const suffix = isCustomGoal ? " <span style='color: var(--accent); font-weight: bold;'>(個別変更分反映済み)</span>" : "";
+        progressEl.innerHTML = `今月: ${workedCount} / ${curDays} 回出勤 (本日目標: 税抜${todayTargetNet.toLocaleString()}円 [${weekdayText}])${suffix}`;
     }
     
     const todayGrossSum = todayRecords.reduce((s, h) => s + h.gross, 0);
@@ -226,13 +233,13 @@ function refreshCalc(isSave = false) {
                     <div style="font-size: 0.85rem; color: #aaa; font-weight: 600;">今日の合計売上</div>
                     <div style="font-size: 0.8rem; font-weight: 700; color: var(--ios-blue); background: rgba(10,132,255,0.15); border: 1px solid rgba(10,132,255,0.3); border-radius: 20px; padding: 2px 10px; white-space: nowrap;">${todayCount}件</div>
                 </div>
-                <div style="display: flex; gap: 20px; align-items: baseline; justify-content: center; flex-wrap: wrap;">
-                    <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900;">
-                        <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税抜</small>${Math.round(todayGrossSum / 1.1).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
-                    </div>
-                    <div style="color: var(--success); font-size: 1.8rem; font-weight: 900;">
-                        <small style="font-size: 0.8rem; color: #aaa; margin-right: 4px; font-weight: normal;">税込</small>${Math.floor(todayGrossSum).toLocaleString()}<small style="font-size: 0.9rem; margin-left: 2px;">円</small>
-                    </div>
+                <div style="display: grid; grid-template-columns: auto 1fr auto; align-items: baseline; gap: 6px 8px; width: 100%; max-width: 320px;">
+                    <div style="font-size: 0.8rem; color: #aaa; font-weight: 600; white-space: nowrap;">税抜</div>
+                    <div style="color: #FFD700; font-size: 1.8rem; font-weight: 900; text-align: right; font-variant-numeric: tabular-nums;">${Math.round(todayGrossSum / 1.1).toLocaleString()}</div>
+                    <div style="font-size: 0.9rem; color: #FFD700; font-weight: 700; white-space: nowrap;">円</div>
+                    <div style="font-size: 0.8rem; color: #aaa; font-weight: 600; white-space: nowrap;">税込</div>
+                    <div style="color: var(--success); font-size: 1.8rem; font-weight: 900; text-align: right; font-variant-numeric: tabular-nums;">${Math.floor(todayGrossSum).toLocaleString()}</div>
+                    <div style="font-size: 0.9rem; color: var(--success); font-weight: 700; white-space: nowrap;">円</div>
                 </div>
             </div>
         `;
@@ -961,11 +968,12 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "3.2.3",
-    date: "3.2.3",
-    title: "🎉 アップデートのお知らせ (Ver: 3.2.3)",
+    version: "3.2.4",
+    date: "3.2.4",
+    title: "🎉 アップデートのお知らせ (Ver: 3.2.4)",
     details: [
-        "📊 【件数表示】今日の合計売上の横に、その日の乗務件数をバッジで表示する機能を追加しました！"
+        "🎯 【目標売上の個別変更】売上計算タブの残りノルマをタップすることで、その日限定の目標売上（抜き・込み）を個別に変更・リセットできるようになりました！",
+        "⚙️ 【個別変更の総額反映】個別変更した目標金額が、設定タブの『個別変更反映後の目標売上』総額へも自動的に連動して反映・表示されるようになりました！"
     ],
     history: [
         {
@@ -1049,8 +1057,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/27 08:10", // テスト用の日付時間
-    prod: "3.2.3"       // Formally updated prod version
+    test: "08/06 13:38", // テスト用の日付時間
+    prod: "3.2.4"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {
@@ -1103,6 +1111,28 @@ document.addEventListener('DOMContentLoaded', () => {
     applyEnvironmentBranding();
     setInterval(() => UI.render('live-clock', new Date().toLocaleTimeString('ja-JP', { hour12: false })), 1000);
     setupEventListeners();
+
+    // 目標売上モーダル用の入力同期リスナー
+    const inputGoalNet = document.getElementById('input-goal-net');
+    const inputGoalGross = document.getElementById('input-goal-gross');
+    if (inputGoalNet && inputGoalGross) {
+        inputGoalNet.addEventListener('input', () => {
+            const netVal = parseFloat(inputGoalNet.value);
+            if (!isNaN(netVal)) {
+                inputGoalGross.value = Math.round(netVal * 1.1);
+            } else {
+                inputGoalGross.value = '';
+            }
+        });
+        inputGoalGross.addEventListener('input', () => {
+            const grossVal = parseFloat(inputGoalGross.value);
+            if (!isNaN(grossVal)) {
+                inputGoalNet.value = Math.round(grossVal / 1.1);
+            } else {
+                inputGoalNet.value = '';
+            }
+        });
+    }
 
     // Initialize TAXI App calculator inputs (締め時間を考慮した勤務日を自動初期セット)
     const workDateInput = UI.get('work-date');
@@ -1521,11 +1551,13 @@ function getMonthlySettings(year, month) {
             days: sets.days !== undefined ? sets.days : CONFIG.DEFAULT_DAYS,
             weekdayGoal: 40000,
             weekendGoal: 60000,
-            workDates: []
+            workDates: [],
+            customGoals: {}
         };
     }
     if (sets.monthly[key].weekdayGoal === undefined) sets.monthly[key].weekdayGoal = 40000;
     if (sets.monthly[key].weekendGoal === undefined) sets.monthly[key].weekendGoal = 60000;
+    if (sets.monthly[key].customGoals === undefined) sets.monthly[key].customGoals = {};
     
     const m = sets.monthly[key];
     if (m.friGoal === undefined) m.friGoal = m.weekendGoal !== undefined ? m.weekendGoal : 60000;
@@ -1539,8 +1571,12 @@ function getMonthlySettings(year, month) {
 }
 
 function loadMonthlySettings() {
-    const sy = parseInt(document.getElementById('set-year').value);
-    const sm = parseInt(document.getElementById('set-month').value);
+    const syEl = document.getElementById('set-year');
+    const smEl = document.getElementById('set-month');
+    if (!syEl || !smEl) return;
+    
+    const sy = parseInt(syEl.value);
+    const sm = parseInt(smEl.value);
     if (isNaN(sy) || isNaN(sm)) return;
     
     const mSets = getMonthlySettings(sy, sm);
@@ -1553,9 +1589,59 @@ function loadMonthlySettings() {
     if (UI.get('set-holiday-goal')) UI.get('set-holiday-goal').value = mSets.holidayGoal;
     if (UI.get('set-eve-goal')) UI.get('set-eve-goal').value = mSets.eveGoal;
     
+    // 個別変更分反映後の目標売上
+    const customGoalTotal = mSets.customGoalTotal !== undefined ? mSets.customGoalTotal : mSets.goal;
+    if (UI.get('set-custom-goal-total')) UI.get('set-custom-goal-total').value = customGoalTotal;
+    
+    const rowCustomGoalTotal = document.getElementById('row-custom-goal-total');
+    if (rowCustomGoalTotal) {
+        const hasCustomGoals = mSets.customGoals && Object.keys(mSets.customGoals).length > 0;
+        rowCustomGoalTotal.style.display = hasCustomGoals ? 'flex' : 'none';
+    }
+    
     // 一括コピー用の入力フォームをリセット
     if (UI.get('quick-weekday')) UI.get('quick-weekday').value = '';
     if (UI.get('quick-other')) UI.get('quick-other').value = '';
+    
+    // 個別変更済みの目標売上リストの描画
+    const customGoalsContainer = document.getElementById('set-custom-goals-container');
+    const customGoalsList = document.getElementById('set-custom-goals-list');
+    if (customGoalsContainer && customGoalsList) {
+        const customGoals = mSets.customGoals || {};
+        const dates = Object.keys(customGoals).sort();
+        
+        if (dates.length > 0) {
+            customGoalsContainer.style.display = 'block';
+            let listHtml = '';
+            dates.forEach(dateStr => {
+                const parts = dateStr.split('-');
+                const y = parseInt(parts[0]);
+                const m = parseInt(parts[1]);
+                const d = parseInt(parts[2]);
+                const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(y, m - 1, d).getDay()];
+                const netVal = customGoals[dateStr];
+                const grossVal = Math.round(netVal * 1.1);
+                listHtml += `
+                    <div style="display: flex; flex-direction: column; padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); gap: 6px; width: 100%;">
+                        <!-- 1行目: 日付と削除ボタン -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div style="font-weight: bold; color: var(--text-main); font-size: 0.88rem; white-space: nowrap;">${y}年${String(m).padStart(2, '0')}月${String(d).padStart(2, '0')}日(${dayOfWeek})</div>
+                            <button onclick="removeCustomGoalFromSettings('${dateStr}')" style="background: rgba(239, 68, 68, 0.15); border: none; color: var(--danger); padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent;">削除</button>
+                        </div>
+                        <!-- 2行目: 税抜と税込の目標表示 -->
+                        <div style="display: flex; gap: 12px; align-items: center; font-size: 0.8rem; white-space: nowrap;">
+                            <span style="color: #FFD700; font-weight: bold;">税抜 ¥${netVal.toLocaleString()}</span>
+                            <span style="color: var(--text-muted); font-size: 0.75rem;">/</span>
+                            <span style="color: var(--success); font-weight: bold;">税込 ¥${grossVal.toLocaleString()}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            customGoalsList.innerHTML = listHtml;
+        } else {
+            customGoalsContainer.style.display = 'none';
+        }
+    }
     
     // 設定カレンダーの描画
     renderSettingsCalendar(sy, sm, mSets.workDates);
@@ -1698,21 +1784,38 @@ function syncGoalWithMonthlyRates(sets, key) {
     if (!m) return;
     
     let total = 0;
+    let customTotal = 0;
     const workDates = m.workDates || [];
     workDates.forEach(dateStr => {
         const type = getDayGoalType(dateStr);
-        if (type === 'weekday') total += m.weekdayGoal !== undefined ? m.weekdayGoal : 40000;
-        else if (type === 'fri') total += m.friGoal !== undefined ? m.friGoal : 60000;
-        else if (type === 'sat') total += m.satGoal !== undefined ? m.satGoal : 60000;
-        else if (type === 'sun') total += m.sunGoal !== undefined ? m.sunGoal : 60000;
-        else if (type === 'holiday') total += m.holidayGoal !== undefined ? m.holidayGoal : 60000;
-        else if (type === 'eve') total += m.eveGoal !== undefined ? m.eveGoal : 60000;
+        let defaultGoal = 40000;
+        if (type === 'weekday') defaultGoal = m.weekdayGoal !== undefined ? m.weekdayGoal : 40000;
+        else if (type === 'fri') defaultGoal = m.friGoal !== undefined ? m.friGoal : 60000;
+        else if (type === 'sat') defaultGoal = m.satGoal !== undefined ? m.satGoal : 60000;
+        else if (type === 'sun') defaultGoal = m.sunGoal !== undefined ? m.sunGoal : 60000;
+        else if (type === 'holiday') defaultGoal = m.holidayGoal !== undefined ? m.holidayGoal : 60000;
+        else if (type === 'eve') defaultGoal = m.eveGoal !== undefined ? m.eveGoal : 60000;
+        
+        total += defaultGoal;
+        
+        if (m.customGoals && m.customGoals[dateStr] !== undefined) {
+            customTotal += m.customGoals[dateStr];
+        } else {
+            customTotal += defaultGoal;
+        }
     });
     
     m.goal = total;
+    m.customGoalTotal = customTotal;
+    
     const goalInput = document.getElementById('set-goal');
     if (goalInput) {
         goalInput.value = total;
+    }
+    
+    const customGoalInput = document.getElementById('set-custom-goal-total');
+    if (customGoalInput) {
+        customGoalInput.value = customTotal;
     }
 }
 function changeWorkHours() {
@@ -1885,4 +1988,176 @@ function updateAnalytics() {
             </tbody>
         </table>
     `;
+}
+
+// 🎯 目標売上編集モーダル用関数群
+function openGoalEditModal() {
+    const selectedDate = document.getElementById('work-date').value;
+    const dateParts = selectedDate.split('-');
+    const mSets = getMonthlySettings(parseInt(dateParts[0]), parseInt(dateParts[1]));
+    const goalType = getDayGoalType(selectedDate);
+    
+    // 現在の目標売上（税抜）を決定
+    let todayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
+    if (goalType === 'fri') todayTargetNet = mSets.friGoal !== undefined ? mSets.friGoal : 60000;
+    else if (goalType === 'sat') todayTargetNet = mSets.satGoal !== undefined ? mSets.satGoal : 60000;
+    else if (goalType === 'sun') todayTargetNet = mSets.sunGoal !== undefined ? mSets.sunGoal : 60000;
+    else if (goalType === 'holiday') todayTargetNet = mSets.holidayGoal !== undefined ? mSets.holidayGoal : 60000;
+    else if (goalType === 'eve') todayTargetNet = mSets.eveGoal !== undefined ? mSets.eveGoal : 60000;
+    
+    if (mSets && mSets.customGoals && mSets.customGoals[selectedDate] !== undefined) {
+        todayTargetNet = mSets.customGoals[selectedDate];
+    }
+    
+    const inputNet = document.getElementById('input-goal-net');
+    const inputGross = document.getElementById('input-goal-gross');
+    if (inputNet && inputGross) {
+        inputNet.value = todayTargetNet;
+        inputGross.value = Math.round(todayTargetNet * 1.1);
+    }
+    
+    UI.show('goal-edit-modal', true);
+}
+
+function closeGoalEditModal() {
+    UI.show('goal-edit-modal', false);
+}
+
+function saveGoalEditModal() {
+    try {
+        const workDateEl = document.getElementById('work-date');
+        if (!workDateEl) {
+            alert('システムエラー: 日付入力フィールドが見つかりません。');
+            return;
+        }
+        const selectedDate = workDateEl.value;
+        if (!selectedDate) {
+            alert('システムエラー: 日付が設定されていません。');
+            return;
+        }
+        const dateParts = selectedDate.split('-');
+        if (dateParts.length < 2) {
+            alert('システムエラー: 日付の形式が不正です: ' + selectedDate);
+            return;
+        }
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const key = `${year}-${String(month).padStart(2, '0')}`;
+        
+        const inputNet = document.getElementById('input-goal-net');
+        if (!inputNet) {
+            alert('システムエラー: 入力フォームが見つかりません。');
+            return;
+        }
+        const val = parseFloat(inputNet.value);
+        
+        if (isNaN(val) || val < 0) {
+            alert('正しい数値（0以上）を入力してください。');
+            return;
+        }
+        
+        // taxi_v11_sets を更新して保存
+        const sets = DB.load('taxi_v11_sets', {});
+        if (!sets.monthly) sets.monthly = {};
+        if (!sets.monthly[key]) {
+            sets.monthly[key] = {
+                goal: sets.goal !== undefined ? sets.goal : CONFIG.DEFAULT_GOAL,
+                days: sets.days !== undefined ? sets.days : CONFIG.DEFAULT_DAYS,
+                weekdayGoal: 40000,
+                weekendGoal: 60000,
+                workDates: [],
+                customGoals: {}
+            };
+        }
+        if (!sets.monthly[key].customGoals) {
+            sets.monthly[key].customGoals = {};
+        }
+        
+        sets.monthly[key].customGoals[selectedDate] = val;
+        syncGoalWithMonthlyRates(sets, key);
+        DB.save('taxi_v11_sets', sets);
+        
+        // 表示の更新
+        try {
+            refreshCalc();
+        } catch (sumErr) {
+            alert('画面更新中にエラーが発生しました: ' + sumErr.message);
+        }
+        
+        try {
+            loadMonthlySettings(); // 設定画面とも同期
+        } catch (setErr) {
+            // 設定画面が初期化されていない時のエラーは許容
+        }
+        
+        closeGoalEditModal();
+    } catch (err) {
+        alert('保存処理全体でエラーが発生しました: ' + err.message);
+    }
+}
+
+function resetTodayGoal() {
+    try {
+        const selectedDate = document.getElementById('work-date').value;
+        const dateParts = selectedDate.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const key = `${year}-${String(month).padStart(2, '0')}`;
+        
+        // 保存
+        const sets = DB.load('taxi_v11_sets', {});
+        if (sets.monthly && sets.monthly[key] && sets.monthly[key].customGoals) {
+            delete sets.monthly[key].customGoals[selectedDate];
+            syncGoalWithMonthlyRates(sets, key);
+            DB.save('taxi_v11_sets', sets);
+        }
+        
+        // 表示の更新
+        try {
+            refreshCalc();
+        } catch (sumErr) {
+            alert('画面更新中にエラーが発生しました: ' + sumErr.message);
+        }
+        
+        try {
+            loadMonthlySettings();
+        } catch (setErr) {
+            // 許容
+        }
+        
+        closeGoalEditModal();
+    } catch (err) {
+        alert('リセット処理中にエラーが発生しました: ' + err.message);
+    }
+}
+
+function removeCustomGoalFromSettings(dateStr) {
+    try {
+        if (!confirm(`${dateStr} の個別目標設定を削除してよろしいですか？`)) {
+            return;
+        }
+        
+        const dateParts = dateStr.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const key = `${year}-${String(month).padStart(2, '0')}`;
+        
+        const sets = DB.load('taxi_v11_sets', {});
+        if (sets.monthly && sets.monthly[key] && sets.monthly[key].customGoals) {
+            delete sets.monthly[key].customGoals[dateStr];
+            syncGoalWithMonthlyRates(sets, key);
+            DB.save('taxi_v11_sets', sets);
+        }
+        
+        // メモリ内の設定変数の実体があればそこからも同期・削除
+        if (typeof mSets !== 'undefined' && mSets && mSets.customGoals && mSets.customGoals[dateStr] !== undefined) {
+            delete mSets.customGoals[dateStr];
+        }
+        
+        // 画面の更新
+        refreshCalc();
+        loadMonthlySettings();
+    } catch (err) {
+        alert('削除処理中にエラーが発生しました: ' + err.message);
+    }
 }
