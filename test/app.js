@@ -1056,7 +1056,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "08/06 13:20", // テスト用の日付時間
+    test: "08/06 13:30", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -1621,14 +1621,17 @@ function loadMonthlySettings() {
                 const netVal = customGoals[dateStr];
                 const grossVal = Math.round(netVal * 1.1);
                 listHtml += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); gap: 10px; flex-wrap: nowrap; overflow: hidden;">
-                        <div style="font-weight: bold; color: var(--text-main); white-space: nowrap; font-size: 0.85rem;">${y}年${String(m).padStart(2, '0')}月${String(d).padStart(2, '0')}日(${dayOfWeek})</div>
-                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                            <div style="text-align: right; line-height: 1.25; white-space: nowrap;">
-                                <div style="color: #FFD700; font-weight: bold; font-size: 0.8rem; white-space: nowrap;">税抜 ¥${netVal.toLocaleString()}</div>
-                                <div style="color: var(--success); font-weight: bold; font-size: 0.72rem; white-space: nowrap;">税込 ¥${grossVal.toLocaleString()}</div>
-                            </div>
-                            <button onclick="removeCustomGoalFromSettings('${dateStr}')" style="background: rgba(239, 68, 68, 0.15); border: none; color: var(--danger); padding: 5px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color: transparent;">削除</button>
+                    <div style="display: flex; flex-direction: column; padding: 10px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); gap: 6px; width: 100%;">
+                        <!-- 1行目: 日付と削除ボタン -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <div style="font-weight: bold; color: var(--text-main); font-size: 0.88rem; white-space: nowrap;">${y}年${String(m).padStart(2, '0')}月${String(d).padStart(2, '0')}日(${dayOfWeek})</div>
+                            <button onclick="removeCustomGoalFromSettings('${dateStr}')" style="background: rgba(239, 68, 68, 0.15); border: none; color: var(--danger); padding: 5px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent;">削除</button>
+                        </div>
+                        <!-- 2行目: 税抜と税込の目標表示 -->
+                        <div style="display: flex; gap: 12px; align-items: center; font-size: 0.8rem; white-space: nowrap;">
+                            <span style="color: #FFD700; font-weight: bold;">税抜 ¥${netVal.toLocaleString()}</span>
+                            <span style="color: var(--text-muted); font-size: 0.75rem;">/</span>
+                            <span style="color: var(--success); font-weight: bold;">税込 ¥${grossVal.toLocaleString()}</span>
                         </div>
                     </div>
                 `;
