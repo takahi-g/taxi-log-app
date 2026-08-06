@@ -1056,7 +1056,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "08/06 13:15", // テスト用の日付時間
+    test: "08/06 13:20", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -1614,20 +1614,21 @@ function loadMonthlySettings() {
             let listHtml = '';
             dates.forEach(dateStr => {
                 const parts = dateStr.split('-');
-                const y = parts[0];
-                const m = parts[1];
-                const d = parts[2];
+                const y = parseInt(parts[0]);
+                const m = parseInt(parts[1]);
+                const d = parseInt(parts[2]);
+                const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][new Date(y, m - 1, d).getDay()];
                 const netVal = customGoals[dateStr];
                 const grossVal = Math.round(netVal * 1.1);
                 listHtml += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">
-                        <div style="font-weight: bold; color: var(--text-main);">${y}年${m}月${d}日</div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="text-align: right; line-height: 1.2;">
-                                <div style="color: #FFD700; font-weight: bold;">税抜: ¥${netVal.toLocaleString()}</div>
-                                <div style="color: var(--success); font-size: 0.72rem;">税込: ¥${grossVal.toLocaleString()}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.08); gap: 10px; flex-wrap: nowrap; overflow: hidden;">
+                        <div style="font-weight: bold; color: var(--text-main); white-space: nowrap; font-size: 0.85rem;">${y}年${String(m).padStart(2, '0')}月${String(d).padStart(2, '0')}日(${dayOfWeek})</div>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                            <div style="text-align: right; line-height: 1.25; white-space: nowrap;">
+                                <div style="color: #FFD700; font-weight: bold; font-size: 0.8rem; white-space: nowrap;">税抜 ¥${netVal.toLocaleString()}</div>
+                                <div style="color: var(--success); font-weight: bold; font-size: 0.72rem; white-space: nowrap;">税込 ¥${grossVal.toLocaleString()}</div>
                             </div>
-                            <button onclick="removeCustomGoalFromSettings('${dateStr}')" style="background: rgba(239, 68, 68, 0.15); border: none; color: var(--danger); padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer;">削除</button>
+                            <button onclick="removeCustomGoalFromSettings('${dateStr}')" style="background: rgba(239, 68, 68, 0.15); border: none; color: var(--danger); padding: 5px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer; white-space: nowrap; flex-shrink: 0; -webkit-tap-highlight-color: transparent;">削除</button>
                         </div>
                     </div>
                 `;
