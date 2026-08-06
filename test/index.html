@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TAXI Log Pro</title>
-    <link rel="stylesheet" href="style.css?v=20260806_1300">
+    <link rel="stylesheet" href="style.css?v=20260806_1305">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 08/06 13:00</div>
+                <div class="app-version">Ver: 08/06 13:05</div>
             </div>
         </div>
     </header>
@@ -278,6 +278,12 @@
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
                         <span style="font-weight: bold; font-size: 0.95rem;">祝前日目標 (税抜)</span>
                         <input type="number" id="set-eve-goal" oninput="saveCalcSettings()" style="width:140px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
+                    </div>
+
+                    <!-- 🎯 個別変更分反映済みの目標売上リスト -->
+                    <div id="set-custom-goals-container" style="margin: 12px 0; display: none; background: rgba(10, 132, 255, 0.06); padding: 12px 14px; border-radius: 14px; border: 1px solid rgba(10, 132, 255, 0.25);">
+                        <span style="font-weight: 800; font-size: 0.85rem; display: block; margin-bottom: 8px; color: var(--ios-blue);">🎯 個別変更済みの目標売上</span>
+                        <div id="set-custom-goals-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 150px; overflow-y: auto;"></div>
                     </div>
                     <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); background: rgba(255, 215, 0, 0.02);">
                         <span style="font-weight: bold; font-size: 0.95rem; color: var(--accent);">目標売上 (税抜・自動計算)</span>
@@ -535,6 +541,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260806_1300"></script>
+    <script src="app.js?v=20260806_1305"></script>
 </body>
 </html>

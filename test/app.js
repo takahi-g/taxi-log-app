@@ -1056,7 +1056,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "08/06 13:00", // テスト用の日付時間
+    test: "08/06 13:05", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -1592,6 +1592,42 @@ function loadMonthlySettings() {
     if (UI.get('quick-weekday')) UI.get('quick-weekday').value = '';
     if (UI.get('quick-other')) UI.get('quick-other').value = '';
     
+    // 個別変更済みの目標売上リストの描画
+    const customGoalsContainer = document.getElementById('set-custom-goals-container');
+    const customGoalsList = document.getElementById('set-custom-goals-list');
+    if (customGoalsContainer && customGoalsList) {
+        const customGoals = mSets.customGoals || {};
+        const dates = Object.keys(customGoals).sort();
+        
+        if (dates.length > 0) {
+            customGoalsContainer.style.display = 'block';
+            let listHtml = '';
+            dates.forEach(dateStr => {
+                const parts = dateStr.split('-');
+                const y = parts[0];
+                const m = parts[1];
+                const d = parts[2];
+                const netVal = customGoals[dateStr];
+                const grossVal = Math.round(netVal * 1.1);
+                listHtml += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);">
+                        <div style="font-weight: bold; color: var(--text-main);">${y}年${m}月${d}日</div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="text-align: right; line-height: 1.2;">
+                                <div style="color: #FFD700; font-weight: bold;">税抜: ¥${netVal.toLocaleString()}</div>
+                                <div style="color: var(--success); font-size: 0.72rem;">税込: ¥${grossVal.toLocaleString()}</div>
+                            </div>
+                            <button onclick="removeCustomGoalFromSettings('${dateStr}')" style="background: rgba(239, 68, 68, 0.15); border: none; color: var(--danger); padding: 4px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer;">削除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            customGoalsList.innerHTML = listHtml;
+        } else {
+            customGoalsContainer.style.display = 'none';
+        }
+    }
+    
     // 設定カレンダーの描画
     renderSettingsCalendar(sy, sm, mSets.workDates);
 }
@@ -2058,5 +2094,35 @@ function resetTodayGoal() {
         closeGoalEditModal();
     } catch (err) {
         alert('リセット処理中にエラーが発生しました: ' + err.message);
+    }
+}
+
+function removeCustomGoalFromSettings(dateStr) {
+    try {
+        if (!confirm(`${dateStr} の個別目標設定を削除してよろしいですか？`)) {
+            return;
+        }
+        
+        const dateParts = dateStr.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const key = `${year}-${String(month).padStart(2, '0')}`;
+        
+        const sets = DB.load('taxi_v11_sets', {});
+        if (sets.monthly && sets.monthly[key] && sets.monthly[key].customGoals) {
+            delete sets.monthly[key].customGoals[dateStr];
+            DB.save('taxi_v11_sets', sets);
+        }
+        
+        // メモリ内の設定変数の実体があればそこからも同期・削除
+        if (typeof mSets !== 'undefined' && mSets && mSets.customGoals && mSets.customGoals[dateStr] !== undefined) {
+            delete mSets.customGoals[dateStr];
+        }
+        
+        // 画面の更新
+        refreshCalc();
+        loadMonthlySettings();
+    } catch (err) {
+        alert('削除処理中にエラーが発生しました: ' + err.message);
     }
 }
