@@ -1056,7 +1056,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "08/06 12:50", // テスト用の日付時間
+    test: "08/06 12:55", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -1956,62 +1956,107 @@ function closeGoalEditModal() {
 }
 
 function saveGoalEditModal() {
-    const selectedDate = document.getElementById('work-date').value;
-    const dateParts = selectedDate.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const key = `${year}-${String(month).padStart(2, '0')}`;
-    
-    const inputNet = document.getElementById('input-goal-net');
-    const val = parseFloat(inputNet.value);
-    
-    if (isNaN(val) || val < 0) {
-        alert('正しい数値（0以上）を入力してください。');
-        return;
+    try {
+        const workDateEl = document.getElementById('work-date');
+        if (!workDateEl) {
+            alert('システムエラー: 日付入力フィールドが見つかりません。');
+            return;
+        }
+        const selectedDate = workDateEl.value;
+        if (!selectedDate) {
+            alert('システムエラー: 日付が設定されていません。');
+            return;
+        }
+        const dateParts = selectedDate.split('-');
+        if (dateParts.length < 2) {
+            alert('システムエラー: 日付の形式が不正です: ' + selectedDate);
+            return;
+        }
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const key = `${year}-${String(month).padStart(2, '0')}`;
+        
+        const inputNet = document.getElementById('input-goal-net');
+        if (!inputNet) {
+            alert('システムエラー: 入力フォームが見つかりません。');
+            return;
+        }
+        const val = parseFloat(inputNet.value);
+        
+        if (isNaN(val) || val < 0) {
+            alert('正しい数値（0以上）を入力してください。');
+            return;
+        }
+        
+        // taxi_v11_sets を更新して保存
+        const sets = DB.load('taxi_v11_sets', {});
+        if (!sets.monthly) sets.monthly = {};
+        if (!sets.monthly[key]) {
+            sets.monthly[key] = {
+                goal: sets.goal !== undefined ? sets.goal : CONFIG.DEFAULT_GOAL,
+                days: sets.days !== undefined ? sets.days : CONFIG.DEFAULT_DAYS,
+                weekdayGoal: 40000,
+                weekendGoal: 60000,
+                workDates: [],
+                customGoals: {}
+            };
+        }
+        if (!sets.monthly[key].customGoals) {
+            sets.monthly[key].customGoals = {};
+        }
+        
+        sets.monthly[key].customGoals[selectedDate] = val;
+        DB.save('taxi_v11_sets', sets);
+        
+        // 表示の更新
+        try {
+            updateSummary();
+        } catch (sumErr) {
+            alert('画面更新中にエラーが発生しました: ' + sumErr.message);
+        }
+        
+        try {
+            loadMonthlySettings(); // 設定画面とも同期
+        } catch (setErr) {
+            // 設定画面が初期化されていない時のエラーは許容
+        }
+        
+        closeGoalEditModal();
+    } catch (err) {
+        alert('保存処理全体でエラーが発生しました: ' + err.message);
     }
-    
-    // taxi_v11_sets を更新して保存
-    const sets = DB.load('taxi_v11_sets', {});
-    if (!sets.monthly) sets.monthly = {};
-    if (!sets.monthly[key]) {
-        sets.monthly[key] = {
-            goal: sets.goal !== undefined ? sets.goal : CONFIG.DEFAULT_GOAL,
-            days: sets.days !== undefined ? sets.days : CONFIG.DEFAULT_DAYS,
-            weekdayGoal: 40000,
-            weekendGoal: 60000,
-            workDates: [],
-            customGoals: {}
-        };
-    }
-    if (!sets.monthly[key].customGoals) {
-        sets.monthly[key].customGoals = {};
-    }
-    
-    sets.monthly[key].customGoals[selectedDate] = val;
-    DB.save('taxi_v11_sets', sets);
-    
-    // 表示の更新
-    updateSummary();
-    loadMonthlySettings(); // 設定画面とも同期
-    closeGoalEditModal();
 }
 
 function resetTodayGoal() {
-    const selectedDate = document.getElementById('work-date').value;
-    const dateParts = selectedDate.split('-');
-    const year = parseInt(dateParts[0]);
-    const month = parseInt(dateParts[1]);
-    const key = `${year}-${String(month).padStart(2, '0')}`;
-    
-    // 保存
-    const sets = DB.load('taxi_v11_sets', {});
-    if (sets.monthly && sets.monthly[key] && sets.monthly[key].customGoals) {
-        delete sets.monthly[key].customGoals[selectedDate];
-        DB.save('taxi_v11_sets', sets);
+    try {
+        const selectedDate = document.getElementById('work-date').value;
+        const dateParts = selectedDate.split('-');
+        const year = parseInt(dateParts[0]);
+        const month = parseInt(dateParts[1]);
+        const key = `${year}-${String(month).padStart(2, '0')}`;
+        
+        // 保存
+        const sets = DB.load('taxi_v11_sets', {});
+        if (sets.monthly && sets.monthly[key] && sets.monthly[key].customGoals) {
+            delete sets.monthly[key].customGoals[selectedDate];
+            DB.save('taxi_v11_sets', sets);
+        }
+        
+        // 表示の更新
+        try {
+            updateSummary();
+        } catch (sumErr) {
+            alert('画面更新中にエラーが発生しました: ' + sumErr.message);
+        }
+        
+        try {
+            loadMonthlySettings();
+        } catch (setErr) {
+            // 許容
+        }
+        
+        closeGoalEditModal();
+    } catch (err) {
+        alert('リセット処理中にエラーが発生しました: ' + err.message);
     }
-    
-    // 表示の更新
-    updateSummary();
-    loadMonthlySettings();
-    closeGoalEditModal();
 }
