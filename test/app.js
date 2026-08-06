@@ -1056,7 +1056,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "08/06 13:10", // テスト用の日付時間
+    test: "08/06 13:15", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -2069,6 +2069,7 @@ function saveGoalEditModal() {
         }
         
         sets.monthly[key].customGoals[selectedDate] = val;
+        syncGoalWithMonthlyRates(sets, key);
         DB.save('taxi_v11_sets', sets);
         
         // 表示の更新
@@ -2102,6 +2103,7 @@ function resetTodayGoal() {
         const sets = DB.load('taxi_v11_sets', {});
         if (sets.monthly && sets.monthly[key] && sets.monthly[key].customGoals) {
             delete sets.monthly[key].customGoals[selectedDate];
+            syncGoalWithMonthlyRates(sets, key);
             DB.save('taxi_v11_sets', sets);
         }
         
@@ -2138,6 +2140,7 @@ function removeCustomGoalFromSettings(dateStr) {
         const sets = DB.load('taxi_v11_sets', {});
         if (sets.monthly && sets.monthly[key] && sets.monthly[key].customGoals) {
             delete sets.monthly[key].customGoals[dateStr];
+            syncGoalWithMonthlyRates(sets, key);
             DB.save('taxi_v11_sets', sets);
         }
         
