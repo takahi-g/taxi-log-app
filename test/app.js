@@ -1056,7 +1056,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "08/06 13:05", // テスト用の日付時間
+    test: "08/06 13:10", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -1588,6 +1588,16 @@ function loadMonthlySettings() {
     if (UI.get('set-holiday-goal')) UI.get('set-holiday-goal').value = mSets.holidayGoal;
     if (UI.get('set-eve-goal')) UI.get('set-eve-goal').value = mSets.eveGoal;
     
+    // 個別変更分反映後の目標売上
+    const customGoalTotal = mSets.customGoalTotal !== undefined ? mSets.customGoalTotal : mSets.goal;
+    if (UI.get('set-custom-goal-total')) UI.get('set-custom-goal-total').value = customGoalTotal;
+    
+    const rowCustomGoalTotal = document.getElementById('row-custom-goal-total');
+    if (rowCustomGoalTotal) {
+        const hasCustomGoals = mSets.customGoals && Object.keys(mSets.customGoals).length > 0;
+        rowCustomGoalTotal.style.display = hasCustomGoals ? 'flex' : 'none';
+    }
+    
     // 一括コピー用の入力フォームをリセット
     if (UI.get('quick-weekday')) UI.get('quick-weekday').value = '';
     if (UI.get('quick-other')) UI.get('quick-other').value = '';
@@ -1769,21 +1779,38 @@ function syncGoalWithMonthlyRates(sets, key) {
     if (!m) return;
     
     let total = 0;
+    let customTotal = 0;
     const workDates = m.workDates || [];
     workDates.forEach(dateStr => {
         const type = getDayGoalType(dateStr);
-        if (type === 'weekday') total += m.weekdayGoal !== undefined ? m.weekdayGoal : 40000;
-        else if (type === 'fri') total += m.friGoal !== undefined ? m.friGoal : 60000;
-        else if (type === 'sat') total += m.satGoal !== undefined ? m.satGoal : 60000;
-        else if (type === 'sun') total += m.sunGoal !== undefined ? m.sunGoal : 60000;
-        else if (type === 'holiday') total += m.holidayGoal !== undefined ? m.holidayGoal : 60000;
-        else if (type === 'eve') total += m.eveGoal !== undefined ? m.eveGoal : 60000;
+        let defaultGoal = 40000;
+        if (type === 'weekday') defaultGoal = m.weekdayGoal !== undefined ? m.weekdayGoal : 40000;
+        else if (type === 'fri') defaultGoal = m.friGoal !== undefined ? m.friGoal : 60000;
+        else if (type === 'sat') defaultGoal = m.satGoal !== undefined ? m.satGoal : 60000;
+        else if (type === 'sun') defaultGoal = m.sunGoal !== undefined ? m.sunGoal : 60000;
+        else if (type === 'holiday') defaultGoal = m.holidayGoal !== undefined ? m.holidayGoal : 60000;
+        else if (type === 'eve') defaultGoal = m.eveGoal !== undefined ? m.eveGoal : 60000;
+        
+        total += defaultGoal;
+        
+        if (m.customGoals && m.customGoals[dateStr] !== undefined) {
+            customTotal += m.customGoals[dateStr];
+        } else {
+            customTotal += defaultGoal;
+        }
     });
     
     m.goal = total;
+    m.customGoalTotal = customTotal;
+    
     const goalInput = document.getElementById('set-goal');
     if (goalInput) {
         goalInput.value = total;
+    }
+    
+    const customGoalInput = document.getElementById('set-custom-goal-total');
+    if (customGoalInput) {
+        customGoalInput.value = customTotal;
     }
 }
 function changeWorkHours() {
