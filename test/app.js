@@ -1056,7 +1056,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "07/31 07:15", // テスト用の日付時間
+    test: "08/06 12:50", // テスト用の日付時間
     prod: "3.2.1"       // Formally updated prod version
 };
 
@@ -1570,8 +1570,12 @@ function getMonthlySettings(year, month) {
 }
 
 function loadMonthlySettings() {
-    const sy = parseInt(document.getElementById('set-year').value);
-    const sm = parseInt(document.getElementById('set-month').value);
+    const syEl = document.getElementById('set-year');
+    const smEl = document.getElementById('set-month');
+    if (!syEl || !smEl) return;
+    
+    const sy = parseInt(syEl.value);
+    const sm = parseInt(smEl.value);
     if (isNaN(sy) || isNaN(sm)) return;
     
     const mSets = getMonthlySettings(sy, sm);
