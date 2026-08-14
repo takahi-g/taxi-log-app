@@ -1057,7 +1057,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "08/14 20:50", // テスト用の日付時間
+    test: "08/14 20:55", // テスト用の日付時間
     prod: "3.2.4"       // Formally updated prod version
 };
 
@@ -1948,6 +1948,16 @@ function updateAnalytics() {
         });
     });
 
+    const mode = DB.load('taxi_v11_analytics_mode', 'table'); // デフォルトは表表示
+    
+    // スイッチのHTML
+    const switchHtml = `
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 12px; gap: 6px; font-size: 0.75rem;">
+            <button onclick="setAnalyticsMode('table')" style="background: ${mode === 'table' ? 'rgba(10, 132, 255, 0.15)' : 'var(--bg-main)'}; border: 1px solid ${mode === 'table' ? 'var(--ios-blue)' : 'var(--border)'}; color: ${mode === 'table' ? 'var(--ios-blue)' : 'var(--text-muted)'}; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s;">📋 表形式</button>
+            <button onclick="setAnalyticsMode('graph')" style="background: ${mode === 'graph' ? 'rgba(10, 132, 255, 0.15)' : 'var(--bg-main)'}; border: 1px solid ${mode === 'graph' ? 'var(--ios-blue)' : 'var(--border)'}; color: ${mode === 'graph' ? 'var(--ios-blue)' : 'var(--text-muted)'}; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s;">📊 グラフ</button>
+        </div>
+    `;
+
     const wdayStats = [];
     const weekdays = [1, 2, 3, 4, 5, 6, 0];
     let maxHourly = 0;
@@ -1964,64 +1974,105 @@ function updateAnalytics() {
         wdayStats.push({ wday, data, daysCount, avgNet, avgGross, hourlyNet });
     });
 
-    let listHtml = '';
-    wdayStats.forEach(stat => {
-        const pct = maxHourly > 0 ? Math.round((stat.hourlyNet / maxHourly) * 100) : 0;
-        let barColor = 'var(--text-muted)';
-        let statusBadge = 'データ無';
-        
-        if (stat.daysCount > 0) {
-            if (pct >= 90) {
-                barColor = 'linear-gradient(90deg, #30d158, #248a3d)'; // 超得意 (緑系)
-                statusBadge = '超得意';
-            } else if (pct >= 80) {
-                barColor = 'linear-gradient(90deg, #0a84ff, #30d158)'; // 得意 (青緑系)
-                statusBadge = '得意';
-            } else if (pct >= 65) {
-                barColor = 'linear-gradient(90deg, #ff9f0a, #0a84ff)'; // 普通 (オレンジ・青系)
-                statusBadge = '普通';
-            } else {
-                barColor = 'linear-gradient(90deg, #ff453a, #ff9f0a)'; // 苦手 (赤・オレンジ系)
-                statusBadge = '苦手傾向';
+    if (mode === 'graph') {
+        let listHtml = '';
+        wdayStats.forEach(stat => {
+            const pct = maxHourly > 0 ? Math.round((stat.hourlyNet / maxHourly) * 100) : 0;
+            let barColor = 'var(--text-muted)';
+            let statusBadge = 'データ無';
+            
+            if (stat.daysCount > 0) {
+                if (pct >= 90) {
+                    barColor = 'linear-gradient(90deg, #30d158, #248a3d)';
+                    statusBadge = '超得意';
+                } else if (pct >= 80) {
+                    barColor = 'linear-gradient(90deg, #0a84ff, #30d158)';
+                    statusBadge = '得意';
+                } else if (pct >= 65) {
+                    barColor = 'linear-gradient(90deg, #ff9f0a, #0a84ff)';
+                    statusBadge = '普通';
+                } else {
+                    barColor = 'linear-gradient(90deg, #ff453a, #ff9f0a)';
+                    statusBadge = '苦手傾向';
+                }
             }
-        }
 
-        listHtml += `
-            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 12px 14px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="font-size: 1.05rem; font-weight: 900; color: ${stat.data.color};">${stat.data.name}曜日</span>
-                        <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: bold; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 6px;">出勤 ${stat.daysCount}回</span>
+            listHtml += `
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 12px 14px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 1.05rem; font-weight: 900; color: ${stat.data.color};">${stat.data.name}曜日</span>
+                            <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: bold; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 6px;">出勤 ${stat.daysCount}回</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: ${stat.daysCount > 0 ? barColor : 'rgba(255,255,255,0.05)'}; color: #fff;">${statusBadge}</span>
+                            <span style="font-size: 0.95rem; font-weight: bold; color: #5e5ce6;">¥${stat.hourlyNet.toLocaleString()}/h</span>
+                        </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: ${stat.daysCount > 0 ? barColor : 'rgba(255,255,255,0.05)'}; color: #fff;">${statusBadge}</span>
-                        <span style="font-size: 0.95rem; font-weight: bold; color: #5e5ce6;">¥${stat.hourlyNet.toLocaleString()}/h</span>
+                    
+                    <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; position: relative;">
+                        <div style="width: ${stat.daysCount > 0 ? pct : 0}%; height: 100%; background: ${barColor}; border-radius: 4px; transition: width 0.5s ease-out;"></div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); flex-wrap: nowrap; gap: 6px;">
+                        <div>平均税抜: <span style="color: #FFE596; font-weight: 700;">¥${stat.avgNet.toLocaleString()}</span></div>
+                        <div>平均税込: <span style="color: var(--success); font-weight: 700;">¥${stat.avgGross.toLocaleString()}</span></div>
+                        <div>総労働: <span style="color: var(--text-main); font-weight: 700;">${stat.daysCount > 0 ? Math.round(stat.data.totalHours * 10) / 10 : 0}h</span></div>
                     </div>
                 </div>
-                
-                <!-- 得意度バーメーター -->
-                <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; position: relative;">
-                    <div style="width: ${stat.daysCount > 0 ? pct : 0}%; height: 100%; background: ${barColor}; border-radius: 4px; transition: width 0.5s ease-out;"></div>
-                </div>
-                
-                <!-- 平均売上情報 -->
-                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); flex-wrap: nowrap; gap: 6px;">
-                    <div>平均税抜: <span style="color: #FFE596; font-weight: 700;">¥${stat.avgNet.toLocaleString()}</span></div>
-                    <div>平均税込: <span style="color: var(--success); font-weight: 700;">¥${stat.avgGross.toLocaleString()}</span></div>
-                    <div>総労働: <span style="color: var(--text-main); font-weight: 700;">${stat.daysCount > 0 ? Math.round(stat.data.totalHours * 10) / 10 : 0}h</span></div>
-                </div>
+            `;
+        });
+
+        el.innerHTML = `
+            ${switchHtml}
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
+                ※ 指定期間のデータから曜日別の平均時給を算出し、パフォーマンス度合い（得意・苦手）を視覚化しています。
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                ${listHtml}
             </div>
         `;
-    });
+    } else {
+        // 従来のテーブル（表形式）の描画
+        let rowsHtml = '';
+        wdayStats.forEach(stat => {
+            rowsHtml += `
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 10px 6px; font-weight: bold; color: ${stat.data.color}; font-size: 0.9rem;">${stat.data.name}</td>
+                    <td style="padding: 10px 6px; text-align: center; color: var(--text-main); font-weight: 600;">${stat.daysCount}回</td>
+                    <td style="padding: 10px 6px; text-align: right; color: #FFE596; font-weight: 700;">¥${stat.avgNet.toLocaleString()}</td>
+                    <td style="padding: 10px 6px; text-align: right; color: var(--success); font-weight: 700;">¥${stat.avgGross.toLocaleString()}</td>
+                    <td style="padding: 10px 6px; text-align: right; color: #5e5ce6; font-weight: bold;">¥${stat.hourlyNet.toLocaleString()}/h</td>
+                </tr>
+            `;
+        });
 
-    el.innerHTML = `
-        <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-            ※ 指定期間のデータから曜日別の平均時給を算出し、パフォーマンス度合い（得意・苦手）を視覚化しています。
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-            ${listHtml}
-        </div>
-    `;
+        el.innerHTML = `
+            ${switchHtml}
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
+                ※ 指定期間の売上履歴・勤務時間データを集計した、曜日別の平均値（手取り歩合除く）です。
+            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.75rem;">
+                        <th style="padding: 6px; text-align: left;">曜日</th>
+                        <th style="padding: 6px; text-align: center;">出勤</th>
+                        <th style="padding: 6px; text-align: right; color: #FFE596;">平均(税抜)</th>
+                        <th style="padding: 6px; text-align: right; color: var(--success);">平均(税込)</th>
+                        <th style="padding: 6px; text-align: right; color: #5e5ce6;">平均時給</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHtml}
+                </tbody>
+            </table>
+        `;
+    }
+}
+
+function setAnalyticsMode(mode) {
+    DB.save('taxi_v11_analytics_mode', mode);
+    updateAnalytics();
 }
 
 // 🎯 目標売上編集モーダル用関数群
