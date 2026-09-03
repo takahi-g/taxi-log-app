@@ -548,10 +548,12 @@ function updateHistoryTab(history, sets) {
     document.getElementById('history-groups').innerHTML = sortedDates.map(date => {
         const sum = groups[date].reduce((s, h) => s + h.net, 0);
         const dateState = loadWorkState(date);
-        let irrTag = '';
+        let irrBtnHtml = '';
         if (dateState.isIrregular) {
-            const noteText = dateState.irregularNote ? ` (${dateState.irregularNote})` : '';
-            irrTag = `<span style="font-size: 0.7rem; background: rgba(255, 159, 10, 0.2); color: #ff9f0a; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px; white-space: nowrap;">⚠️ 除外${noteText}</span>`;
+            const noteText = dateState.irregularNote ? `: ${dateState.irregularNote}` : '';
+            irrBtnHtml = `<button onclick="event.stopPropagation(); openIrregularModal('${date}')" style="font-size: 0.72rem; background: rgba(255, 159, 10, 0.2); border: 1px solid rgba(255, 159, 10, 0.5); color: #ff9f0a; padding: 2px 7px; border-radius: 6px; font-weight: bold; margin-left: 6px; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent;">⚠️ イレギュラー${noteText}</button>`;
+        } else {
+            irrBtnHtml = `<button onclick="event.stopPropagation(); openIrregularModal('${date}')" style="font-size: 0.72rem; background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(255, 255, 255, 0.2); color: var(--text-muted); padding: 2px 7px; border-radius: 6px; font-weight: bold; margin-left: 6px; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent;">+ ⚠️ イレギュラー</button>`;
         }
 
         const dayHtml = groups[date].map((h, i) => {
@@ -586,7 +588,7 @@ function updateHistoryTab(history, sets) {
         });
         dayHtml.reverse();
         const legendHtml = `<div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;"><div style="width: 40px; flex-shrink: 0;">件数</div><div style="color: #FFD700; font-weight: bold; flex: 1; text-align: right;">税抜 (金)</div><div style="color: var(--success); font-weight: bold; flex: 1.1; text-align: right;">税込 (緑)</div><div style="width: 112px; text-align: right; flex-shrink: 0;">操作</div></div>`;
-        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} ${irrTag} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${legendHtml}${dayHtml.join('')}</div></div>`;
+        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span style="display:inline-flex; align-items:center;">${date.substring(5).replace('-','/')} ${irrBtnHtml} <span class="arrow" style="margin-left:4px;">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${legendHtml}${dayHtml.join('')}</div></div>`;
     }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">過去のデータなし</div>';
 }
 
@@ -693,11 +695,14 @@ function renderCalcCalendar(year, month, history) {
     const container = document.getElementById('cal-container'); container.innerHTML = '';
     const days = ['日','月','火','水','木','金','土']; days.forEach(d => container.innerHTML += `<div class="cal-day-label">${d}</div>`);
     const first = new Date(year, month - 1, 1).getDay(), last = new Date(year, month, 0).getDate();
+    const workStates = DB.load('taxi_v11_work_states', {});
     for (let i = 0; i < first; i++) container.innerHTML += '<div></div>';
     for (let d = 1; d <= last; d++) {
         const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const hasData = history.some(h => h.date === dateStr), isToday = dateStr === new Date().toISOString().split('T')[0] ? 'is-today' : '';
-        container.innerHTML += `<div class="cal-cell ${hasData ? 'has-data' : ''} ${isToday}" onclick="scrollToCalcDate('${dateStr}')">${d}</div>`;
+        const isIrr = workStates[dateStr] && workStates[dateStr].isIrregular;
+        const irrMark = isIrr ? '<span style="position: absolute; top: 1px; right: 2px; font-size: 0.65rem;">⚠️</span>' : '';
+        container.innerHTML += `<div class="cal-cell ${hasData ? 'has-data' : ''} ${isToday}" style="position: relative;" onclick="scrollToCalcDate('${dateStr}')">${d}${irrMark}</div>`;
     }
 }
 
@@ -992,12 +997,12 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "20260903_1635",
-    date: "09/03 16:35",
-    title: "🎉 アップデートのお知らせ (Ver: 09/03 16:35)",
+    version: "20260903_1705",
+    date: "09/03 17:05",
+    title: "🎉 アップデートのお知らせ (Ver: 09/03 17:05)",
     details: [
-        "⚠️ 【イレギュラー設定＆メモ】詳細履歴タブの各日に『⚠️ イレギュラー設定』ボタンを追加しました！台風・早退・体調不良・トラブルがあった日を理由メッセージ付きで記録できます。",
-        "📊 【イレギュラー除外トグル】曜日分析に『⚠️ イレギュラー日を除外』スイッチを追加！突発的な日のデータを集計から外し、本来の『実力平均時給』を正しく算出・可視化できるようになりました。"
+        "⚡ 【操作性UP！日別リストからダイレクト登録】詳細履歴の日別一覧の各行に『+ ⚠️ イレギュラー』ボタンを常時配置しました！ワンタップで直感的に早退理由などをメモ・登録できます。",
+        "📊 【イレギュラー除外トグル】曜日分析に『⚠️ イレギュラー日を除外』スイッチを追加！台風・体調不良等の日を集計から外し、本来の『実力平均時給』を正しく確認できます。"
     ],
     history: [
         {
@@ -1081,7 +1086,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "09/03 16:35", // テスト用の日付時間
+    test: "09/03 17:05", // テスト用の日付時間
     prod: "3.2.5"       // Formally updated prod version
 };
 
@@ -2367,6 +2372,17 @@ function saveIrregularModal() {
     
     stateObj.isIrregular = chkEl ? chkEl.checked : false;
     stateObj.irregularNote = noteEl ? noteEl.value.trim() : "";
+    
+    saveWorkState(currentIrregularTargetDate, stateObj);
+    closeIrregularModal();
+    refreshCalc();
+}
+
+function resetIrregularModal() {
+    if (!currentIrregularTargetDate) return;
+    const stateObj = loadWorkState(currentIrregularTargetDate);
+    stateObj.isIrregular = false;
+    stateObj.irregularNote = "";
     
     saveWorkState(currentIrregularTargetDate, stateObj);
     closeIrregularModal();

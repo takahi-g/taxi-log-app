@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TAXI Log Pro</title>
-    <link rel="stylesheet" href="style.css?v=20260903_1635">
+    <link rel="stylesheet" href="style.css?v=20260903_1705">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 09/03 16:35</div>
+                <div class="app-version">Ver: 09/03 17:05</div>
             </div>
         </div>
     </header>
@@ -558,9 +558,10 @@
                 <input type="text" id="input-irregular-note" placeholder="例: 体調不良で14時に早退" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); font-size: 0.95rem; box-sizing: border-box; outline: none; -webkit-appearance: none;">
             </div>
 
-            <div style="display: flex; gap: 10px;">
-                <button onclick="closeIrregularModal()" style="flex: 1; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main); padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.95rem; text-align: center; -webkit-tap-highlight-color: transparent;">キャンセル</button>
-                <button onclick="saveIrregularModal()" style="flex: 1; background: #ff9f0a; border: none; color: #fff; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.95rem; text-align: center; -webkit-tap-highlight-color: transparent;">保存</button>
+            <div style="display: flex; gap: 8px;">
+                <button onclick="closeIrregularModal()" style="flex: 1; background: var(--bg-main); border: 1px solid var(--border); color: var(--text-main); padding: 12px 6px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.9rem; text-align: center; -webkit-tap-highlight-color: transparent;">キャンセル</button>
+                <button onclick="resetIrregularModal()" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: var(--danger); padding: 12px 10px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.85rem; text-align: center; -webkit-tap-highlight-color: transparent;">解除</button>
+                <button onclick="saveIrregularModal()" style="flex: 1.2; background: #ff9f0a; border: none; color: #fff; padding: 12px 6px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 0.9rem; text-align: center; -webkit-tap-highlight-color: transparent;">保存</button>
             </div>
         </div>
     </div>
@@ -573,6 +574,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20260903_1635"></script>
+    <script src="app.js?v=20260903_1705"></script>
 </body>
 </html>
