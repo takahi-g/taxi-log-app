@@ -699,9 +699,10 @@ function scrollToCalcDate(dateStr) {
         el.classList.add('open');
         const arrow = el.querySelector('.arrow');
         if (arrow) arrow.innerText = '▼';
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        el.style.background = '#2c2c2e'; setTimeout(() => { el.style.background = 'transparent'; }, 1000);
     }
+
+    // 画面の一番上（📌選択中の詳細カード）へスムーズスクロール
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function renderCalcCalendar(year, month, history) {
@@ -1099,7 +1100,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "09/03 17:25", // テスト用の日付時間
+    test: "09/03 17:26", // テスト用の日付時間
     prod: "3.2.5"       // Formally updated prod version
 };
 
