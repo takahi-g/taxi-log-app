@@ -509,18 +509,21 @@ function updateHistoryTab(history, sets) {
             
             detailsBox.innerHTML = `
                 <section class="card" style="margin-bottom: 0; padding: 15px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; gap: 10px;">
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <h3 style="margin: 0; font-size: 1rem; color: var(--accent);">📌 選択中の詳細 (${mPart}/${dPart})</h3>
-                                <button onclick="openIrregularModal('${selectedDate}')" style="background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.35); color: #ff9f0a; padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;">⚠️ イレギュラー設定</button>
+                    <div style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                            <h3 style="margin: 0; font-size: 0.98rem; color: var(--accent); white-space: nowrap;">📌 選択中の詳細 (${mPart}/${dPart})</h3>
+                            <button onclick="openIrregularModal('${selectedDate}')" style="background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.35); color: #ff9f0a; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;">⚠️ イレギュラー設定</button>
+                        </div>
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 8px; flex-wrap: nowrap;">
+                            <div style="font-size: 0.78rem; color: var(--text-muted); font-weight: bold;">日計売上</div>
+                            <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                                <span style="font-size: 0.98rem; font-weight: 800; color: #FFD700; white-space: nowrap;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税抜</small>${Math.floor(sumNet).toLocaleString()}円</span>
+                                <span style="font-size: 1.08rem; font-weight: 900; color: var(--success); white-space: nowrap;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税込</small>${Math.floor(sumGross).toLocaleString()}円</span>
                             </div>
-                            ${irregularBadgeHtml}
                         </div>
-                        <div style="text-align: right; display: flex; flex-direction: column; gap: 2px; line-height: 1.2; flex-shrink: 0; white-space: nowrap;">
-                            <span style="font-size: 1.05rem; font-weight: 800; color: #FFD700; white-space: nowrap;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税抜</small>${Math.floor(sumNet).toLocaleString()}円</span>
-                            <span style="font-size: 1.15rem; font-weight: 900; color: var(--success); white-space: nowrap;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税込</small>${Math.floor(sumGross).toLocaleString()}円</span>
-                        </div>
+                        
+                        ${irregularBadgeHtml}
                     </div>
                     <div class="day-details" style="display: block;">
                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;">
@@ -1096,7 +1099,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "09/03 17:20", // テスト用の日付時間
+    test: "09/03 17:25", // テスト用の日付時間
     prod: "3.2.5"       // Formally updated prod version
 };
 
