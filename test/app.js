@@ -511,8 +511,11 @@ function updateHistoryTab(history, sets) {
                 <section class="card" style="margin-bottom: 0; padding: 15px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
                     <div style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px; width: 100%;">
-                            <h3 style="margin: 0; font-size: 0.92rem; color: var(--accent); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📌 選択中 (${mPart}/${dPart})</h3>
-                            <button onclick="openIrregularModal('${selectedDate}')" style="background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.35); color: #ff9f0a; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;">⚠️ イレギュラー設定</button>
+                            <h3 style="margin: 0; font-size: 0.9rem; color: var(--accent); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📌 選択中 (${mPart}/${dPart})</h3>
+                            <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                                <button onclick="scrollToCalendarSection()" style="background: rgba(10, 132, 255, 0.15); border: 1px solid rgba(10, 132, 255, 0.35); color: var(--ios-blue); padding: 2px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;">📅 カレンダーへ ▼</button>
+                                <button onclick="openIrregularModal('${selectedDate}')" style="background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.35); color: #ff9f0a; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;">⚠️ イレギュラー</button>
+                            </div>
                         </div>
                         
                         <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 8px; flex-wrap: nowrap;">
@@ -539,9 +542,12 @@ function updateHistoryTab(history, sets) {
         } else {
             detailsBox.innerHTML = `
                 <section class="card" style="margin-bottom: 0; padding: 15px; text-align: center; color: var(--text-muted); border: 1px solid var(--border);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <h3 style="margin: 0; font-size: 0.95rem; color: var(--text-muted);">📌 選択中 (${mPart}/${dPart})</h3>
-                        <button onclick="openIrregularModal('${selectedDate}')" style="background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.35); color: #ff9f0a; padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;">⚠️ イレギュラー設定</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px; width: 100%; margin-bottom: 8px;">
+                        <h3 style="margin: 0; font-size: 0.9rem; color: var(--text-muted); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📌 選択中 (${mPart}/${dPart})</h3>
+                        <div style="display: flex; gap: 4px; flex-shrink: 0;">
+                            <button onclick="scrollToCalendarSection()" style="background: rgba(10, 132, 255, 0.15); border: 1px solid rgba(10, 132, 255, 0.35); color: var(--ios-blue); padding: 2px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;">📅 カレンダーへ ▼</button>
+                            <button onclick="openIrregularModal('${selectedDate}')" style="background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.35); color: #ff9f0a; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;">⚠️ イレギュラー</button>
+                        </div>
                     </div>
                     ${irregularBadgeHtml}
                     <div style="font-size: 0.85rem; margin-top: 6px;">この日の売上記録はありません</div>
@@ -703,6 +709,13 @@ function scrollToCalcDate(dateStr) {
 
     // 画面の一番上（📌選択中の詳細カード）へスムーズスクロール
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function scrollToCalendarSection() {
+    const el = document.getElementById('cal-section');
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 }
 
 function renderCalcCalendar(year, month, history) {
@@ -1100,7 +1113,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "09/03 17:32", // テスト用の日付時間
+    test: "09/03 17:36", // テスト用の日付時間
     prod: "3.2.5"       // Formally updated prod version
 };
 
