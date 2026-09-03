@@ -1113,7 +1113,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "09/03 17:38", // テスト用の日付時間
+    test: "09/03 17:41", // テスト用の日付時間
     prod: "3.2.5"       // Formally updated prod version
 };
 
@@ -2446,10 +2446,8 @@ function openIrregularModal(dateStr) {
 function toggleIrregularModalSwitch(forcedState) {
     const chkEl = document.getElementById('input-is-irregular');
     const boxEl = document.getElementById('irregular-switch-box');
-    const statusEl = document.getElementById('irregular-switch-status');
     const trackEl = document.getElementById('irregular-toggle-track');
     const thumbEl = document.getElementById('irregular-toggle-thumb');
-    const descEl = document.getElementById('irregular-switch-desc');
 
     if (!chkEl) return;
 
@@ -2459,27 +2457,17 @@ function toggleIrregularModalSwitch(forcedState) {
     if (newState) {
         if (boxEl) {
             boxEl.style.background = 'rgba(255, 159, 10, 0.15)';
-            boxEl.style.border = '2px solid #ff9f0a';
-        }
-        if (statusEl) {
-            statusEl.style.color = '#ff9f0a';
-            statusEl.innerHTML = '⚠️ イレギュラー対象 (分析から除外)';
+            boxEl.style.border = '1.5px solid #ff9f0a';
         }
         if (trackEl) trackEl.style.background = '#ff9f0a';
-        if (thumbEl) thumbEl.style.left = '27px';
-        if (descEl) descEl.innerText = '※ON: 曜日別の平均時給・売上の計算からこの日を自動で除外します。';
+        if (thumbEl) thumbEl.style.left = '25px';
     } else {
         if (boxEl) {
             boxEl.style.background = 'rgba(255, 255, 255, 0.03)';
             boxEl.style.border = '1.5px solid var(--border)';
         }
-        if (statusEl) {
-            statusEl.style.color = 'var(--text-muted)';
-            statusEl.innerHTML = '🟢 通常出勤日 (分析に含める)';
-        }
         if (trackEl) trackEl.style.background = 'rgba(255, 255, 255, 0.2)';
         if (thumbEl) thumbEl.style.left = '3px';
-        if (descEl) descEl.innerText = '※OFF: この日も含めて曜日別の平均時給・売上を集計します。';
     }
 }
 
