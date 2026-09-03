@@ -465,7 +465,12 @@ function updateHistoryTab(history, sets) {
         let irregularBadgeHtml = '';
         if (selWorkState.isIrregular) {
             const noteText = selWorkState.irregularNote ? `: ${selWorkState.irregularNote}` : '';
-            irregularBadgeHtml = `<div style="margin-top: 6px; font-size: 0.78rem; background: rgba(255, 159, 10, 0.15); border: 1px solid rgba(255, 159, 10, 0.4); color: #ff9f0a; padding: 3px 8px; border-radius: 6px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">⚠️ イレギュラー除外中${noteText}</div>`;
+            irregularBadgeHtml = `
+                <div style="margin-top: 6px; font-size: 0.78rem; background: rgba(255, 159, 10, 0.15); border: 1px solid rgba(255, 159, 10, 0.4); color: #ff9f0a; padding: 3px 8px; border-radius: 6px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px; max-width: 100%;">
+                    <span>⚠️ </span>
+                    <span class="marquee-box" style="max-width: 220px;"><span class="marquee-text">イレギュラー除外中${noteText}</span></span>
+                </div>
+            `;
         }
 
         if (selectedGroup && selectedGroup.length > 0) {
@@ -551,7 +556,12 @@ function updateHistoryTab(history, sets) {
         let irrBtnHtml = '';
         if (dateState.isIrregular) {
             const noteText = dateState.irregularNote ? `: ${dateState.irregularNote}` : '';
-            irrBtnHtml = `<button onclick="event.stopPropagation(); openIrregularModal('${date}')" style="font-size: 0.72rem; background: rgba(255, 159, 10, 0.2); border: 1px solid rgba(255, 159, 10, 0.5); color: #ff9f0a; padding: 2px 7px; border-radius: 6px; font-weight: bold; margin-left: 6px; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent;">⚠️ イレギュラー${noteText}</button>`;
+            irrBtnHtml = `
+                <button onclick="event.stopPropagation(); openIrregularModal('${date}')" style="font-size: 0.72rem; background: rgba(255, 159, 10, 0.2); border: 1px solid rgba(255, 159, 10, 0.5); color: #ff9f0a; padding: 2px 7px; border-radius: 6px; font-weight: bold; margin-left: 6px; cursor: pointer; -webkit-tap-highlight-color: transparent; display: inline-flex; align-items: center;">
+                    <span>⚠️ </span>
+                    <span class="marquee-box"><span class="marquee-text">イレギュラー${noteText}</span></span>
+                </button>
+            `;
         } else {
             irrBtnHtml = `<button onclick="event.stopPropagation(); openIrregularModal('${date}')" style="font-size: 0.72rem; background: rgba(255, 255, 255, 0.05); border: 1px dashed rgba(255, 255, 255, 0.2); color: var(--text-muted); padding: 2px 7px; border-radius: 6px; font-weight: bold; margin-left: 6px; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent;">+ ⚠️ イレギュラー</button>`;
         }
@@ -1086,7 +1096,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "09/03 17:05", // テスト用の日付時間
+    test: "09/03 17:20", // テスト用の日付時間
     prod: "3.2.5"       // Formally updated prod version
 };
 
