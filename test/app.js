@@ -461,6 +461,13 @@ function updateHistoryTab(history, sets) {
     
     if (detailsBox) {
         const [yPart, mPart, dPart] = selectedDate.split('-');
+        const selWorkState = loadWorkState(selectedDate);
+        let irregularBadgeHtml = '';
+        if (selWorkState.isIrregular) {
+            const noteText = selWorkState.irregularNote ? `: ${selWorkState.irregularNote}` : '';
+            irregularBadgeHtml = `<div style="margin-top: 6px; font-size: 0.78rem; background: rgba(255, 159, 10, 0.15); border: 1px solid rgba(255, 159, 10, 0.4); color: #ff9f0a; padding: 3px 8px; border-radius: 6px; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">⚠️ イレギュラー除外中${noteText}</div>`;
+        }
+
         if (selectedGroup && selectedGroup.length > 0) {
             const sumNet = selectedGroup.reduce((s, h) => s + h.net, 0);
             const sumGross = selectedGroup.reduce((s, h) => s + h.gross, 0);
@@ -497,8 +504,14 @@ function updateHistoryTab(history, sets) {
             
             detailsBox.innerHTML = `
                 <section class="card" style="margin-bottom: 0; padding: 15px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px;">
-                        <h3 style="margin: 0; font-size: 1rem; color: var(--accent);">📌 選択中の詳細 (${mPart}/${dPart})</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; gap: 10px;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <h3 style="margin: 0; font-size: 1rem; color: var(--accent);">📌 選択中の詳細 (${mPart}/${dPart})</h3>
+                                <button onclick="openIrregularModal('${selectedDate}')" style="background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.35); color: #ff9f0a; padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;">⚠️ イレギュラー設定</button>
+                            </div>
+                            ${irregularBadgeHtml}
+                        </div>
                         <div style="text-align: right; display: flex; flex-direction: column; gap: 2px; line-height: 1.2; flex-shrink: 0; white-space: nowrap;">
                             <span style="font-size: 1.05rem; font-weight: 800; color: #FFD700; white-space: nowrap;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税抜</small>${Math.floor(sumNet).toLocaleString()}円</span>
                             <span style="font-size: 1.15rem; font-weight: 900; color: var(--success); white-space: nowrap;"><small style="font-size:0.75rem; font-weight:normal; color:var(--text-muted); margin-right:2px;">税込</small>${Math.floor(sumGross).toLocaleString()}円</span>
@@ -518,8 +531,12 @@ function updateHistoryTab(history, sets) {
         } else {
             detailsBox.innerHTML = `
                 <section class="card" style="margin-bottom: 0; padding: 15px; text-align: center; color: var(--text-muted); border: 1px solid var(--border);">
-                    <h3 style="margin: 0 0 5px 0; font-size: 0.95rem; color: var(--text-muted);">📌 選択中 (${mPart}/${dPart})</h3>
-                    <div style="font-size: 0.85rem;">この日の売上記録はありません</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h3 style="margin: 0; font-size: 0.95rem; color: var(--text-muted);">📌 選択中 (${mPart}/${dPart})</h3>
+                        <button onclick="openIrregularModal('${selectedDate}')" style="background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.35); color: #ff9f0a; padding: 2px 7px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent;">⚠️ イレギュラー設定</button>
+                    </div>
+                    ${irregularBadgeHtml}
+                    <div style="font-size: 0.85rem; margin-top: 6px;">この日の売上記録はありません</div>
                 </section>
             `;
         }
@@ -530,6 +547,13 @@ function updateHistoryTab(history, sets) {
     
     document.getElementById('history-groups').innerHTML = sortedDates.map(date => {
         const sum = groups[date].reduce((s, h) => s + h.net, 0);
+        const dateState = loadWorkState(date);
+        let irrTag = '';
+        if (dateState.isIrregular) {
+            const noteText = dateState.irregularNote ? ` (${dateState.irregularNote})` : '';
+            irrTag = `<span style="font-size: 0.7rem; background: rgba(255, 159, 10, 0.2); color: #ff9f0a; padding: 2px 6px; border-radius: 4px; font-weight: bold; margin-left: 6px; white-space: nowrap;">⚠️ 除外${noteText}</span>`;
+        }
+
         const dayHtml = groups[date].map((h, i) => {
             if (h.isCancel) {
                 return `
@@ -562,7 +586,7 @@ function updateHistoryTab(history, sets) {
         });
         dayHtml.reverse();
         const legendHtml = `<div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;"><div style="width: 40px; flex-shrink: 0;">件数</div><div style="color: #FFD700; font-weight: bold; flex: 1; text-align: right;">税抜 (金)</div><div style="color: var(--success); font-weight: bold; flex: 1.1; text-align: right;">税込 (緑)</div><div style="width: 112px; text-align: right; flex-shrink: 0;">操作</div></div>`;
-        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${legendHtml}${dayHtml.join('')}</div></div>`;
+        return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span>${date.substring(5).replace('-','/')} ${irrTag} <span class="arrow">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${legendHtml}${dayHtml.join('')}</div></div>`;
     }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">過去のデータなし</div>';
 }
 
@@ -968,12 +992,12 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "20260814_2100",
-    date: "08/14 21:00",
-    title: "🎉 アップデートのお知らせ (Ver: 08/14 21:00)",
+    version: "20260903_1635",
+    date: "09/03 16:35",
+    title: "🎉 アップデートのお知らせ (Ver: 09/03 16:35)",
     details: [
-        "📊 【曜日分析の表示切り替え】詳細履歴タブの曜日別集計の上に、お好みに合わせて切り替えられる『📋 表形式』と『📊 グラフ』ボタンを導入しました！（選択状態は次回起動時も保存されます）",
-        "💡 【得意・苦手メーターの判定基準】最も平均時給の高い曜日(100%)を基準とし、各曜日の時給効率に応じて『超得意(90%以上)』『得意(80%以上)』『普通(65%以上)』『苦手傾向(65%未満)』の4段階で自動色分け・可視化します。"
+        "⚠️ 【イレギュラー設定＆メモ】詳細履歴タブの各日に『⚠️ イレギュラー設定』ボタンを追加しました！台風・早退・体調不良・トラブルがあった日を理由メッセージ付きで記録できます。",
+        "📊 【イレギュラー除外トグル】曜日分析に『⚠️ イレギュラー日を除外』スイッチを追加！突発的な日のデータを集計から外し、本来の『実力平均時給』を正しく算出・可視化できるようになりました。"
     ],
     history: [
         {
@@ -1057,8 +1081,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "08/14 21:00", // テスト用の日付時間
-    prod: "3.2.4"       // Formally updated prod version
+    test: "09/03 16:35", // テスト用の日付時間
+    prod: "3.2.5"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {
@@ -1210,6 +1234,12 @@ function loadWorkState(dateStr) {
     }
     if (states[dateStr].manualWorkHours === undefined) {
         states[dateStr].manualWorkHours = null;
+    }
+    if (states[dateStr].isIrregular === undefined) {
+        states[dateStr].isIrregular = false;
+    }
+    if (states[dateStr].irregularNote === undefined) {
+        states[dateStr].irregularNote = "";
     }
     return states[dateStr];
 }
@@ -1896,9 +1926,19 @@ function updateAnalytics() {
         return;
     }
 
+    const excludeIrregular = DB.load('taxi_v11_exclude_irregular', false);
     const workStates = DB.load('taxi_v11_work_states', {});
     const sets = DB.load('taxi_v11_sets', { standardWorkHours: 19, standardWorkMinutes: 40 });
     const stdHours = (sets.standardWorkHours !== undefined ? sets.standardWorkHours : 19) + (sets.standardWorkMinutes !== undefined ? sets.standardWorkMinutes : 40) / 60;
+
+    // 除外されたイレギュラー日のリストを収集
+    const excludedIrregularDays = [];
+    const uniqueDatesInHistory = [...new Set(filteredHistory.map(h => h.date))];
+    uniqueDatesInHistory.forEach(dStr => {
+        if (workStates[dStr] && workStates[dStr].isIrregular) {
+            excludedIrregularDays.push({ date: dStr, note: workStates[dStr].irregularNote });
+        }
+    });
 
     const daysData = {
         0: { name: '日', color: '#ff453a', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 },
@@ -1913,8 +1953,13 @@ function updateAnalytics() {
     filteredHistory.forEach(item => {
         const d = new Date(item.date);
         if (isNaN(d.getTime())) return;
-        const wday = d.getDay();
+        
+        // イレギュラー除外ONの時、対象日のデータを集計から除外
+        if (excludeIrregular && workStates[item.date] && workStates[item.date].isIrregular) {
+            return;
+        }
 
+        const wday = d.getDay();
         daysData[wday].netSum += item.net;
         daysData[wday].grossSum += item.gross;
         daysData[wday].workedDays.add(item.date);
@@ -1952,11 +1997,41 @@ function updateAnalytics() {
     
     // スイッチのHTML
     const switchHtml = `
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 12px; gap: 6px; font-size: 0.75rem;">
-            <button onclick="setAnalyticsMode('table')" style="background: ${mode === 'table' ? 'rgba(10, 132, 255, 0.15)' : 'var(--bg-main)'}; border: 1px solid ${mode === 'table' ? 'var(--ios-blue)' : 'var(--border)'}; color: ${mode === 'table' ? 'var(--ios-blue)' : 'var(--text-muted)'}; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s;">📋 表形式</button>
-            <button onclick="setAnalyticsMode('graph')" style="background: ${mode === 'graph' ? 'rgba(10, 132, 255, 0.15)' : 'var(--bg-main)'}; border: 1px solid ${mode === 'graph' ? 'var(--ios-blue)' : 'var(--border)'}; color: ${mode === 'graph' ? 'var(--ios-blue)' : 'var(--text-muted)'}; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s;">📊 グラフ</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 8px; flex-wrap: wrap;">
+            <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.78rem; font-weight: bold; color: ${excludeIrregular ? '#ff9f0a' : 'var(--text-muted)'}; background: ${excludeIrregular ? 'rgba(255, 159, 10, 0.12)' : 'rgba(255,255,255,0.03)'}; padding: 6px 10px; border-radius: 8px; border: 1px solid ${excludeIrregular ? '#ff9f0a' : 'var(--border)'}; -webkit-tap-highlight-color: transparent;">
+                <input type="checkbox" onchange="toggleExcludeIrregular(this.checked)" ${excludeIrregular ? 'checked' : ''} style="accent-color: #ff9f0a; width: 16px; height: 16px; cursor: pointer;">
+                <span>⚠️ イレギュラー日を除外</span>
+            </label>
+
+            <div style="display: flex; gap: 6px; font-size: 0.75rem;">
+                <button onclick="setAnalyticsMode('table')" style="background: ${mode === 'table' ? 'rgba(10, 132, 255, 0.15)' : 'var(--bg-main)'}; border: 1px solid ${mode === 'table' ? 'var(--ios-blue)' : 'var(--border)'}; color: ${mode === 'table' ? 'var(--ios-blue)' : 'var(--text-muted)'}; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s;">📋 表形式</button>
+                <button onclick="setAnalyticsMode('graph')" style="background: ${mode === 'graph' ? 'rgba(10, 132, 255, 0.15)' : 'var(--bg-main)'}; border: 1px solid ${mode === 'graph' ? 'var(--ios-blue)' : 'var(--border)'}; color: ${mode === 'graph' ? 'var(--ios-blue)' : 'var(--text-muted)'}; padding: 6px 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s;">📊 グラフ</button>
+            </div>
         </div>
     `;
+
+    // イレギュラー除外情報のサマリー表示
+    let irregularSummaryHtml = '';
+    if (excludeIrregular && excludedIrregularDays.length > 0) {
+        const detailsText = excludedIrregularDays.map(item => {
+            const [y, m, d] = item.date.split('-');
+            const noteStr = item.note ? `: ${item.note}` : '';
+            return `${m}/${d}${noteStr}`;
+        }).join('、');
+        
+        irregularSummaryHtml = `
+            <div style="font-size: 0.75rem; background: rgba(255, 159, 10, 0.1); border: 1px solid rgba(255, 159, 10, 0.3); color: #ff9f0a; padding: 8px 12px; border-radius: 10px; margin-bottom: 12px; line-height: 1.4;">
+                <div style="font-weight: bold;">⚠️ ${excludedIrregularDays.length}日分のイレギュラー日を除外して集計中</div>
+                <div style="font-size: 0.7rem; opacity: 0.9; margin-top: 2px;">対象: ${detailsText}</div>
+            </div>
+        `;
+    } else if (!excludeIrregular && excludedIrregularDays.length > 0) {
+        irregularSummaryHtml = `
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
+                ※登録済みのイレギュラー日（${excludedIrregularDays.length}件）を含む全体の集計結果です。
+            </div>
+        `;
+    }
 
     const wdayStats = [];
     const weekdays = [1, 2, 3, 4, 5, 6, 0];
@@ -2025,6 +2100,7 @@ function updateAnalytics() {
 
         el.innerHTML = `
             ${switchHtml}
+            ${irregularSummaryHtml}
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
                 ※ 指定期間のデータから曜日別の平均時給を算出し、パフォーマンス度合い（得意・苦手）を視覚化しています。
             </div>
@@ -2049,6 +2125,7 @@ function updateAnalytics() {
 
         el.innerHTML = `
             ${switchHtml}
+            ${irregularSummaryHtml}
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
                 ※ 指定期間の売上履歴・勤務時間データを集計した、曜日別の平均値（手取り歩合除く）です。
             </div>
@@ -2072,6 +2149,11 @@ function updateAnalytics() {
 
 function setAnalyticsMode(mode) {
     DB.save('taxi_v11_analytics_mode', mode);
+    updateAnalytics();
+}
+
+function toggleExcludeIrregular(checked) {
+    DB.save('taxi_v11_exclude_irregular', checked);
     updateAnalytics();
 }
 
@@ -2245,4 +2327,48 @@ function removeCustomGoalFromSettings(dateStr) {
     } catch (err) {
         alert('削除処理中にエラーが発生しました: ' + err.message);
     }
+}
+
+// ⚠️ イレギュラー日設定モーダル用関数群
+let currentIrregularTargetDate = null;
+
+function openIrregularModal(dateStr) {
+    const targetDate = dateStr || getSelectedDateStr();
+    currentIrregularTargetDate = targetDate;
+    
+    const stateObj = loadWorkState(targetDate);
+    const dateLabelEl = document.getElementById('irregular-modal-date');
+    const chkEl = document.getElementById('input-is-irregular');
+    const noteEl = document.getElementById('input-irregular-note');
+    
+    if (dateLabelEl) {
+        const [y, m, d] = targetDate.split('-');
+        dateLabelEl.innerText = `${y}年${m}月${d}日`;
+    }
+    if (chkEl) {
+        chkEl.checked = !!stateObj.isIrregular;
+    }
+    if (noteEl) {
+        noteEl.value = stateObj.irregularNote || "";
+    }
+    
+    UI.show('irregular-modal', true);
+}
+
+function closeIrregularModal() {
+    UI.show('irregular-modal', false);
+}
+
+function saveIrregularModal() {
+    if (!currentIrregularTargetDate) return;
+    const stateObj = loadWorkState(currentIrregularTargetDate);
+    const chkEl = document.getElementById('input-is-irregular');
+    const noteEl = document.getElementById('input-irregular-note');
+    
+    stateObj.isIrregular = chkEl ? chkEl.checked : false;
+    stateObj.irregularNote = noteEl ? noteEl.value.trim() : "";
+    
+    saveWorkState(currentIrregularTargetDate, stateObj);
+    closeIrregularModal();
+    refreshCalc();
 }
