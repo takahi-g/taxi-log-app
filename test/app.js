@@ -510,9 +510,9 @@ function updateHistoryTab(history, sets) {
             detailsBox.innerHTML = `
                 <section class="card" style="margin-bottom: 0; padding: 15px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
                     <div style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
-                            <h3 style="margin: 0; font-size: 0.98rem; color: var(--accent); white-space: nowrap;">📌 選択中の詳細 (${mPart}/${dPart})</h3>
-                            <button onclick="openIrregularModal('${selectedDate}')" style="background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.35); color: #ff9f0a; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;">⚠️ イレギュラー設定</button>
+                        <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px; width: 100%;">
+                            <h3 style="margin: 0; font-size: 0.92rem; color: var(--accent); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📌 選択中 (${mPart}/${dPart})</h3>
+                            <button onclick="openIrregularModal('${selectedDate}')" style="background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.35); color: #ff9f0a; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;">⚠️ イレギュラー設定</button>
                         </div>
                         
                         <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 8px; flex-wrap: nowrap;">
@@ -1100,7 +1100,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "09/03 17:26", // テスト用の日付時間
+    test: "09/03 17:28", // テスト用の日付時間
     prod: "3.2.5"       // Formally updated prod version
 };
 
