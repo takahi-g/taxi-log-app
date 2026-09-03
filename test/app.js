@@ -1100,7 +1100,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "09/03 17:28", // テスト用の日付時間
+    test: "09/03 17:32", // テスト用の日付時間
     prod: "3.2.5"       // Formally updated prod version
 };
 
@@ -2029,19 +2029,66 @@ function updateAnalytics() {
         </div>
     `;
 
-    // イレギュラー除外情報のサマリー表示
+    // イレギュラー除外情報のサマリー表示 (年・月グループ化 & 折りたたみ対応)
     let irregularSummaryHtml = '';
     if (excludeIrregular && excludedIrregularDays.length > 0) {
-        const detailsText = excludedIrregularDays.map(item => {
+        // 年 ➔ 月 のグループマップ生成
+        const yearMap = {};
+        excludedIrregularDays.forEach(item => {
             const [y, m, d] = item.date.split('-');
-            const noteStr = item.note ? `: ${item.note}` : '';
-            return `${m}/${d}${noteStr}`;
-        }).join('、');
-        
+            if (!yearMap[y]) yearMap[y] = {};
+            if (!yearMap[y][m]) yearMap[y][m] = [];
+            yearMap[y][m].push({ day: d, date: item.date, note: item.note });
+        });
+
+        let treeHtml = '';
+        Object.keys(yearMap).sort().reverse().forEach(y => {
+            let monthHtml = '';
+            Object.keys(yearMap[y]).sort().reverse().forEach(m => {
+                const items = yearMap[y][m];
+                const dayListHtml = items.map(it => {
+                    const noteStr = it.note ? `: ${it.note}` : '';
+                    return `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px dashed rgba(255,159,10,0.15); font-size: 0.72rem;">
+                            <span style="color: var(--text-main);">📅 ${parseInt(m)}/${parseInt(it.day)} <span style="color: #ff9f0a; font-weight: bold;">${noteStr}</span></span>
+                            <button onclick="openIrregularModal('${it.date}')" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #ff9f0a; padding: 2px 7px; border-radius: 4px; font-size: 0.68rem; cursor: pointer; font-weight: bold; -webkit-tap-highlight-color: transparent;">✏️ 編集</button>
+                        </div>
+                    `;
+                }).join('');
+
+                monthHtml += `
+                    <details style="margin-bottom: 6px; border-left: 2px solid rgba(255,159,10,0.4); padding-left: 8px;">
+                        <summary style="font-weight: bold; cursor: pointer; color: #ff9f0a; font-size: 0.75rem; margin-bottom: 4px;">
+                            ${parseInt(m)}月 (${items.length}日分)
+                        </summary>
+                        <div style="padding-left: 4px; display: flex; flex-direction: column; gap: 2px;">
+                            ${dayListHtml}
+                        </div>
+                    </details>
+                `;
+            });
+
+            treeHtml += `
+                <details open style="margin-bottom: 6px;">
+                    <summary style="font-weight: 800; cursor: pointer; color: var(--text-main); font-size: 0.78rem; margin-bottom: 4px;">
+                        🗓️ ${y}年
+                    </summary>
+                    <div style="padding-left: 6px;">
+                        ${monthHtml}
+                    </div>
+                </details>
+            `;
+        });
+
         irregularSummaryHtml = `
-            <div style="font-size: 0.75rem; background: rgba(255, 159, 10, 0.1); border: 1px solid rgba(255, 159, 10, 0.3); color: #ff9f0a; padding: 8px 12px; border-radius: 10px; margin-bottom: 12px; line-height: 1.4;">
-                <div style="font-weight: bold;">⚠️ ${excludedIrregularDays.length}日分のイレギュラー日を除外して集計中</div>
-                <div style="font-size: 0.7rem; opacity: 0.9; margin-top: 2px;">対象: ${detailsText}</div>
+            <div style="font-size: 0.76rem; background: rgba(255, 159, 10, 0.08); border: 1px solid rgba(255, 159, 10, 0.35); color: #ff9f0a; border-radius: 10px; margin-bottom: 12px; overflow: hidden;">
+                <div onclick="toggleIrregularSummaryDetails()" style="padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: bold; -webkit-tap-highlight-color: transparent;">
+                    <span>⚠️ ${excludedIrregularDays.length}日分のイレギュラー日を除外中</span>
+                    <span id="irr-summary-arrow" style="font-size: 0.7rem; opacity: 0.85; background: rgba(255,159,10,0.15); padding: 2px 6px; border-radius: 4px;">▼ 詳細を見る</span>
+                </div>
+                <div id="irr-summary-details-box" style="display: none; border-top: 1px solid rgba(255, 159, 10, 0.2); padding: 10px 12px; background: rgba(0,0,0,0.25);">
+                    ${treeHtml}
+                </div>
             </div>
         `;
     } else if (!excludeIrregular && excludedIrregularDays.length > 0) {
@@ -2174,6 +2221,16 @@ function setAnalyticsMode(mode) {
 function toggleExcludeIrregular(checked) {
     DB.save('taxi_v11_exclude_irregular', checked);
     updateAnalytics();
+}
+
+function toggleIrregularSummaryDetails() {
+    const box = document.getElementById('irr-summary-details-box');
+    const arrow = document.getElementById('irr-summary-arrow');
+    if (box) {
+        const isHidden = box.style.display === 'none';
+        box.style.display = isHidden ? 'block' : 'none';
+        if (arrow) arrow.innerText = isHidden ? '▲ 閉じる' : '▼ 詳細を見る';
+    }
 }
 
 // 🎯 目標売上編集モーダル用関数群
