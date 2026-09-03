@@ -447,3 +447,33 @@ input:checked + .slider:before { transform: translateX(24px); }
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
 }
+
+/* ⚠️ イレギュラー電光掲示板（横スライドマーキー）表示 */
+.marquee-box {
+    display: inline-flex;
+    align-items: center;
+    max-width: 140px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    vertical-align: middle;
+}
+.marquee-box::-webkit-scrollbar {
+    display: none;
+}
+
+.marquee-text {
+    display: inline-block;
+    white-space: nowrap;
+    animation: autoScrollMarquee 7s ease-in-out infinite alternate;
+}
+
+@keyframes autoScrollMarquee {
+    0%, 25% {
+        transform: translateX(0%);
+    }
+    75%, 100% {
+        transform: translateX(min(0px, calc(-100% + 115px)));
+    }
+}
