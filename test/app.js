@@ -1121,8 +1121,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "09/03 17:47", // テスト用の日付時間
-    prod: "3.2.5"       // Formally updated prod version
+    test: "09/08 09:45", // テスト用の日付時間
+    prod: "3.2.6"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {
@@ -1990,7 +1990,14 @@ function updateAnalytics() {
         6: { name: '土', color: '#30d158', netSum: 0, grossSum: 0, workedDays: new Set(), totalHours: 0 }
     };
 
+    const todayStr = new Date().toISOString().split('T')[0];
+
     filteredHistory.forEach(item => {
+        // 営業中の「本日」のデータは集計から除外（未確定の途中経過による平均低下を防ぐため）
+        if (item.date === todayStr) {
+            return;
+        }
+
         const d = new Date(item.date);
         if (isNaN(d.getTime())) return;
         
@@ -2189,7 +2196,7 @@ function updateAnalytics() {
             ${switchHtml}
             ${irregularSummaryHtml}
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4;">
-                ※ 指定期間のデータから曜日別の平均時給を算出し、パフォーマンス度合い（得意・苦手）を視覚化しています。
+                ※ 指定期間のデータから曜日別の平均時給を算出し、パフォーマンス度合い（得意・苦手）を視覚化しています。（※ 営業中の本日のデータは過去確定日のみ集計）
             </div>
             <div style="display: flex; flex-direction: column; gap: 10px;">
                 ${listHtml}
@@ -2214,7 +2221,7 @@ function updateAnalytics() {
             ${switchHtml}
             ${irregularSummaryHtml}
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
-                ※ 指定期間の売上履歴・勤務時間データを集計した、曜日別の平均値（手取り歩合除く）です。
+                ※ 指定期間の売上履歴・勤務時間データを集計した、曜日別の平均値です。（※ 営業中の本日のデータは過去確定日のみ集計）
             </div>
             <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
                 <thead>
