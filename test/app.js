@@ -1121,7 +1121,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/15 13:14", // テスト用の日付時間
+    test: "10/15 15:30", // テスト用の日付時間
     prod: "3.2.7"       // Formally updated prod version
 };
 
@@ -2167,7 +2167,7 @@ function updateAnalytics() {
             }
 
             listHtml += `
-                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 12px 14px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 12px 10px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <span style="font-size: 1.15rem; font-weight: 900; color: ${stat.data.color};">${stat.data.name}曜日</span>
@@ -2183,18 +2183,18 @@ function updateAnalytics() {
                         <div style="width: ${stat.daysCount > 0 ? pct : 0}%; height: 100%; background: ${barColor}; border-radius: 4px; transition: width 0.5s ease-out;"></div>
                     </div>
                     
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; text-align: center; gap: 8px;">
-                        <div style="flex: 1; background: rgba(255,255,255,0.03); padding: 6px 4px; border-radius: 8px;">
-                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px;">平均税抜</div>
-                            <div style="color: #FFE596; font-weight: 800; font-size: 1.05rem; white-space: nowrap;">¥${stat.avgNet.toLocaleString()}</div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; text-align: center; gap: 4px;">
+                        <div style="flex: 1.05; background: rgba(255,255,255,0.03); padding: 6px 2px; border-radius: 8px;">
+                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">平均税抜</div>
+                            <div style="color: #FFE596; font-weight: 900; font-size: 1.18rem; white-space: nowrap; letter-spacing: -0.02em;">¥${stat.avgNet.toLocaleString()}</div>
                         </div>
-                        <div style="flex: 1; background: rgba(255,255,255,0.03); padding: 6px 4px; border-radius: 8px;">
-                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px;">平均税込</div>
-                            <div style="color: var(--success); font-weight: 800; font-size: 1.05rem; white-space: nowrap;">¥${stat.avgGross.toLocaleString()}</div>
+                        <div style="flex: 1.05; background: rgba(255,255,255,0.03); padding: 6px 2px; border-radius: 8px;">
+                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">平均税込</div>
+                            <div style="color: var(--success); font-weight: 900; font-size: 1.18rem; white-space: nowrap; letter-spacing: -0.02em;">¥${stat.avgGross.toLocaleString()}</div>
                         </div>
-                        <div style="flex: 0.9; background: rgba(255,255,255,0.03); padding: 6px 4px; border-radius: 8px;">
-                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px;">総労働</div>
-                            <div style="color: var(--text-main); font-weight: 800; font-size: 1.05rem; white-space: nowrap;">${stat.daysCount > 0 ? Math.round(stat.data.totalHours * 10) / 10 : 0}h</div>
+                        <div style="flex: 0.9; background: rgba(255,255,255,0.03); padding: 6px 2px; border-radius: 8px;">
+                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">総労働</div>
+                            <div style="color: var(--text-main); font-weight: 900; font-size: 1.18rem; white-space: nowrap; letter-spacing: -0.02em;">${stat.daysCount > 0 ? Math.round(stat.data.totalHours * 10) / 10 : 0}h</div>
                         </div>
                     </div>
                 </div>
