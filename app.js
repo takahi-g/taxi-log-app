@@ -491,14 +491,14 @@ function updateHistoryTab(history, sets) {
                 }
                 return `
                     <div class="detail-item">
-                        <div style="font-size: 0.88rem; color: var(--ios-blue); font-weight: 700; width: 40px; flex-shrink: 0;">${i+1}件目</div>
-                        <div style="color: #FFD700; font-weight: 700; font-size: 1.08rem; text-align: right; flex: 1; white-space: nowrap;">
-                            ${h.net.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
+                        <div style="font-size: 0.85rem; color: var(--ios-blue); font-weight: 700; width: 36px; flex-shrink: 0; white-space: nowrap;">${i+1}<span style="font-size: 0.72rem;">件</span></div>
+                        <div style="color: #FFD700; font-weight: 700; font-size: 1.05rem; text-align: right; flex: 1; min-width: 0; white-space: nowrap;">
+                            ${h.net.toLocaleString()}<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
                         </div>
-                        <div style="color: var(--success); font-weight: 700; font-size: 1.12rem; text-align: right; flex: 1.1; white-space: nowrap;">
-                            ${h.gross.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
+                        <div style="color: var(--success); font-weight: 700; font-size: 1.08rem; text-align: right; flex: 1.05; min-width: 0; white-space: nowrap;">
+                            ${h.gross.toLocaleString()}<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
                         </div>
-                        <div class="detail-actions">
+                        <div class="detail-actions" style="margin-left: 4px;">
                             <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
                             <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
                             <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
@@ -508,7 +508,7 @@ function updateHistoryTab(history, sets) {
             }).reverse().join('');
             
             detailsBox.innerHTML = `
-                <section class="card" style="margin-bottom: 0; padding: 15px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
+                <section class="card" style="margin-bottom: 0; padding: 15px 10px; border: 1px solid var(--accent); background: rgba(237, 180, 24, 0.03);">
                     <div style="border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px; width: 100%;">
                             <h3 style="margin: 0; font-size: 0.9rem; color: var(--accent); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">📌 選択中 (${mPart}/${dPart})</h3>
@@ -529,11 +529,11 @@ function updateHistoryTab(history, sets) {
                         ${irregularBadgeHtml}
                     </div>
                     <div class="day-details" style="display: block;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;">
-                            <div style="width: 40px; flex-shrink: 0;">件数</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;">
+                            <div style="width: 36px; flex-shrink: 0;">件数</div>
                             <div style="color: #FFD700; font-weight: bold; flex: 1; text-align: right;">税抜 (金)</div>
-                            <div style="color: var(--success); font-weight: bold; flex: 1.1; text-align: right;">税込 (緑)</div>
-                            <div style="width: 112px; text-align: right; flex-shrink: 0;">操作</div>
+                            <div style="color: var(--success); font-weight: bold; flex: 1.05; text-align: right;">税込 (緑)</div>
+                            <div style="width: 98px; text-align: right; flex-shrink: 0;">操作</div>
                         </div>
                         ${itemsHtml}
                     </div>
@@ -590,14 +590,14 @@ function updateHistoryTab(history, sets) {
             }
             return `
                 <div class="detail-item">
-                    <div style="font-size: 0.88rem; color: var(--ios-blue); font-weight: 700; width: 40px; flex-shrink: 0;">${i+1}件目</div>
-                    <div style="color: #FFD700; font-weight: 700; font-size: 1.08rem; text-align: right; flex: 1; white-space: nowrap;">
-                        ${h.net.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
+                    <div style="font-size: 0.85rem; color: var(--ios-blue); font-weight: 700; width: 36px; flex-shrink: 0; white-space: nowrap;">${i+1}<span style="font-size: 0.72rem;">件</span></div>
+                    <div style="color: #FFD700; font-weight: 700; font-size: 1.05rem; text-align: right; flex: 1; min-width: 0; white-space: nowrap;">
+                        ${h.net.toLocaleString()}<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
                     </div>
-                    <div style="color: var(--success); font-weight: 700; font-size: 1.12rem; text-align: right; flex: 1.1; white-space: nowrap;">
-                        ${h.gross.toLocaleString()}<span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
+                    <div style="color: var(--success); font-weight: 700; font-size: 1.08rem; text-align: right; flex: 1.05; min-width: 0; white-space: nowrap;">
+                        ${h.gross.toLocaleString()}<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted); margin-left: 1px;">円</span>
                     </div>
-                    <div class="detail-actions">
+                    <div class="detail-actions" style="margin-left: 4px;">
                         <button class="btn-insert" onclick="insertCalcData(${h.id})">+</button>
                         <button class="btn-pencil" onclick="editCalcData(${h.id})">✏️</button>
                         <button class="btn-trash" onclick="deleteCalcData(${h.id})">🗑️</button>
@@ -606,7 +606,7 @@ function updateHistoryTab(history, sets) {
             `;
         });
         dayHtml.reverse();
-        const legendHtml = `<div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;"><div style="width: 40px; flex-shrink: 0;">件数</div><div style="color: #FFD700; font-weight: bold; flex: 1; text-align: right;">税抜 (金)</div><div style="color: var(--success); font-weight: bold; flex: 1.1; text-align: right;">税込 (緑)</div><div style="width: 112px; text-align: right; flex-shrink: 0;">操作</div></div>`;
+        const legendHtml = `<div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted); padding-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 4px;"><div style="width: 36px; flex-shrink: 0;">件数</div><div style="color: #FFD700; font-weight: bold; flex: 1; text-align: right;">税抜 (金)</div><div style="color: var(--success); font-weight: bold; flex: 1.05; text-align: right;">税込 (緑)</div><div style="width: 98px; text-align: right; flex-shrink: 0;">操作</div></div>`;
         return `<div class="day-group" id="group-${date}"><div class="day-header" onclick="toggleCalcDay('${date}')"><span style="display:inline-flex; align-items:center;">${date.substring(5).replace('-','/')} ${irrBtnHtml} <span class="arrow" style="margin-left:4px;">▶</span></span><span style="font-weight:800; font-size:1.1rem;">${Math.floor(sum).toLocaleString()}円</span></div><div class="day-details">${legendHtml}${dayHtml.join('')}</div></div>`;
     }).join('') || '<div style="text-align:center;padding:20px;color:#8e8e93;">過去のデータなし</div>';
 }
@@ -1024,19 +1024,24 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "3.2.7",
-    date: "3.2.7",
-    title: "🎉 アップデートのお知らせ (Ver: 3.2.7)",
+    version: "3.2.8",
+    date: "3.2.8",
+    title: "🎉 アップデートのお知らせ (Ver: 3.2.8)",
     details: [
-        "📊 【曜日別分析の精度UP】営業中（本日）の途中データを曜日別集計から自動除外！途中経過による一時的な平均時給・売上の低下を防ぎ、確定データのみで正しい実力平均が確認できるようになりました。"
+        "🎨 【UIの変更】曜日別分析の平均数字の拡大、詳細履歴のボタンはみ出し防止など、画面の表示バランスを調整しました。"
     ],
     history: [
+        {
+            date: "3.2.7",
+            details: [
+                "📊 【曜日別分析の精度UP】営業中（本日）の途中データを曜日別集計から自動除外！途中経過による一時的な平均時給・売上の低下を防ぎ、確定データのみで正しい実力平均が確認できるようになりました。"
+            ]
+        },
         {
             date: "3.2.6",
             details: [
                 "⚠️ 【イレギュラー設定＆メモ】台風・早退・体調不良などのイレギュラー日を理由メモ付きで簡単に設定・記録できるようになりました！",
-                "📊 【イレギュラー除外＆年・月グループ表示】曜日分析に『⚠️ イレギュラー日を除外』スイッチを追加！突発的な日のデータを外し『本来の実力平均』を算出できます。",
-                "⚡ 【便利なクイック操作・導線】詳細履歴の日別リストの各行からワンタップで設定可能！さらに最上部には『📅 カレンダーへ ▼』ボタンを設置し快適にジャンプできます。"
+                "📊 【イレギュラー除外＆年・月グループ表示】曜日分析に『⚠️ イレギュラー日を除外』スイッチを追加！突発的な日のデータを外し『本来の実力平均』を算出できます。"
             ]
         },
         {
@@ -1127,8 +1132,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "09/08 09:45", // テスト用の日付時間
-    prod: "3.2.7"       // Formally updated prod version
+    test: "10/15 15:42", // テスト用の日付時間
+    prod: "3.2.8"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {
@@ -2173,15 +2178,15 @@ function updateAnalytics() {
             }
 
             listHtml += `
-                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 12px 14px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px;">
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 12px 10px; border-radius: 14px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: nowrap;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="font-size: 1.05rem; font-weight: 900; color: ${stat.data.color};">${stat.data.name}曜日</span>
-                            <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: bold; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 6px;">出勤 ${stat.daysCount}回</span>
+                            <span style="font-size: 1.15rem; font-weight: 900; color: ${stat.data.color};">${stat.data.name}曜日</span>
+                            <span style="font-size: 0.78rem; color: var(--text-muted); font-weight: bold; background: rgba(255,255,255,0.05); padding: 2px 7px; border-radius: 6px;">出勤 ${stat.daysCount}回</span>
                         </div>
                         <div style="display: flex; align-items: center; gap: 6px;">
-                            <span style="font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: ${stat.daysCount > 0 ? barColor : 'rgba(255,255,255,0.05)'}; color: #fff;">${statusBadge}</span>
-                            <span style="font-size: 0.95rem; font-weight: bold; color: #5e5ce6;">¥${stat.hourlyNet.toLocaleString()}/h</span>
+                            <span style="font-size: 0.72rem; font-weight: 800; padding: 2px 6px; border-radius: 6px; background: ${stat.daysCount > 0 ? barColor : 'rgba(255,255,255,0.05)'}; color: #fff;">${statusBadge}</span>
+                            <span style="font-size: 1.08rem; font-weight: bold; color: #5e5ce6;">¥${stat.hourlyNet.toLocaleString()}/h</span>
                         </div>
                     </div>
                     
@@ -2189,10 +2194,19 @@ function updateAnalytics() {
                         <div style="width: ${stat.daysCount > 0 ? pct : 0}%; height: 100%; background: ${barColor}; border-radius: 4px; transition: width 0.5s ease-out;"></div>
                     </div>
                     
-                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); flex-wrap: nowrap; gap: 6px;">
-                        <div>平均税抜: <span style="color: #FFE596; font-weight: 700;">¥${stat.avgNet.toLocaleString()}</span></div>
-                        <div>平均税込: <span style="color: var(--success); font-weight: 700;">¥${stat.avgGross.toLocaleString()}</span></div>
-                        <div>総労働: <span style="color: var(--text-main); font-weight: 700;">${stat.daysCount > 0 ? Math.round(stat.data.totalHours * 10) / 10 : 0}h</span></div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; text-align: center; gap: 4px;">
+                        <div style="flex: 1.05; background: rgba(255,255,255,0.03); padding: 6px 2px; border-radius: 8px;">
+                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">平均税抜</div>
+                            <div style="color: #FFE596; font-weight: 900; font-size: 1.18rem; white-space: nowrap; letter-spacing: -0.02em;">¥${stat.avgNet.toLocaleString()}</div>
+                        </div>
+                        <div style="flex: 1.05; background: rgba(255,255,255,0.03); padding: 6px 2px; border-radius: 8px;">
+                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">平均税込</div>
+                            <div style="color: var(--success); font-weight: 900; font-size: 1.18rem; white-space: nowrap; letter-spacing: -0.02em;">¥${stat.avgGross.toLocaleString()}</div>
+                        </div>
+                        <div style="flex: 0.9; background: rgba(255,255,255,0.03); padding: 6px 2px; border-radius: 8px;">
+                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-bottom: 2px;">総労働</div>
+                            <div style="color: var(--text-main); font-weight: 900; font-size: 1.18rem; white-space: nowrap; letter-spacing: -0.02em;">${stat.daysCount > 0 ? Math.round(stat.data.totalHours * 10) / 10 : 0}h</div>
+                        </div>
                     </div>
                 </div>
             `;
