@@ -1121,7 +1121,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/15 12:51", // テスト用の日付時間
+    test: "10/15 12:54", // テスト用の日付時間
     prod: "3.2.7"       // Formally updated prod version
 };
 
@@ -2183,10 +2183,19 @@ function updateAnalytics() {
                         <div style="width: ${stat.daysCount > 0 ? pct : 0}%; height: 100%; background: ${barColor}; border-radius: 4px; transition: width 0.5s ease-out;"></div>
                     </div>
                     
-                    <div style="display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--text-muted); flex-wrap: nowrap; gap: 6px; white-space: nowrap;">
-                        <div>平均税抜: <span style="color: #FFE596; font-weight: 700;">¥${stat.avgNet.toLocaleString()}</span></div>
-                        <div>平均税込: <span style="color: var(--success); font-weight: 700;">¥${stat.avgGross.toLocaleString()}</span></div>
-                        <div>総労働: <span style="color: var(--text-main); font-weight: 700;">${stat.daysCount > 0 ? Math.round(stat.data.totalHours * 10) / 10 : 0}h</span></div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; text-align: center; gap: 8px;">
+                        <div style="flex: 1; background: rgba(255,255,255,0.03); padding: 6px 4px; border-radius: 8px;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px;">平均税抜</div>
+                            <div style="color: #FFE596; font-weight: 800; font-size: 1.05rem; white-space: nowrap;">¥${stat.avgNet.toLocaleString()}</div>
+                        </div>
+                        <div style="flex: 1; background: rgba(255,255,255,0.03); padding: 6px 4px; border-radius: 8px;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px;">平均税込</div>
+                            <div style="color: var(--success); font-weight: 800; font-size: 1.05rem; white-space: nowrap;">¥${stat.avgGross.toLocaleString()}</div>
+                        </div>
+                        <div style="flex: 0.9; background: rgba(255,255,255,0.03); padding: 6px 4px; border-radius: 8px;">
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px;">総労働</div>
+                            <div style="color: var(--text-main); font-weight: 800; font-size: 1.05rem; white-space: nowrap;">${stat.daysCount > 0 ? Math.round(stat.data.totalHours * 10) / 10 : 0}h</div>
+                        </div>
                     </div>
                 </div>
             `;
@@ -2208,11 +2217,11 @@ function updateAnalytics() {
         wdayStats.forEach(stat => {
             rowsHtml += `
                 <tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 10px 4px; font-weight: bold; color: ${stat.data.color}; font-size: 1rem; white-space: nowrap;">${stat.data.name}</td>
-                    <td style="padding: 10px 4px; text-align: center; color: var(--text-main); font-weight: 600; font-size: 0.92rem; white-space: nowrap;">${stat.daysCount}回</td>
-                    <td style="padding: 10px 4px; text-align: right; color: #FFE596; font-weight: 700; font-size: 0.98rem; white-space: nowrap;">¥${stat.avgNet.toLocaleString()}</td>
-                    <td style="padding: 10px 4px; text-align: right; color: var(--success); font-weight: 700; font-size: 0.98rem; white-space: nowrap;">¥${stat.avgGross.toLocaleString()}</td>
-                    <td style="padding: 10px 4px; text-align: right; color: #5e5ce6; font-weight: bold; font-size: 0.98rem; white-space: nowrap;">¥${stat.hourlyNet.toLocaleString()}/h</td>
+                    <td style="padding: 10px 6px; font-weight: bold; color: ${stat.data.color}; font-size: 0.9rem;">${stat.data.name}</td>
+                    <td style="padding: 10px 6px; text-align: center; color: var(--text-main); font-weight: 600;">${stat.daysCount}回</td>
+                    <td style="padding: 10px 6px; text-align: right; color: #FFE596; font-weight: 700;">¥${stat.avgNet.toLocaleString()}</td>
+                    <td style="padding: 10px 6px; text-align: right; color: var(--success); font-weight: 700;">¥${stat.avgGross.toLocaleString()}</td>
+                    <td style="padding: 10px 6px; text-align: right; color: #5e5ce6; font-weight: bold;">¥${stat.hourlyNet.toLocaleString()}/h</td>
                 </tr>
             `;
         });
@@ -2223,14 +2232,14 @@ function updateAnalytics() {
             <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; line-height: 1.4;">
                 ※ 指定期間の売上履歴・勤務時間データを集計した、曜日別の平均値です。（※ 営業中の本日のデータは過去確定日のみ集計）
             </div>
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
                 <thead>
-                    <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.82rem; white-space: nowrap;">
-                        <th style="padding: 6px 4px; text-align: left;">曜日</th>
-                        <th style="padding: 6px 4px; text-align: center;">出勤</th>
-                        <th style="padding: 6px 4px; text-align: right; color: #FFE596;">平均(税抜)</th>
-                        <th style="padding: 6px 4px; text-align: right; color: var(--success);">平均(税込)</th>
-                        <th style="padding: 6px 4px; text-align: right; color: #5e5ce6;">平均時給</th>
+                    <tr style="border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 0.75rem;">
+                        <th style="padding: 6px; text-align: left;">曜日</th>
+                        <th style="padding: 6px; text-align: center;">出勤</th>
+                        <th style="padding: 6px; text-align: right; color: #FFE596;">平均(税抜)</th>
+                        <th style="padding: 6px; text-align: right; color: var(--success);">平均(税込)</th>
+                        <th style="padding: 6px; text-align: right; color: #5e5ce6;">平均時給</th>
                     </tr>
                 </thead>
                 <tbody>
