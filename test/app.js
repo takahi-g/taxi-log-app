@@ -1024,15 +1024,22 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "20261015_1542",
-    date: "10/15 15:42",
-    title: "🎉 アップデートのお知らせ (Ver: 10/15 15:42)",
+    version: "3.2.8",
+    date: "3.2.8",
+    title: "🎉 アップデートのお知らせ (Ver: 3.2.8)",
+    silent: true, // ポップアップを出さず設定タブの履歴にのみ表示
     details: [
         "🎨 【UIの変更】曜日別分析の平均数字の拡大、詳細履歴のボタンはみ出し防止など、画面の表示バランスを調整しました。"
     ],
     history: [
         {
-            date: "09/03 17:47",
+            date: "3.2.7",
+            details: [
+                "📊 【曜日別分析の精度UP】営業中（本日）の途中データを曜日別集計から自動除外！途中経過による一時的な平均時給・売上の低下を防ぎ、確定データのみで正しい実力平均が確認できるようになりました。"
+            ]
+        },
+        {
+            date: "3.2.6",
             details: [
                 "⚠️ 【イレギュラー設定＆メモ】台風・早退・体調不良などのイレギュラー日を理由メモ付きで簡単に設定・記録できるようになりました！",
                 "📊 【イレギュラー除外＆年・月グループ表示】曜日分析に『⚠️ イレギュラー日を除外』スイッチを追加！突発的な日のデータを外し『本来の実力平均』を算出できます。"
@@ -1109,7 +1116,7 @@ function checkAndShowUpdateModal() {
     }
 
     const lastSeen = localStorage.getItem('taxi_last_seen_version');
-    if (lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "20260717_1322" && lastSeen !== "20260717_1325") {
+    if (!APP_UPDATE_INFO.silent && lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "20260717_1322" && lastSeen !== "20260717_1325") {
         const titleEl = document.getElementById('update-modal-title');
         const detailsEl = document.getElementById('update-modal-details');
         if (titleEl && detailsEl) {
@@ -1126,8 +1133,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/15 15:30", // テスト用の日付時間
-    prod: "3.2.7"       // Formally updated prod version
+    test: "10/15 15:42", // テスト用の日付時間
+    prod: "3.2.8"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {

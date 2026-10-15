@@ -1027,6 +1027,7 @@ const APP_UPDATE_INFO = {
     version: "3.2.8",
     date: "3.2.8",
     title: "🎉 アップデートのお知らせ (Ver: 3.2.8)",
+    silent: true, // ポップアップを出さず設定タブの履歴にのみ表示
     details: [
         "🎨 【UIの変更】曜日別分析の平均数字の拡大、詳細履歴のボタンはみ出し防止など、画面の表示バランスを調整しました。"
     ],
@@ -1115,7 +1116,7 @@ function checkAndShowUpdateModal() {
     }
 
     const lastSeen = localStorage.getItem('taxi_last_seen_version');
-    if (lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "20260717_1322" && lastSeen !== "20260717_1325") {
+    if (!APP_UPDATE_INFO.silent && lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "20260717_1322" && lastSeen !== "20260717_1325") {
         const titleEl = document.getElementById('update-modal-title');
         const detailsEl = document.getElementById('update-modal-details');
         if (titleEl && detailsEl) {
