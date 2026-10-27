@@ -168,7 +168,8 @@ function refreshCalc(isSave = false) {
     const monthlyData = history.filter(h => h.date.startsWith(curMonth));
     const workedDates = [...new Set(monthlyData.map(h => h.date))];
     const workedCount = workedDates.length;
-    const now = new Date(); const todayStr = now.toISOString().split('T')[0];
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const goalType = getDayGoalType(selectedDate);
     
     let todayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
@@ -258,7 +259,6 @@ function refreshCalc(isSave = false) {
     const dispBreakHoursSpan = document.getElementById('disp-break-hours');
     
     if (startTimeInput) startTimeInput.value = workState.startTime;
-    if (breakMinutesInput && document.activeElement !== breakMinutesInput) breakMinutesInput.value = workState.breakMinutes;
     
     // 休憩履歴リストの同期・描画
     const breakHistoryList = document.getElementById('break-history-list');
@@ -308,16 +308,15 @@ function refreshCalc(isSave = false) {
 
     // 経過時間の算出
     const [sh, sm] = workState.startTime.split(':').map(Number);
-    const workStart = new Date(selectedDate);
-    workStart.setHours(sh, sm, 0, 0);
+    const [sy, smonth, sday] = selectedDate.split('-').map(Number);
+    const workStart = new Date(sy, smonth - 1, sday, sh, sm, 0, 0);
 
     let elapsedMinutes = 0;
     
     if (workState.endTime) {
         // 退勤時刻が登録されている場合
         const [eh, em] = workState.endTime.split(':').map(Number);
-        let workEnd = new Date(selectedDate);
-        workEnd.setHours(eh, em, 0, 0);
+        let workEnd = new Date(sy, smonth - 1, sday, eh, em, 0, 0);
         // 退勤時刻が出勤時刻以下の場合は翌日とみなす（日付またぎ運行）
         if (workEnd <= workStart) {
             workEnd.setDate(workEnd.getDate() + 1);
@@ -1195,7 +1194,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/27 12:38", // テスト用の日付時間
+    test: "10/27 15:55", // テスト用の日付時間
     prod: "3.2.8"       // Formally updated prod version
 };
 
