@@ -902,61 +902,91 @@ function saveCalcData(isCancel = false) {
 }
 
 function deleteCalcData(id) { if(confirm('消去しますか？')) { const h = DB.load('taxi_v11_hist', []); DB.save('taxi_v11_hist', h.filter(x => x.id !== id)); refreshCalc(); } }
+function toggleAutoBreakDeduction(checked) {
+    try {
+        const sets = DB.load('taxi_v11_sets', {
+            goal: CONFIG.DEFAULT_GOAL,
+            days: CONFIG.DEFAULT_DAYS,
+            baseStartTime: CONFIG.DEFAULT_START_TIME,
+            standardWorkHours: CONFIG.DEFAULT_STANDARD_WORK_HOURS,
+            standardWorkMinutes: CONFIG.DEFAULT_STANDARD_WORK_MINUTES
+        });
+        sets.autoBreakDeduction = !!checked;
+        DB.save('taxi_v11_sets', sets);
+        refreshCalc();
+    } catch (e) {
+        console.error('Failed to toggle auto break deduction:', e);
+    }
+}
+
 function saveCalcSettings() {
-    const sets = DB.load('taxi_v11_sets', {
-        goal: CONFIG.DEFAULT_GOAL,
-        days: CONFIG.DEFAULT_DAYS,
-        baseStartTime: CONFIG.DEFAULT_START_TIME,
-        standardWorkHours: CONFIG.DEFAULT_STANDARD_WORK_HOURS,
-        standardWorkMinutes: CONFIG.DEFAULT_STANDARD_WORK_MINUTES
-    });
-    
-    const sy = parseInt(document.getElementById('set-year').value);
-    const sm = parseInt(document.getElementById('set-month').value);
-    
-    if (!isNaN(sy) && !isNaN(sm)) {
-        if (!sets.monthly) sets.monthly = {};
-        const key = `${sy}-${String(sm).padStart(2, '0')}`;
-        sets.monthly[key] = {
-            goal: parseFloat(document.getElementById('set-goal').value) || CONFIG.DEFAULT_GOAL,
-            days: parseFloat(document.getElementById('set-days').value) || CONFIG.DEFAULT_DAYS,
-            weekdayGoal: parseFloat(document.getElementById('set-weekday-goal').value) || 40000,
-            friGoal: parseFloat(document.getElementById('set-fri-goal').value) || 60000,
-            satGoal: parseFloat(document.getElementById('set-sat-goal').value) || 60000,
-            sunGoal: parseFloat(document.getElementById('set-sun-goal').value) || 60000,
-            holidayGoal: parseFloat(document.getElementById('set-holiday-goal').value) || 60000,
-            eveGoal: parseFloat(document.getElementById('set-eve-goal').value) || 60000,
-            workDates: (sets.monthly[key] && sets.monthly[key].workDates) ? sets.monthly[key].workDates : []
-        };
-        syncGoalWithMonthlyRates(sets, key);
-    }
-    
-    const baseStartEl = document.getElementById('set-base-start-time');
-    sets.baseStartTime = (baseStartEl && baseStartEl.value) ? baseStartEl.value : (sets.baseStartTime || CONFIG.DEFAULT_START_TIME);
-    const cutOffEl = document.getElementById('set-cutoff-time');
-    sets.dayCutOffTime = (cutOffEl && cutOffEl.value) ? cutOffEl.value : (sets.dayCutOffTime || "08:00");
-    
-    const stdHEl = document.getElementById('set-standard-work-hours');
-    const stdMEl = document.getElementById('set-standard-work-minutes');
-    const parsedStdH = stdHEl ? parseFloat(stdHEl.value) : NaN;
-    const parsedStdM = stdMEl ? parseFloat(stdMEl.value) : NaN;
-    sets.standardWorkHours = !isNaN(parsedStdH) ? parsedStdH : (sets.standardWorkHours !== undefined && !isNaN(sets.standardWorkHours) ? sets.standardWorkHours : CONFIG.DEFAULT_STANDARD_WORK_HOURS);
-    sets.standardWorkMinutes = !isNaN(parsedStdM) ? parsedStdM : (sets.standardWorkMinutes !== undefined && !isNaN(sets.standardWorkMinutes) ? sets.standardWorkMinutes : CONFIG.DEFAULT_STANDARD_WORK_MINUTES);
+    try {
+        const sets = DB.load('taxi_v11_sets', {
+            goal: CONFIG.DEFAULT_GOAL,
+            days: CONFIG.DEFAULT_DAYS,
+            baseStartTime: CONFIG.DEFAULT_START_TIME,
+            standardWorkHours: CONFIG.DEFAULT_STANDARD_WORK_HOURS,
+            standardWorkMinutes: CONFIG.DEFAULT_STANDARD_WORK_MINUTES
+        });
+        
+        const setYearEl = document.getElementById('set-year');
+        const setMonthEl = document.getElementById('set-month');
+        const sy = setYearEl ? parseInt(setYearEl.value) : NaN;
+        const sm = setMonthEl ? parseInt(setMonthEl.value) : NaN;
+        
+        if (!isNaN(sy) && !isNaN(sm)) {
+            if (!sets.monthly) sets.monthly = {};
+            const key = `${sy}-${String(sm).padStart(2, '0')}`;
+            const goalEl = document.getElementById('set-goal');
+            const daysEl = document.getElementById('set-days');
+            const weekdayGoalEl = document.getElementById('set-weekday-goal');
+            const friGoalEl = document.getElementById('set-fri-goal');
+            const satGoalEl = document.getElementById('set-sat-goal');
+            const sunGoalEl = document.getElementById('set-sun-goal');
+            const holidayGoalEl = document.getElementById('set-holiday-goal');
+            const eveGoalEl = document.getElementById('set-eve-goal');
 
-    const defBreakHEl = document.getElementById('set-default-break-hours');
-    const defBreakMEl = document.getElementById('set-default-break-minutes');
-    const parsedDefBH = defBreakHEl ? parseFloat(defBreakHEl.value) : NaN;
-    const parsedDefBM = defBreakMEl ? parseFloat(defBreakMEl.value) : NaN;
-    sets.defaultBreakHours = !isNaN(parsedDefBH) ? parsedDefBH : (sets.defaultBreakHours !== undefined && !isNaN(sets.defaultBreakHours) ? sets.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS);
-    sets.defaultBreakMinutes = !isNaN(parsedDefBM) ? parsedDefBM : (sets.defaultBreakMinutes !== undefined && !isNaN(sets.defaultBreakMinutes) ? sets.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES);
+            sets.monthly[key] = {
+                goal: (goalEl && parseFloat(goalEl.value)) || CONFIG.DEFAULT_GOAL,
+                days: (daysEl && parseFloat(daysEl.value)) || CONFIG.DEFAULT_DAYS,
+                weekdayGoal: (weekdayGoalEl && parseFloat(weekdayGoalEl.value)) || 40000,
+                friGoal: (friGoalEl && parseFloat(friGoalEl.value)) || 60000,
+                satGoal: (satGoalEl && parseFloat(satGoalEl.value)) || 60000,
+                sunGoal: (sunGoalEl && parseFloat(sunGoalEl.value)) || 60000,
+                holidayGoal: (holidayGoalEl && parseFloat(holidayGoalEl.value)) || 60000,
+                eveGoal: (eveGoalEl && parseFloat(eveGoalEl.value)) || 60000,
+                workDates: (sets.monthly[key] && sets.monthly[key].workDates) ? sets.monthly[key].workDates : []
+            };
+            if (typeof syncGoalWithMonthlyRates === 'function') {
+                syncGoalWithMonthlyRates(sets, key);
+            }
+        }
+        
+        const baseStartEl = document.getElementById('set-base-start-time');
+        if (baseStartEl && baseStartEl.value) sets.baseStartTime = baseStartEl.value;
+        const cutOffEl = document.getElementById('set-cutoff-time');
+        if (cutOffEl && cutOffEl.value) sets.dayCutOffTime = cutOffEl.value;
+        
+        const stdHEl = document.getElementById('set-standard-work-hours');
+        const stdMEl = document.getElementById('set-standard-work-minutes');
+        if (stdHEl && !isNaN(parseFloat(stdHEl.value))) sets.standardWorkHours = parseFloat(stdHEl.value);
+        if (stdMEl && !isNaN(parseFloat(stdMEl.value))) sets.standardWorkMinutes = parseFloat(stdMEl.value);
 
-    const autoBreakEl = document.getElementById('set-auto-break-deduction');
-    if (autoBreakEl) {
-        sets.autoBreakDeduction = autoBreakEl.checked;
+        const defBreakHEl = document.getElementById('set-default-break-hours');
+        const defBreakMEl = document.getElementById('set-default-break-minutes');
+        if (defBreakHEl && !isNaN(parseFloat(defBreakHEl.value))) sets.defaultBreakHours = parseFloat(defBreakHEl.value);
+        if (defBreakMEl && !isNaN(parseFloat(defBreakMEl.value))) sets.defaultBreakMinutes = parseFloat(defBreakMEl.value);
+
+        const autoBreakEl = document.getElementById('set-auto-break-deduction');
+        if (autoBreakEl) {
+            sets.autoBreakDeduction = autoBreakEl.checked;
+        }
+        
+        DB.save('taxi_v11_sets', sets);
+        refreshCalc();
+    } catch (err) {
+        console.error('saveCalcSettings error:', err);
     }
-    
-    DB.save('taxi_v11_sets', sets);
-    refreshCalc();
 }
 
 function applyQuickGoal(type) {
@@ -1194,7 +1224,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/27 15:55", // テスト用の日付時間
+    test: "10/27 16:25", // テスト用の日付時間
     prod: "3.2.8"       // Formally updated prod version
 };
 

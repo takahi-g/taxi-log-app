@@ -337,7 +337,7 @@
                             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">乗務時間に応じて休憩を自動按分し実時給を算出</div>
                         </div>
                         <label class="switch">
-                            <input type="checkbox" id="set-auto-break-deduction" onchange="saveCalcSettings()">
+                            <input type="checkbox" id="set-auto-break-deduction" onchange="toggleAutoBreakDeduction(this.checked)">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -601,6 +601,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20261027_1555"></script>
+    <script src="app.js?v=20261027_1625"></script>
 </body>
 </html>
