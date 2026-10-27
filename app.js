@@ -32,6 +32,7 @@ const CONFIG = {
     
     // 乗務・休憩のデフォルト設定
     DEFAULT_START_TIME: "08:00",
+    DEFAULT_BREAK_HOURS: 3,
     DEFAULT_BREAK_MINUTES: 0,
     DEFAULT_STANDARD_WORK_HOURS: 19,
     DEFAULT_STANDARD_WORK_MINUTES: 40
@@ -167,7 +168,8 @@ function refreshCalc(isSave = false) {
     const monthlyData = history.filter(h => h.date.startsWith(curMonth));
     const workedDates = [...new Set(monthlyData.map(h => h.date))];
     const workedCount = workedDates.length;
-    const now = new Date(); const todayStr = now.toISOString().split('T')[0];
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const goalType = getDayGoalType(selectedDate);
     
     let todayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
@@ -257,8 +259,6 @@ function refreshCalc(isSave = false) {
     const dispBreakHoursSpan = document.getElementById('disp-break-hours');
     
     if (startTimeInput) startTimeInput.value = workState.startTime;
-    if (breakMinutesInput && document.activeElement !== breakMinutesInput) breakMinutesInput.value = workState.breakMinutes;
-    if (dispBreakHoursSpan) dispBreakHoursSpan.innerText = `${(workState.breakMinutes / 60).toFixed(1)}時間`;
     
     // 休憩履歴リストの同期・描画
     const breakHistoryList = document.getElementById('break-history-list');
@@ -308,16 +308,15 @@ function refreshCalc(isSave = false) {
 
     // 経過時間の算出
     const [sh, sm] = workState.startTime.split(':').map(Number);
-    const workStart = new Date(selectedDate);
-    workStart.setHours(sh, sm, 0, 0);
+    const [sy, smonth, sday] = selectedDate.split('-').map(Number);
+    const workStart = new Date(sy, smonth - 1, sday, sh, sm, 0, 0);
 
     let elapsedMinutes = 0;
     
     if (workState.endTime) {
         // 退勤時刻が登録されている場合
         const [eh, em] = workState.endTime.split(':').map(Number);
-        let workEnd = new Date(selectedDate);
-        workEnd.setHours(eh, em, 0, 0);
+        let workEnd = new Date(sy, smonth - 1, sday, eh, em, 0, 0);
         // 退勤時刻が出勤時刻以下の場合は翌日とみなす（日付またぎ運行）
         if (workEnd <= workStart) {
             workEnd.setDate(workEnd.getDate() + 1);
@@ -353,8 +352,43 @@ function refreshCalc(isSave = false) {
         if (!activeBreakIntervalId) startBreakTimer();
     }
 
-    const totalBreakMinutes = workState.breakMinutes + activeBreakMinutes;
+    const recordedBreakMinutes = workState.breakMinutes + activeBreakMinutes;
+
+    // 案2: 休憩自動按分モード（autoBreakDeduction: true）
+    let autoBreakMinutes = 0;
+    if (sets.autoBreakDeduction) {
+        const stdWorkHours = (sets.standardWorkHours !== undefined && !isNaN(sets.standardWorkHours)) ? sets.standardWorkHours : CONFIG.DEFAULT_STANDARD_WORK_HOURS;
+        const stdWorkMinutes = (sets.standardWorkMinutes !== undefined && !isNaN(sets.standardWorkMinutes)) ? sets.standardWorkMinutes : CONFIG.DEFAULT_STANDARD_WORK_MINUTES;
+        const stdTotalMinutes = Math.max(60, stdWorkHours * 60 + stdWorkMinutes); // 基準乗務時間（例: 19h40m = 1180分）
+
+        const defBreakH = (sets.defaultBreakHours !== undefined && !isNaN(sets.defaultBreakHours)) ? sets.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS;
+        const defBreakM = (sets.defaultBreakMinutes !== undefined && !isNaN(sets.defaultBreakMinutes)) ? sets.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES;
+        const targetBreakMinutes = Math.max(0, defBreakH * 60 + defBreakM); // 目標休憩時間（例: 3h = 180分）
+
+        if (targetBreakMinutes > 0 && stdTotalMinutes > 0 && !isNaN(elapsedMinutes)) {
+            const ratio = Math.min(1.0, elapsedMinutes / stdTotalMinutes);
+            autoBreakMinutes = Math.round(targetBreakMinutes * ratio);
+        }
+    }
+
+    // 手動/計測記録と自動按分のうち、大きい方を適用（手動休憩が上回ればそれを優先）
+    const totalBreakMinutes = sets.autoBreakDeduction ? Math.max(recordedBreakMinutes, autoBreakMinutes) : recordedBreakMinutes;
     const actualWorkMinutes = Math.max(6, elapsedMinutes - totalBreakMinutes); // 最低6分（0.1時間）
+
+    // 休憩時間表示の補足（自動按分中ならわかるように表示）
+    if (dispBreakHoursSpan) {
+        if (sets.autoBreakDeduction && autoBreakMinutes > recordedBreakMinutes) {
+            dispBreakHoursSpan.innerHTML = `<span style="color:var(--accent); font-weight:bold;">${(totalBreakMinutes / 60).toFixed(1)}h</span> <small style="font-size:0.7rem; color:var(--text-muted);">(自動配分: ${autoBreakMinutes}分)</small>`;
+            if (breakMinutesInput && document.activeElement !== breakMinutesInput) {
+                breakMinutesInput.value = totalBreakMinutes;
+            }
+        } else {
+            dispBreakHoursSpan.innerText = `${(totalBreakMinutes / 60).toFixed(1)}時間`;
+            if (breakMinutesInput && document.activeElement !== breakMinutesInput) {
+                breakMinutesInput.value = workState.breakMinutes;
+            }
+        }
+    }
     
     let actualWorkHours = actualWorkMinutes / 60;
     const isManual = workState.manualWorkHours !== null && workState.manualWorkHours !== undefined;
@@ -377,6 +411,14 @@ function refreshCalc(isSave = false) {
 
     const dispHourlyNetStrong = document.getElementById('disp-hourly-net');
     const dispHourlyGrossSpan = document.getElementById('disp-hourly-gross');
+    const dispHourlyTitle = document.getElementById('disp-hourly-title');
+    if (dispHourlyTitle) {
+        if (sets.autoBreakDeduction && autoBreakMinutes > 0) {
+            dispHourlyTitle.innerHTML = `現在の時間売上 <span style="color:var(--accent); font-size:0.7rem; font-weight:bold;">(実働換算: -${autoBreakMinutes}分)</span>`;
+        } else {
+            dispHourlyTitle.innerText = "現在の時間売上";
+        }
+    }
     if (dispHourlyNetStrong) dispHourlyNetStrong.innerText = `¥${hourlyNet.toLocaleString()} /h`;
     if (dispHourlyGrossSpan) dispHourlyGrossSpan.innerText = `¥${hourlyGross.toLocaleString()} /h`;
 
@@ -860,42 +902,91 @@ function saveCalcData(isCancel = false) {
 }
 
 function deleteCalcData(id) { if(confirm('消去しますか？')) { const h = DB.load('taxi_v11_hist', []); DB.save('taxi_v11_hist', h.filter(x => x.id !== id)); refreshCalc(); } }
-function saveCalcSettings() {
-    const sets = DB.load('taxi_v11_sets', {
-        goal: CONFIG.DEFAULT_GOAL,
-        days: CONFIG.DEFAULT_DAYS,
-        baseStartTime: CONFIG.DEFAULT_START_TIME,
-        standardWorkHours: CONFIG.DEFAULT_STANDARD_WORK_HOURS,
-        standardWorkMinutes: CONFIG.DEFAULT_STANDARD_WORK_MINUTES
-    });
-    
-    const sy = parseInt(document.getElementById('set-year').value);
-    const sm = parseInt(document.getElementById('set-month').value);
-    
-    if (!isNaN(sy) && !isNaN(sm)) {
-        const key = `${sy}-${String(sm).padStart(2, '0')}`;
-        sets.monthly[key] = {
-            goal: parseFloat(document.getElementById('set-goal').value) || CONFIG.DEFAULT_GOAL,
-            days: parseFloat(document.getElementById('set-days').value) || CONFIG.DEFAULT_DAYS,
-            weekdayGoal: parseFloat(document.getElementById('set-weekday-goal').value) || 40000,
-            friGoal: parseFloat(document.getElementById('set-fri-goal').value) || 60000,
-            satGoal: parseFloat(document.getElementById('set-sat-goal').value) || 60000,
-            sunGoal: parseFloat(document.getElementById('set-sun-goal').value) || 60000,
-            holidayGoal: parseFloat(document.getElementById('set-holiday-goal').value) || 60000,
-            eveGoal: parseFloat(document.getElementById('set-eve-goal').value) || 60000,
-            workDates: (sets.monthly[key] && sets.monthly[key].workDates) ? sets.monthly[key].workDates : []
-        };
-        syncGoalWithMonthlyRates(sets, key);
+function toggleAutoBreakDeduction(checked) {
+    try {
+        const sets = DB.load('taxi_v11_sets', {
+            goal: CONFIG.DEFAULT_GOAL,
+            days: CONFIG.DEFAULT_DAYS,
+            baseStartTime: CONFIG.DEFAULT_START_TIME,
+            standardWorkHours: CONFIG.DEFAULT_STANDARD_WORK_HOURS,
+            standardWorkMinutes: CONFIG.DEFAULT_STANDARD_WORK_MINUTES
+        });
+        sets.autoBreakDeduction = !!checked;
+        DB.save('taxi_v11_sets', sets);
+        refreshCalc();
+    } catch (e) {
+        console.error('Failed to toggle auto break deduction:', e);
     }
-    
-    sets.baseStartTime = document.getElementById('set-base-start-time').value || CONFIG.DEFAULT_START_TIME;
-    const cutOffEl = document.getElementById('set-cutoff-time');
-    sets.dayCutOffTime = cutOffEl ? cutOffEl.value || "08:00" : "08:00";
-    sets.standardWorkHours = parseFloat(document.getElementById('set-standard-work-hours').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-hours').value) : CONFIG.DEFAULT_STANDARD_WORK_HOURS;
-    sets.standardWorkMinutes = parseFloat(document.getElementById('set-standard-work-minutes').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-minutes').value) : CONFIG.DEFAULT_STANDARD_WORK_MINUTES;
-    
-    DB.save('taxi_v11_sets', sets);
-    refreshCalc();
+}
+
+function saveCalcSettings() {
+    try {
+        const sets = DB.load('taxi_v11_sets', {
+            goal: CONFIG.DEFAULT_GOAL,
+            days: CONFIG.DEFAULT_DAYS,
+            baseStartTime: CONFIG.DEFAULT_START_TIME,
+            standardWorkHours: CONFIG.DEFAULT_STANDARD_WORK_HOURS,
+            standardWorkMinutes: CONFIG.DEFAULT_STANDARD_WORK_MINUTES
+        });
+        
+        const setYearEl = document.getElementById('set-year');
+        const setMonthEl = document.getElementById('set-month');
+        const sy = setYearEl ? parseInt(setYearEl.value) : NaN;
+        const sm = setMonthEl ? parseInt(setMonthEl.value) : NaN;
+        
+        if (!isNaN(sy) && !isNaN(sm)) {
+            if (!sets.monthly) sets.monthly = {};
+            const key = `${sy}-${String(sm).padStart(2, '0')}`;
+            const goalEl = document.getElementById('set-goal');
+            const daysEl = document.getElementById('set-days');
+            const weekdayGoalEl = document.getElementById('set-weekday-goal');
+            const friGoalEl = document.getElementById('set-fri-goal');
+            const satGoalEl = document.getElementById('set-sat-goal');
+            const sunGoalEl = document.getElementById('set-sun-goal');
+            const holidayGoalEl = document.getElementById('set-holiday-goal');
+            const eveGoalEl = document.getElementById('set-eve-goal');
+
+            sets.monthly[key] = {
+                goal: (goalEl && parseFloat(goalEl.value)) || CONFIG.DEFAULT_GOAL,
+                days: (daysEl && parseFloat(daysEl.value)) || CONFIG.DEFAULT_DAYS,
+                weekdayGoal: (weekdayGoalEl && parseFloat(weekdayGoalEl.value)) || 40000,
+                friGoal: (friGoalEl && parseFloat(friGoalEl.value)) || 60000,
+                satGoal: (satGoalEl && parseFloat(satGoalEl.value)) || 60000,
+                sunGoal: (sunGoalEl && parseFloat(sunGoalEl.value)) || 60000,
+                holidayGoal: (holidayGoalEl && parseFloat(holidayGoalEl.value)) || 60000,
+                eveGoal: (eveGoalEl && parseFloat(eveGoalEl.value)) || 60000,
+                workDates: (sets.monthly[key] && sets.monthly[key].workDates) ? sets.monthly[key].workDates : []
+            };
+            if (typeof syncGoalWithMonthlyRates === 'function') {
+                syncGoalWithMonthlyRates(sets, key);
+            }
+        }
+        
+        const baseStartEl = document.getElementById('set-base-start-time');
+        if (baseStartEl && baseStartEl.value) sets.baseStartTime = baseStartEl.value;
+        const cutOffEl = document.getElementById('set-cutoff-time');
+        if (cutOffEl && cutOffEl.value) sets.dayCutOffTime = cutOffEl.value;
+        
+        const stdHEl = document.getElementById('set-standard-work-hours');
+        const stdMEl = document.getElementById('set-standard-work-minutes');
+        if (stdHEl && !isNaN(parseFloat(stdHEl.value))) sets.standardWorkHours = parseFloat(stdHEl.value);
+        if (stdMEl && !isNaN(parseFloat(stdMEl.value))) sets.standardWorkMinutes = parseFloat(stdMEl.value);
+
+        const defBreakHEl = document.getElementById('set-default-break-hours');
+        const defBreakMEl = document.getElementById('set-default-break-minutes');
+        if (defBreakHEl && !isNaN(parseFloat(defBreakHEl.value))) sets.defaultBreakHours = parseFloat(defBreakHEl.value);
+        if (defBreakMEl && !isNaN(parseFloat(defBreakMEl.value))) sets.defaultBreakMinutes = parseFloat(defBreakMEl.value);
+
+        const autoBreakEl = document.getElementById('set-auto-break-deduction');
+        if (autoBreakEl) {
+            sets.autoBreakDeduction = autoBreakEl.checked;
+        }
+        
+        DB.save('taxi_v11_sets', sets);
+        refreshCalc();
+    } catch (err) {
+        console.error('saveCalcSettings error:', err);
+    }
 }
 
 function applyQuickGoal(type) {
@@ -1024,14 +1115,21 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "3.2.8",
-    date: "3.2.8",
-    title: "🎉 アップデートのお知らせ (Ver: 3.2.8)",
-    silent: true, // ポップアップを出さず設定タブの履歴にのみ表示
+    version: "3.3.0",
+    date: "3.3.0",
+    title: "🎉 アップデートのお知らせ (Ver: 3.3.0)",
+    silent: false, // ポップアップを表示
     details: [
-        "🎨 【UIの変更】曜日別分析の平均数字の拡大、詳細履歴のボタンはみ出し防止など、画面の表示バランスを調整しました。"
+        "☕ 【新機能】休憩の自動配分モードを追加！休憩の手入力や計測が面倒な方用に、標準乗務時間（19時間40分）の経過に合わせて自動で3時間になるよう休憩時間を差し引き、リアルタイムに実稼働時給を計算・表示できるようになりました。",
+        "⚙️ 【簡単切り替え】『設定』タブの『☕ 休憩の自動配分モード』からいつでもON/OFFを切り替えられます（※初期状態はOFFです）。休憩予定時間や乗務時間もお好みに合わせて調整可能です。"
     ],
     history: [
+        {
+            date: "3.2.8",
+            details: [
+                "🎨 【UIの変更】曜日別分析の平均数字の拡大、詳細履歴のボタンはみ出し防止など、画面の表示バランスを調整しました。"
+            ]
+        },
         {
             date: "3.2.7",
             details: [
@@ -1133,8 +1231,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/15 15:42", // テスト用の日付時間
-    prod: "3.2.8"       // Formally updated prod version
+    test: "10/27 16:35", // テスト用の日付時間
+    prod: "3.3.0"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {
@@ -1245,6 +1343,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (UI.get('set-cutoff-time')) UI.get('set-cutoff-time').value = setsInit.dayCutOffTime || "08:00";
     if (UI.get('set-standard-work-hours')) UI.get('set-standard-work-hours').value = setsInit.standardWorkHours !== undefined ? setsInit.standardWorkHours : 19;
     if (UI.get('set-standard-work-minutes')) UI.get('set-standard-work-minutes').value = setsInit.standardWorkMinutes !== undefined ? setsInit.standardWorkMinutes : 40;
+    if (UI.get('set-default-break-hours')) UI.get('set-default-break-hours').value = setsInit.defaultBreakHours !== undefined ? setsInit.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS;
+    if (UI.get('set-default-break-minutes')) UI.get('set-default-break-minutes').value = setsInit.defaultBreakMinutes !== undefined ? setsInit.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES;
+    if (UI.get('set-auto-break-deduction')) UI.get('set-auto-break-deduction').checked = setsInit.autoBreakDeduction === true;
     refreshCalc();
     
     // 時給表示を最新化するためのタイマー（1分ごと）
@@ -1267,11 +1368,12 @@ function getSelectedDateStr() {
 function loadWorkState(dateStr) {
     const states = DB.load('taxi_v11_work_states', {});
     const sets = DB.load('taxi_v11_sets', { goal: 550000, days: 12, baseStartTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
+
     if (!states[dateStr]) {
         states[dateStr] = {
             startTime: sets.baseStartTime || "08:00",
             endTime: null,
-            breakMinutes: CONFIG.DEFAULT_BREAK_MINUTES,
+            breakMinutes: 0,
             activeBreakStarted: null,
             breaks: [],
             targetType: "auto",

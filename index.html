@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TAXI Log Pro</title>
-    <link rel="stylesheet" href="style.css?v=3.2.8">
+    <link rel="stylesheet" href="style.css?v=3.3.0">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,7 +26,7 @@
             </button>
             <div style="text-align: right;">
                 <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 3.2.8</div>
+                <div class="app-version">Ver: 3.3.0</div>
             </div>
         </div>
     </header>
@@ -146,7 +146,7 @@
 
                 <!-- 時間売上 (税込・税抜の横並び) -->
                 <div style="margin-bottom: 12px;">
-                    <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">現在の時間売上</span>
+                    <span id="disp-hourly-title" style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 1px; text-align: center;">現在の時間売上</span>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <div style="flex: 1; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 8px; border-radius: 12px; text-align: center;">
                             <span style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px;">税抜</span>
@@ -308,7 +308,7 @@
                         </div>
                         <input type="time" id="set-cutoff-time" onchange="saveCalcSettings()" style="width:130px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
                     </div>
-                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
                         <span style="font-weight: bold; font-size: 0.95rem;">標準乗務時間 (終業)</span>
                         <div style="display: flex; align-items: center; gap: 4px;">
                             <input type="number" id="set-standard-work-hours" oninput="saveCalcSettings()" style="width:60px; text-align:center; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px; border-radius:10px;">
@@ -316,6 +316,30 @@
                             <input type="number" id="set-standard-work-minutes" oninput="saveCalcSettings()" style="width:60px; text-align:center; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px; border-radius:10px;">
                             <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted);">分</span>
                         </div>
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="font-weight: bold; font-size: 0.95rem;">デフォルト休憩時間</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">1乗務あたりの目標休憩時間</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <input type="number" id="set-default-break-hours" oninput="saveCalcSettings()" style="width:60px; text-align:center; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px; border-radius:10px;">
+                            <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted); margin-right:4px;">時間</span>
+                            <input type="number" id="set-default-break-minutes" oninput="saveCalcSettings()" style="width:60px; text-align:center; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px; border-radius:10px;">
+                            <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted);">分</span>
+                        </div>
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
+                        <div>
+                            <div style="font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                                <span>☕ 休憩の自動配分モード</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">乗務時間に応じて休憩を自動配分し実時給を算出</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="set-auto-break-deduction" onchange="toggleAutoBreakDeduction(this.checked)">
+                            <span class="slider"></span>
+                        </label>
                     </div>
                 </div>
             </section>
@@ -577,6 +601,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=3.2.8"></script>
+    <script src="app.js?v=3.3.0"></script>
 </body>
 </html>
