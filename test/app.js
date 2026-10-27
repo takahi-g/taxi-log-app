@@ -358,15 +358,15 @@ function refreshCalc(isSave = false) {
     // 案2: 休憩自動按分モード（autoBreakDeduction: true）
     let autoBreakMinutes = 0;
     if (sets.autoBreakDeduction) {
-        const stdWorkHours = sets.standardWorkHours !== undefined ? sets.standardWorkHours : CONFIG.DEFAULT_STANDARD_WORK_HOURS;
-        const stdWorkMinutes = sets.standardWorkMinutes !== undefined ? sets.standardWorkMinutes : CONFIG.DEFAULT_STANDARD_WORK_MINUTES;
+        const stdWorkHours = (sets.standardWorkHours !== undefined && !isNaN(sets.standardWorkHours)) ? sets.standardWorkHours : CONFIG.DEFAULT_STANDARD_WORK_HOURS;
+        const stdWorkMinutes = (sets.standardWorkMinutes !== undefined && !isNaN(sets.standardWorkMinutes)) ? sets.standardWorkMinutes : CONFIG.DEFAULT_STANDARD_WORK_MINUTES;
         const stdTotalMinutes = Math.max(60, stdWorkHours * 60 + stdWorkMinutes); // 基準乗務時間（例: 19h40m = 1180分）
 
-        const defBreakH = sets.defaultBreakHours !== undefined ? sets.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS;
-        const defBreakM = sets.defaultBreakMinutes !== undefined ? sets.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES;
+        const defBreakH = (sets.defaultBreakHours !== undefined && !isNaN(sets.defaultBreakHours)) ? sets.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS;
+        const defBreakM = (sets.defaultBreakMinutes !== undefined && !isNaN(sets.defaultBreakMinutes)) ? sets.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES;
         const targetBreakMinutes = Math.max(0, defBreakH * 60 + defBreakM); // 目標休憩時間（例: 3h = 180分）
 
-        if (targetBreakMinutes > 0 && stdTotalMinutes > 0) {
+        if (targetBreakMinutes > 0 && stdTotalMinutes > 0 && !isNaN(elapsedMinutes)) {
             const ratio = Math.min(1.0, elapsedMinutes / stdTotalMinutes);
             autoBreakMinutes = Math.round(targetBreakMinutes * ratio);
         }
@@ -916,6 +916,7 @@ function saveCalcSettings() {
     const sm = parseInt(document.getElementById('set-month').value);
     
     if (!isNaN(sy) && !isNaN(sm)) {
+        if (!sets.monthly) sets.monthly = {};
         const key = `${sy}-${String(sm).padStart(2, '0')}`;
         sets.monthly[key] = {
             goal: parseFloat(document.getElementById('set-goal').value) || CONFIG.DEFAULT_GOAL,
@@ -931,17 +932,29 @@ function saveCalcSettings() {
         syncGoalWithMonthlyRates(sets, key);
     }
     
-    sets.baseStartTime = document.getElementById('set-base-start-time').value || CONFIG.DEFAULT_START_TIME;
+    const baseStartEl = document.getElementById('set-base-start-time');
+    sets.baseStartTime = (baseStartEl && baseStartEl.value) ? baseStartEl.value : (sets.baseStartTime || CONFIG.DEFAULT_START_TIME);
     const cutOffEl = document.getElementById('set-cutoff-time');
-    sets.dayCutOffTime = cutOffEl ? cutOffEl.value || "08:00" : "08:00";
-    sets.standardWorkHours = parseFloat(document.getElementById('set-standard-work-hours').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-hours').value) : CONFIG.DEFAULT_STANDARD_WORK_HOURS;
-    sets.standardWorkMinutes = parseFloat(document.getElementById('set-standard-work-minutes').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-minutes').value) : CONFIG.DEFAULT_STANDARD_WORK_MINUTES;
+    sets.dayCutOffTime = (cutOffEl && cutOffEl.value) ? cutOffEl.value : (sets.dayCutOffTime || "08:00");
+    
+    const stdHEl = document.getElementById('set-standard-work-hours');
+    const stdMEl = document.getElementById('set-standard-work-minutes');
+    const parsedStdH = stdHEl ? parseFloat(stdHEl.value) : NaN;
+    const parsedStdM = stdMEl ? parseFloat(stdMEl.value) : NaN;
+    sets.standardWorkHours = !isNaN(parsedStdH) ? parsedStdH : (sets.standardWorkHours !== undefined && !isNaN(sets.standardWorkHours) ? sets.standardWorkHours : CONFIG.DEFAULT_STANDARD_WORK_HOURS);
+    sets.standardWorkMinutes = !isNaN(parsedStdM) ? parsedStdM : (sets.standardWorkMinutes !== undefined && !isNaN(sets.standardWorkMinutes) ? sets.standardWorkMinutes : CONFIG.DEFAULT_STANDARD_WORK_MINUTES);
+
     const defBreakHEl = document.getElementById('set-default-break-hours');
     const defBreakMEl = document.getElementById('set-default-break-minutes');
-    sets.defaultBreakHours = defBreakHEl && !isNaN(parseFloat(defBreakHEl.value)) ? parseFloat(defBreakHEl.value) : CONFIG.DEFAULT_BREAK_HOURS;
-    sets.defaultBreakMinutes = defBreakMEl && !isNaN(parseFloat(defBreakMEl.value)) ? parseFloat(defBreakMEl.value) : CONFIG.DEFAULT_BREAK_MINUTES;
+    const parsedDefBH = defBreakHEl ? parseFloat(defBreakHEl.value) : NaN;
+    const parsedDefBM = defBreakMEl ? parseFloat(defBreakMEl.value) : NaN;
+    sets.defaultBreakHours = !isNaN(parsedDefBH) ? parsedDefBH : (sets.defaultBreakHours !== undefined && !isNaN(sets.defaultBreakHours) ? sets.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS);
+    sets.defaultBreakMinutes = !isNaN(parsedDefBM) ? parsedDefBM : (sets.defaultBreakMinutes !== undefined && !isNaN(sets.defaultBreakMinutes) ? sets.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES);
+
     const autoBreakEl = document.getElementById('set-auto-break-deduction');
-    sets.autoBreakDeduction = autoBreakEl ? autoBreakEl.checked : false;
+    if (autoBreakEl) {
+        sets.autoBreakDeduction = autoBreakEl.checked;
+    }
     
     DB.save('taxi_v11_sets', sets);
     refreshCalc();
@@ -1182,7 +1195,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/27 12:25", // テスト用の日付時間
+    test: "10/27 12:38", // テスト用の日付時間
     prod: "3.2.8"       // Formally updated prod version
 };
 
