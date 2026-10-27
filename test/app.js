@@ -1213,13 +1213,14 @@ function checkAndShowUpdateModal() {
         `;
     }
 
+    const isTestEnv = window.location.pathname.includes('/test/');
     const lastSeen = localStorage.getItem('taxi_last_seen_version');
-    if (!APP_UPDATE_INFO.silent && lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "20260717_1322" && lastSeen !== "20260717_1325") {
+    if (isTestEnv || (!APP_UPDATE_INFO.silent && lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "20260717_1322" && lastSeen !== "20260717_1325")) {
         const titleEl = document.getElementById('update-modal-title');
         const detailsEl = document.getElementById('update-modal-details');
         if (titleEl && detailsEl) {
             titleEl.innerText = APP_UPDATE_INFO.title;
-            detailsEl.innerHTML = APP_UPDATE_INFO.details.map(d => `<div style="display:flex; gap:6px; align-items:flex-start;"><span>•</span><span>${d}</span></div>`).join('');
+            detailsEl.innerHTML = APP_UPDATE_INFO.details.map(d => `<div style="margin-bottom:8px; display:flex; gap:6px; align-items:flex-start;"><span>•</span><span>${d}</span></div>`).join('');
             UI.show('update-modal', true);
         }
     }
@@ -1231,8 +1232,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/27 16:35", // テスト用の日付時間
-    prod: "3.2.8"       // Formally updated prod version
+    test: "10/27 16:58", // テスト用の日付時間
+    prod: "3.3.0"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {
