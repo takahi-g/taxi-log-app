@@ -259,7 +259,6 @@ function refreshCalc(isSave = false) {
     
     if (startTimeInput) startTimeInput.value = workState.startTime;
     if (breakMinutesInput && document.activeElement !== breakMinutesInput) breakMinutesInput.value = workState.breakMinutes;
-    if (dispBreakHoursSpan) dispBreakHoursSpan.innerText = `${(workState.breakMinutes / 60).toFixed(1)}時間`;
     
     // 休憩履歴リストの同期・描画
     const breakHistoryList = document.getElementById('break-history-list');
@@ -354,8 +353,37 @@ function refreshCalc(isSave = false) {
         if (!activeBreakIntervalId) startBreakTimer();
     }
 
-    const totalBreakMinutes = workState.breakMinutes + activeBreakMinutes;
+    const recordedBreakMinutes = workState.breakMinutes + activeBreakMinutes;
+
+    // 案2: 休憩自動按分モード（autoBreakDeduction: true）
+    let autoBreakMinutes = 0;
+    if (sets.autoBreakDeduction) {
+        const stdWorkHours = sets.standardWorkHours !== undefined ? sets.standardWorkHours : CONFIG.DEFAULT_STANDARD_WORK_HOURS;
+        const stdWorkMinutes = sets.standardWorkMinutes !== undefined ? sets.standardWorkMinutes : CONFIG.DEFAULT_STANDARD_WORK_MINUTES;
+        const stdTotalMinutes = Math.max(60, stdWorkHours * 60 + stdWorkMinutes); // 基準乗務時間（例: 19h40m = 1180分）
+
+        const defBreakH = sets.defaultBreakHours !== undefined ? sets.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS;
+        const defBreakM = sets.defaultBreakMinutes !== undefined ? sets.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES;
+        const targetBreakMinutes = Math.max(0, defBreakH * 60 + defBreakM); // 目標休憩時間（例: 3h = 180分）
+
+        if (targetBreakMinutes > 0 && stdTotalMinutes > 0) {
+            const ratio = Math.min(1.0, elapsedMinutes / stdTotalMinutes);
+            autoBreakMinutes = Math.round(targetBreakMinutes * ratio);
+        }
+    }
+
+    // 手動/計測記録と自動按分のうち、大きい方を適用（手動休憩が上回ればそれを優先）
+    const totalBreakMinutes = sets.autoBreakDeduction ? Math.max(recordedBreakMinutes, autoBreakMinutes) : recordedBreakMinutes;
     const actualWorkMinutes = Math.max(6, elapsedMinutes - totalBreakMinutes); // 最低6分（0.1時間）
+
+    // 休憩時間表示の補足（自動按分中ならわかるように表示）
+    if (dispBreakHoursSpan) {
+        if (sets.autoBreakDeduction && autoBreakMinutes > recordedBreakMinutes) {
+            dispBreakHoursSpan.innerHTML = `<span style="color:var(--accent); font-weight:bold;">${(totalBreakMinutes / 60).toFixed(1)}h</span> <small style="font-size:0.7rem; color:var(--text-muted);">(自動按分)</small>`;
+        } else {
+            dispBreakHoursSpan.innerText = `${(totalBreakMinutes / 60).toFixed(1)}時間`;
+        }
+    }
     
     let actualWorkHours = actualWorkMinutes / 60;
     const isManual = workState.manualWorkHours !== null && workState.manualWorkHours !== undefined;
@@ -898,6 +926,8 @@ function saveCalcSettings() {
     const defBreakMEl = document.getElementById('set-default-break-minutes');
     sets.defaultBreakHours = defBreakHEl && !isNaN(parseFloat(defBreakHEl.value)) ? parseFloat(defBreakHEl.value) : CONFIG.DEFAULT_BREAK_HOURS;
     sets.defaultBreakMinutes = defBreakMEl && !isNaN(parseFloat(defBreakMEl.value)) ? parseFloat(defBreakMEl.value) : CONFIG.DEFAULT_BREAK_MINUTES;
+    const autoBreakEl = document.getElementById('set-auto-break-deduction');
+    sets.autoBreakDeduction = autoBreakEl ? autoBreakEl.checked : false;
     
     DB.save('taxi_v11_sets', sets);
     refreshCalc();
@@ -1138,7 +1168,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/27 11:10", // テスト用の日付時間
+    test: "10/27 11:30", // テスト用の日付時間
     prod: "3.2.8"       // Formally updated prod version
 };
 
@@ -1252,6 +1282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (UI.get('set-standard-work-minutes')) UI.get('set-standard-work-minutes').value = setsInit.standardWorkMinutes !== undefined ? setsInit.standardWorkMinutes : 40;
     if (UI.get('set-default-break-hours')) UI.get('set-default-break-hours').value = setsInit.defaultBreakHours !== undefined ? setsInit.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS;
     if (UI.get('set-default-break-minutes')) UI.get('set-default-break-minutes').value = setsInit.defaultBreakMinutes !== undefined ? setsInit.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES;
+    if (UI.get('set-auto-break-deduction')) UI.get('set-auto-break-deduction').checked = setsInit.autoBreakDeduction === true;
     refreshCalc();
     
     // 時給表示を最新化するためのタイマー（1分ごと）
@@ -1274,15 +1305,12 @@ function getSelectedDateStr() {
 function loadWorkState(dateStr) {
     const states = DB.load('taxi_v11_work_states', {});
     const sets = DB.load('taxi_v11_sets', { goal: 550000, days: 12, baseStartTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
-    const defBreakH = sets.defaultBreakHours !== undefined ? sets.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS;
-    const defBreakM = sets.defaultBreakMinutes !== undefined ? sets.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES;
-    const defaultTotalBreak = Math.round(defBreakH * 60 + defBreakM);
 
     if (!states[dateStr]) {
         states[dateStr] = {
             startTime: sets.baseStartTime || "08:00",
             endTime: null,
-            breakMinutes: defaultTotalBreak,
+            breakMinutes: 0,
             activeBreakStarted: null,
             breaks: [],
             targetType: "auto",
