@@ -378,7 +378,7 @@ function refreshCalc(isSave = false) {
     // 休憩時間表示の補足（自動按分中ならわかるように表示）
     if (dispBreakHoursSpan) {
         if (sets.autoBreakDeduction && autoBreakMinutes > recordedBreakMinutes) {
-            dispBreakHoursSpan.innerHTML = `<span style="color:var(--accent); font-weight:bold;">${(totalBreakMinutes / 60).toFixed(1)}h</span> <small style="font-size:0.7rem; color:var(--text-muted);">(自動按分: ${autoBreakMinutes}分)</small>`;
+            dispBreakHoursSpan.innerHTML = `<span style="color:var(--accent); font-weight:bold;">${(totalBreakMinutes / 60).toFixed(1)}h</span> <small style="font-size:0.7rem; color:var(--text-muted);">(自動配分: ${autoBreakMinutes}分)</small>`;
             if (breakMinutesInput && document.activeElement !== breakMinutesInput) {
                 breakMinutesInput.value = totalBreakMinutes;
             }
@@ -1224,7 +1224,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/27 16:25", // テスト用の日付時間
+    test: "10/27 16:35", // テスト用の日付時間
     prod: "3.2.8"       // Formally updated prod version
 };
 
