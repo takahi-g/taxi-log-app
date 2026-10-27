@@ -32,6 +32,7 @@ const CONFIG = {
     
     // 乗務・休憩のデフォルト設定
     DEFAULT_START_TIME: "08:00",
+    DEFAULT_BREAK_HOURS: 3,
     DEFAULT_BREAK_MINUTES: 0,
     DEFAULT_STANDARD_WORK_HOURS: 19,
     DEFAULT_STANDARD_WORK_MINUTES: 40
@@ -893,6 +894,10 @@ function saveCalcSettings() {
     sets.dayCutOffTime = cutOffEl ? cutOffEl.value || "08:00" : "08:00";
     sets.standardWorkHours = parseFloat(document.getElementById('set-standard-work-hours').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-hours').value) : CONFIG.DEFAULT_STANDARD_WORK_HOURS;
     sets.standardWorkMinutes = parseFloat(document.getElementById('set-standard-work-minutes').value) !== undefined ? parseFloat(document.getElementById('set-standard-work-minutes').value) : CONFIG.DEFAULT_STANDARD_WORK_MINUTES;
+    const defBreakHEl = document.getElementById('set-default-break-hours');
+    const defBreakMEl = document.getElementById('set-default-break-minutes');
+    sets.defaultBreakHours = defBreakHEl && !isNaN(parseFloat(defBreakHEl.value)) ? parseFloat(defBreakHEl.value) : CONFIG.DEFAULT_BREAK_HOURS;
+    sets.defaultBreakMinutes = defBreakMEl && !isNaN(parseFloat(defBreakMEl.value)) ? parseFloat(defBreakMEl.value) : CONFIG.DEFAULT_BREAK_MINUTES;
     
     DB.save('taxi_v11_sets', sets);
     refreshCalc();
@@ -1133,7 +1138,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/15 15:42", // テスト用の日付時間
+    test: "10/27 11:10", // テスト用の日付時間
     prod: "3.2.8"       // Formally updated prod version
 };
 
@@ -1245,6 +1250,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (UI.get('set-cutoff-time')) UI.get('set-cutoff-time').value = setsInit.dayCutOffTime || "08:00";
     if (UI.get('set-standard-work-hours')) UI.get('set-standard-work-hours').value = setsInit.standardWorkHours !== undefined ? setsInit.standardWorkHours : 19;
     if (UI.get('set-standard-work-minutes')) UI.get('set-standard-work-minutes').value = setsInit.standardWorkMinutes !== undefined ? setsInit.standardWorkMinutes : 40;
+    if (UI.get('set-default-break-hours')) UI.get('set-default-break-hours').value = setsInit.defaultBreakHours !== undefined ? setsInit.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS;
+    if (UI.get('set-default-break-minutes')) UI.get('set-default-break-minutes').value = setsInit.defaultBreakMinutes !== undefined ? setsInit.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES;
     refreshCalc();
     
     // 時給表示を最新化するためのタイマー（1分ごと）
@@ -1267,11 +1274,15 @@ function getSelectedDateStr() {
 function loadWorkState(dateStr) {
     const states = DB.load('taxi_v11_work_states', {});
     const sets = DB.load('taxi_v11_sets', { goal: 550000, days: 12, baseStartTime: "08:00", standardWorkHours: 19, standardWorkMinutes: 40 });
+    const defBreakH = sets.defaultBreakHours !== undefined ? sets.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS;
+    const defBreakM = sets.defaultBreakMinutes !== undefined ? sets.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES;
+    const defaultTotalBreak = Math.round(defBreakH * 60 + defBreakM);
+
     if (!states[dateStr]) {
         states[dateStr] = {
             startTime: sets.baseStartTime || "08:00",
             endTime: null,
-            breakMinutes: CONFIG.DEFAULT_BREAK_MINUTES,
+            breakMinutes: defaultTotalBreak,
             activeBreakStarted: null,
             breaks: [],
             targetType: "auto",

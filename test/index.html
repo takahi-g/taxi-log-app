@@ -308,12 +308,24 @@
                         </div>
                         <input type="time" id="set-cutoff-time" onchange="saveCalcSettings()" style="width:130px; text-align:right; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px 12px; border-radius:10px;">
                     </div>
-                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
                         <span style="font-weight: bold; font-size: 0.95rem;">標準乗務時間 (終業)</span>
                         <div style="display: flex; align-items: center; gap: 4px;">
                             <input type="number" id="set-standard-work-hours" oninput="saveCalcSettings()" style="width:60px; text-align:center; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px; border-radius:10px;">
                             <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted); margin-right:4px;">時間</span>
                             <input type="number" id="set-standard-work-minutes" oninput="saveCalcSettings()" style="width:60px; text-align:center; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px; border-radius:10px;">
+                            <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted);">分</span>
+                        </div>
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
+                        <div>
+                            <div style="font-weight: bold; font-size: 0.95rem;">デフォルト休憩時間</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted);">毎日の初期休憩・時給換算に自動反映</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <input type="number" id="set-default-break-hours" oninput="saveCalcSettings()" style="width:60px; text-align:center; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px; border-radius:10px;">
+                            <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted); margin-right:4px;">時間</span>
+                            <input type="number" id="set-default-break-minutes" oninput="saveCalcSettings()" style="width:60px; text-align:center; border:1px solid var(--border); font-size:1.1rem; font-weight:bold; color:white; background:#1c1c1e; outline:none; padding:8px; border-radius:10px;">
                             <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted);">分</span>
                         </div>
                     </div>
@@ -577,6 +589,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20261015_1542"></script>
+    <script src="app.js?v=20261027_1110"></script>
 </body>
 </html>
