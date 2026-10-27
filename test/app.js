@@ -379,9 +379,15 @@ function refreshCalc(isSave = false) {
     // 休憩時間表示の補足（自動按分中ならわかるように表示）
     if (dispBreakHoursSpan) {
         if (sets.autoBreakDeduction && autoBreakMinutes > recordedBreakMinutes) {
-            dispBreakHoursSpan.innerHTML = `<span style="color:var(--accent); font-weight:bold;">${(totalBreakMinutes / 60).toFixed(1)}h</span> <small style="font-size:0.7rem; color:var(--text-muted);">(自動按分)</small>`;
+            dispBreakHoursSpan.innerHTML = `<span style="color:var(--accent); font-weight:bold;">${(totalBreakMinutes / 60).toFixed(1)}h</span> <small style="font-size:0.7rem; color:var(--text-muted);">(自動按分: ${autoBreakMinutes}分)</small>`;
+            if (breakMinutesInput && document.activeElement !== breakMinutesInput) {
+                breakMinutesInput.value = totalBreakMinutes;
+            }
         } else {
             dispBreakHoursSpan.innerText = `${(totalBreakMinutes / 60).toFixed(1)}時間`;
+            if (breakMinutesInput && document.activeElement !== breakMinutesInput) {
+                breakMinutesInput.value = workState.breakMinutes;
+            }
         }
     }
     
@@ -406,6 +412,14 @@ function refreshCalc(isSave = false) {
 
     const dispHourlyNetStrong = document.getElementById('disp-hourly-net');
     const dispHourlyGrossSpan = document.getElementById('disp-hourly-gross');
+    const dispHourlyTitle = document.getElementById('disp-hourly-title');
+    if (dispHourlyTitle) {
+        if (sets.autoBreakDeduction && autoBreakMinutes > 0) {
+            dispHourlyTitle.innerHTML = `現在の時間売上 <span style="color:var(--accent); font-size:0.7rem; font-weight:bold;">(実働換算: -${autoBreakMinutes}分)</span>`;
+        } else {
+            dispHourlyTitle.innerText = "現在の時間売上";
+        }
+    }
     if (dispHourlyNetStrong) dispHourlyNetStrong.innerText = `¥${hourlyNet.toLocaleString()} /h`;
     if (dispHourlyGrossSpan) dispHourlyGrossSpan.innerText = `¥${hourlyGross.toLocaleString()} /h`;
 
@@ -1168,7 +1182,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/27 11:30", // テスト用の日付時間
+    test: "10/27 12:25", // テスト用の日付時間
     prod: "3.2.8"       // Formally updated prod version
 };
 
