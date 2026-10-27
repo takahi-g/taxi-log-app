@@ -1219,7 +1219,7 @@ function checkAndShowUpdateModal() {
         const detailsEl = document.getElementById('update-modal-details');
         if (titleEl && detailsEl) {
             titleEl.innerText = APP_UPDATE_INFO.title;
-            detailsEl.innerHTML = APP_UPDATE_INFO.details.map(d => `<div style="display:flex; gap:6px; align-items:flex-start;"><span>•</span><span>${d}</span></div>`).join('');
+            detailsEl.innerHTML = APP_UPDATE_INFO.details.map(d => `<div style="margin-bottom:8px; display:flex; gap:6px; align-items:flex-start;"><span>•</span><span>${d}</span></div>`).join('');
             UI.show('update-modal', true);
         }
     }
