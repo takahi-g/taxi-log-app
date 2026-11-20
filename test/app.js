@@ -333,13 +333,13 @@ function refreshCalc(isSave = false) {
             elapsedMinutes = Math.floor(diffMs / 60000);
         }
         
-        // 過去の日付、または22時間（1320分）を超える場合は設定された標準勤務時間を基準にする
-        // ※当日の乗務中（最大21時間＝1260分などの残業を含む）は現在時刻まで実稼働時間をカウント
+        // 過去の日付、または上限の21時間（1260分）を超える場合は設定された標準勤務時間を基準にする
+        // ※当日の乗務中（残業を含む上限21時間まで）は現在時刻まで実稼働時間をカウント
         const stdWorkHours = sets.standardWorkHours !== undefined ? sets.standardWorkHours : 19;
         const stdWorkMinutes = sets.standardWorkMinutes !== undefined ? sets.standardWorkMinutes : 40;
         const stdTotalMinutes = stdWorkHours * 60 + stdWorkMinutes;
         const isCurrentShift = (selectedDate === todayStr || selectedDate === shiftWorkDateStr);
-        if (elapsedMinutes > 1320 || !isCurrentShift) {
+        if (elapsedMinutes > 1260 || !isCurrentShift) {
             elapsedMinutes = stdTotalMinutes;
         }
     }
@@ -1235,7 +1235,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "11/20 14:40", // テスト用の日付時間
+    test: "11/20 14:42", // テスト用の日付時間
     prod: "3.3.0"       // Formally updated prod version
 };
 
