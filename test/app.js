@@ -1240,9 +1240,8 @@ function checkAndShowUpdateModal() {
         `;
     }
 
-    const isTestEnv = window.location.pathname.includes('/test/');
     const lastSeen = localStorage.getItem('taxi_last_seen_version');
-    if (isTestEnv || (!APP_UPDATE_INFO.silent && lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "20260717_1322" && lastSeen !== "20260717_1325")) {
+    if (!APP_UPDATE_INFO.silent && lastSeen !== APP_UPDATE_INFO.version && lastSeen !== "20260717_1322" && lastSeen !== "20260717_1325") {
         const titleEl = document.getElementById('update-modal-title');
         const detailsEl = document.getElementById('update-modal-details');
         if (titleEl && detailsEl) {
@@ -1259,7 +1258,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "11/20 14:52", // テスト用の日付時間
+    test: "11/20 14:55", // テスト用の日付時間
     prod: "3.3.0"       // Formally updated prod version
 };
 
