@@ -225,7 +225,7 @@
                 </div>
             </section>
 
-            <section class="card settings-card">
+            <section class="card settings-card" style="padding: 15px;">
                 <div class="card-header">
                     <h2>⚙️ 目標設定</h2>
                 </div>
@@ -329,26 +329,26 @@
                             <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted);">分</span>
                         </div>
                     </div>
-                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border);">
-                        <div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); gap: 12px;">
+                        <div style="flex: 1; min-width: 0;">
                             <div style="font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
                                 <span>☕ 休憩の自動配分モード</span>
                             </div>
                             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">乗務時間に応じて休憩を自動配分し実時給を算出</div>
                         </div>
-                        <label class="switch">
+                        <label class="switch" style="flex-shrink: 0;">
                             <input type="checkbox" id="set-auto-break-deduction" onchange="toggleAutoBreakDeduction(this.checked)">
                             <span class="slider"></span>
                         </label>
                     </div>
-                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
-                        <div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; gap: 12px;">
+                        <div style="flex: 1; min-width: 0;">
                             <div style="font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
                                 <span>⏱️ 残業時間の自動計算 (最大21時間)</span>
                             </div>
                             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">標準乗務時間を超えても最大21時間まで実働時間を加算</div>
                         </div>
-                        <label class="switch">
+                        <label class="switch" style="flex-shrink: 0;">
                             <input type="checkbox" id="set-auto-overtime-calc" onchange="toggleAutoOvertimeCalc(this.checked)">
                             <span class="slider"></span>
                         </label>
@@ -613,6 +613,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=20261120_1445"></script>
+    <script src="app.js?v=20261120_1452"></script>
 </body>
 </html>
