@@ -1258,7 +1258,7 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "11/20 14:59", // テスト用の日付時間
+    test: "11/20 15:05", // テスト用の日付時間
     prod: "3.3.0"       // Formally updated prod version
 };
 
@@ -1382,18 +1382,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // アップデート情報の確認・ポップアップ表示
     checkAndShowUpdateModal();
 });
-
-function handleReloadApp(btn) {
-    if (btn) {
-        btn.style.transform = 'rotate(360deg)';
-        btn.style.transition = 'transform 0.5s ease';
-    }
-    setTimeout(() => {
-        const url = new URL(window.location.href);
-        url.searchParams.set('t', Date.now());
-        window.location.href = url.toString();
-    }, 150);
-}
 
 function clearData() { if (confirm("すべての設定および履歴データを完全に消去しますか？")) { localStorage.clear(); location.reload(); } }
 
