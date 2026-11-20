@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>TAXI Log Pro</title>
-    <link rel="stylesheet" href="style.css?v=3.3.0">
+    <link rel="stylesheet" href="style.css?v=3.3.1">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" type="image/png" href="icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,12 +21,12 @@
             <h1>TAXI Log <span>Pro</span></h1>
         </div>
         <div class="header-right" style="display: flex; align-items: center; gap: 10px; justify-content: flex-end;">
-            <button onclick="location.reload()" style="background: none; border: none; color: var(--text-muted); padding: 6px; display: inline-flex; align-items: center; justify-content: center; opacity: 0.5; transition: opacity 0.2s, transform 0.2s; cursor: pointer; -webkit-tap-highlight-color: transparent;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5" onmousedown="this.style.transform='scale(0.85)'" onmouseup="this.style.transform='scale(1)'" title="再読み込み">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <button onclick="handleAppReload(this)" style="background: none; border: none; color: var(--text-muted); padding: 6px; display: inline-flex; align-items: center; justify-content: center; opacity: 0.5; transition: opacity 0.2s, transform 0.4s; cursor: pointer; -webkit-tap-highlight-color: transparent;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.5" title="再読み込み">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display: block; pointer-events: none;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
             </button>
-            <div style="text-align: right;">
-                <div id="live-clock" class="live-clock">--:--:--</div>
-                <div class="app-version">Ver: 3.3.0</div>
+            <div style="text-align: right; min-width: 78px;">
+                <div id="live-clock" class="live-clock" style="font-variant-numeric: tabular-nums;">--:--:--</div>
+                <div class="app-version">Ver: 3.3.1</div>
             </div>
         </div>
     </header>
@@ -225,7 +225,7 @@
                 </div>
             </section>
 
-            <section class="card settings-card">
+            <section class="card settings-card" style="padding: 15px;">
                 <div class="card-header">
                     <h2>⚙️ 目標設定</h2>
                 </div>
@@ -329,15 +329,27 @@
                             <span style="font-size:0.85rem; font-weight:bold; color:var(--text-muted);">分</span>
                         </div>
                     </div>
-                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0;">
-                        <div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); gap: 12px;">
+                        <div style="flex: 1; min-width: 0;">
                             <div style="font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
                                 <span>☕ 休憩の自動配分モード</span>
                             </div>
                             <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">乗務時間に応じて休憩を自動配分し実時給を算出</div>
                         </div>
-                        <label class="switch">
+                        <label class="switch" style="flex-shrink: 0;">
                             <input type="checkbox" id="set-auto-break-deduction" onchange="toggleAutoBreakDeduction(this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px 0; gap: 12px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                                <span>⏱️ 残業時間の自動計算 (最大21時間)</span>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">標準乗務時間を超えても最大21時間まで実働時間を加算</div>
+                        </div>
+                        <label class="switch" style="flex-shrink: 0;">
+                            <input type="checkbox" id="set-auto-overtime-calc" onchange="toggleAutoOvertimeCalc(this.checked)">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -601,6 +613,6 @@
         </nav>
     </footer>
 
-    <script src="app.js?v=3.3.0"></script>
+    <script src="app.js?v=3.3.1"></script>
 </body>
 </html>

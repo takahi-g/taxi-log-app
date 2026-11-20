@@ -170,6 +170,7 @@ function refreshCalc(isSave = false) {
     const workedCount = workedDates.length;
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const shiftWorkDateStr = getShiftWorkDate(now);
     const goalType = getDayGoalType(selectedDate);
     
     let todayTargetNet = mSets.weekdayGoal !== undefined ? mSets.weekdayGoal : 40000;
@@ -332,11 +333,15 @@ function refreshCalc(isSave = false) {
             elapsedMinutes = Math.floor(diffMs / 60000);
         }
         
-        // 過去の日付、または22時間を超える場合は設定された標準勤務時間を基準にする
+        // 過去の日付、または標準勤務時間/残業上限を超える場合は設定された標準勤務時間を基準にする
         const stdWorkHours = sets.standardWorkHours !== undefined ? sets.standardWorkHours : 19;
         const stdWorkMinutes = sets.standardWorkMinutes !== undefined ? sets.standardWorkMinutes : 40;
         const stdTotalMinutes = stdWorkHours * 60 + stdWorkMinutes;
-        if (elapsedMinutes > 1320 || selectedDate !== todayStr) {
+        const isCurrentShift = (selectedDate === todayStr || selectedDate === shiftWorkDateStr);
+        const allowOvertime = sets.autoOvertimeCalc === true;
+        const maxLimitMinutes = allowOvertime ? 1260 : stdTotalMinutes; // 残業自動加算ONなら21時間(1260分)、OFFなら標準時間(19h40m)
+
+        if (elapsedMinutes > maxLimitMinutes || !isCurrentShift) {
             elapsedMinutes = stdTotalMinutes;
         }
     }
@@ -919,6 +924,23 @@ function toggleAutoBreakDeduction(checked) {
     }
 }
 
+function toggleAutoOvertimeCalc(checked) {
+    try {
+        const sets = DB.load('taxi_v11_sets', {
+            goal: CONFIG.DEFAULT_GOAL,
+            days: CONFIG.DEFAULT_DAYS,
+            baseStartTime: CONFIG.DEFAULT_START_TIME,
+            standardWorkHours: CONFIG.DEFAULT_STANDARD_WORK_HOURS,
+            standardWorkMinutes: CONFIG.DEFAULT_STANDARD_WORK_MINUTES
+        });
+        sets.autoOvertimeCalc = !!checked;
+        DB.save('taxi_v11_sets', sets);
+        refreshCalc();
+    } catch (e) {
+        console.error('Failed to toggle auto overtime calc:', e);
+    }
+}
+
 function saveCalcSettings() {
     try {
         const sets = DB.load('taxi_v11_sets', {
@@ -980,6 +1002,11 @@ function saveCalcSettings() {
         const autoBreakEl = document.getElementById('set-auto-break-deduction');
         if (autoBreakEl) {
             sets.autoBreakDeduction = autoBreakEl.checked;
+        }
+
+        const autoOvertimeEl = document.getElementById('set-auto-overtime-calc');
+        if (autoOvertimeEl) {
+            sets.autoOvertimeCalc = autoOvertimeEl.checked;
         }
         
         DB.save('taxi_v11_sets', sets);
@@ -1115,15 +1142,22 @@ function closeHelpModal() {
 }
 
 const APP_UPDATE_INFO = {
-    version: "3.3.0",
-    date: "3.3.0 (2026/10/27)",
-    title: "🎉 アップデートのお知らせ (Ver: 3.3.0 - 2026/10/27)",
-    silent: false, // ポップアップを表示
+    version: "3.3.1",
+    date: "3.3.1 (2026/11/20)",
+    title: "🎉 アップデートのお知らせ (Ver: 3.3.1 - 2026/11/20)",
+    silent: true, // ポップアップは表示しない（カードのみに表示）
     details: [
-        "☕ 【新機能】休憩の自動配分モードを追加！休憩の手入力や計測が面倒な方用に、標準乗務時間（19時間40分）の経過に合わせて自動で3時間になるよう休憩時間を少しずつ差し引き、リアルタイムに実稼働時給を計算・表示できるようになりました。",
-        "⚙️ 【簡単切り替え】『設定』タブの『☕ 休憩の自動配分モード』からいつでもON/OFFを切り替えられます（※初期状態はOFFです）。休憩予定時間や乗務時間もお好みに合わせて調整可能です。"
+        "⏱️ 【新機能】残業時間の自動計算（最大21時間）に対応！標準乗務時間（19時間40分）を超えて残業する場合でも、最大21時間（法令・就業規則上限）までリアルタイムに実稼働時間と時給をカウントアップできるようになりました。",
+        "⚙️ 【オン/オフ設定】『設定』タブに『⏱️ 残業時間の自動計算 (最大21時間)』スイッチを追加しました（初期状態はOFFです。従来通り19時間40分でストップしたい場合はOFFのままお使いいただけます）。"
     ],
     history: [
+        {
+            date: "3.3.0 (2026/10/27)",
+            details: [
+                "☕ 【新機能】休憩の自動配分モードを追加！休憩の手入力や計測が面倒な方用に、標準乗務時間（19時間40分）の経過に合わせて自動で3時間になるよう休憩時間を少しずつ差し引き、リアルタイムに実稼働時給を計算・表示できるようになりました。",
+                "⚙️ 【簡単切り替え】『設定』タブの『☕ 休憩の自動配分モード』からいつでもON/OFFを切り替えられます（※初期状態はOFFです）。休憩予定時間や乗務時間もお好みに合わせて調整可能です。"
+            ]
+        },
         {
             date: "3.2.8",
             details: [
@@ -1231,8 +1265,8 @@ function confirmUpdateViewed() {
 }
 
 const APP_VERSION_INFO = {
-    test: "10/27 16:35", // テスト用の日付時間
-    prod: "3.3.0"       // Formally updated prod version
+    test: "11/20 15:18", // テスト用の日付時間
+    prod: "3.3.1"       // Formally updated prod version
 };
 
 function applyEnvironmentBranding() {
@@ -1346,6 +1380,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (UI.get('set-default-break-hours')) UI.get('set-default-break-hours').value = setsInit.defaultBreakHours !== undefined ? setsInit.defaultBreakHours : CONFIG.DEFAULT_BREAK_HOURS;
     if (UI.get('set-default-break-minutes')) UI.get('set-default-break-minutes').value = setsInit.defaultBreakMinutes !== undefined ? setsInit.defaultBreakMinutes : CONFIG.DEFAULT_BREAK_MINUTES;
     if (UI.get('set-auto-break-deduction')) UI.get('set-auto-break-deduction').checked = setsInit.autoBreakDeduction === true;
+    if (UI.get('set-auto-overtime-calc')) UI.get('set-auto-overtime-calc').checked = setsInit.autoOvertimeCalc === true;
     refreshCalc();
     
     // 時給表示を最新化するためのタイマー（1分ごと）
@@ -1354,6 +1389,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // アップデート情報の確認・ポップアップ表示
     checkAndShowUpdateModal();
 });
+
+function handleAppReload(btn) {
+    if (btn) {
+        btn.style.transition = 'transform 0.4s ease';
+        btn.style.transform = 'rotate(360deg)';
+    }
+    setTimeout(() => {
+        location.reload();
+    }, 250);
+}
 
 function clearData() { if (confirm("すべての設定および履歴データを完全に消去しますか？")) { localStorage.clear(); location.reload(); } }
 
